@@ -1,0 +1,42 @@
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import Dashboard from "../pages/Dashboard";
+import TasksPage from "../pages/TasksPage";
+import CreateTaskPage from "../pages/CreateTaskPage";
+import TeamPage from "../pages/TeamPage";
+import SettingsPage from "../pages/SettingsPage";
+import InvitationsPage from "../pages/InvitationsPage";
+import ProtectedRoute from "../components/ProtectedRoute";
+import DashboardLayout from "../layouts/DashboardLayout";
+import { ProjectProvider } from "../context/ProjectContext";
+
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
+
+export const router = createBrowserRouter([
+    { path: "/", element: <Navigate to="/app/v1/login" replace /> },
+    { path: "/app/v1/login", element: <Login /> },
+    { path: "/app/v1/register", element: <Register /> },
+    { path: "/app/v1/forgot-password", element: <ForgotPassword /> },
+    { path: "/app/v1/reset-password", element: <ResetPassword /> },
+    {
+        path: "/app/v1",
+        element: (
+            <ProtectedRoute>
+                <ProjectProvider>
+                    <DashboardLayout />
+                </ProjectProvider>
+            </ProtectedRoute>
+        ),
+        children: [
+            { index: true, element: <Navigate to="/app/v1/dashboard" replace /> },
+            { path: "dashboard", element: <Dashboard /> },
+            { path: "tasks", element: <TasksPage /> },
+            { path: "tasks/new", element: <CreateTaskPage /> },
+            { path: "team", element: <TeamPage /> },
+            { path: "invitations", element: <InvitationsPage /> },
+            { path: "settings", element: <SettingsPage /> },
+        ]
+    },
+]);
