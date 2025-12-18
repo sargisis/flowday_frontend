@@ -49,12 +49,6 @@ Flowday is a modern, collaborative platform designed to streamline project manag
 ## 📁 Project Structure
 
 ```text
-.
-├── Flowday/           # Backend (Go)
-│   ├── flowday/
-│   │   ├── internal/  # Business logic (Handlers, Services, Models)
-│   │   └── server/    # Entry point
-│   └── ...
 ├── frontend/          # Frontend (React)
 │   ├── src/
 │   │   ├── api/       # API integration layers
