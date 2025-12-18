@@ -76,20 +76,6 @@ Flowday is a modern, collaborative platform designed to streamline project manag
 
 ### Environment Configuration
 
-Create a `.env` file in `Flowday/flowday/` with the following variables:
-
-```env
-PORT=8080
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_super_secret_key
-
-# Email Settings (SMTP)
-SMTP_EMAIL=your_email@domain.com
-SMTP_PASSWORD=your_app_specific_password
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-```
-
 ### Running the Application
 
 1. **Start the Backend:**
