@@ -13,6 +13,7 @@ import { ProjectProvider } from "../context/ProjectContext";
 
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import FocusMode from "../pages/FocusMode";
 
 export const router = createBrowserRouter([
     { path: "/", element: <Navigate to="/app/v1/login" replace /> },
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
             { path: "team", element: <TeamPage /> },
             { path: "invitations", element: <InvitationsPage /> },
             { path: "settings", element: <SettingsPage /> },
+            { path: "focus/:taskId", element: <FocusMode /> },
         ]
     },
 ]);

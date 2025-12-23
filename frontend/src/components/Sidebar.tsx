@@ -2,6 +2,15 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { createProject } from "../api/projects";
 import { useProject } from "../context/ProjectContext";
+import {
+    LayoutDashboard,
+    CheckSquare,
+    Users,
+    Mail,
+    Settings,
+    Plus,
+    Hexagon
+} from "lucide-react";
 
 export default function Sidebar() {
     const { projects, activeProjectId, setActiveProjectId, refreshProjects } = useProject();
@@ -22,47 +31,41 @@ export default function Sidebar() {
     };
 
     const navItems = [
-        { label: "Dashboard", path: "/app/v1/dashboard" },
-        { label: "Tasks", path: "/app/v1/tasks" },
-        { label: "Team", path: "/app/v1/team" },
-        { label: "Invitations", path: "/app/v1/invitations" },
-        { label: "Settings", path: "/app/v1/settings" },
+        { label: "Dashboard", path: "/app/v1/dashboard", icon: LayoutDashboard },
+        { label: "My Tasks", path: "/app/v1/tasks", icon: CheckSquare },
+        { label: "Team", path: "/app/v1/team", icon: Users },
+        { label: "Invitations", path: "/app/v1/invitations", icon: Mail },
+        { label: "Settings", path: "/app/v1/settings", icon: Settings },
     ];
 
     return (
-        <aside className="card" style={{ width: 260, height: "calc(100vh - var(--space-lg) * 2)", display: "flex", flexDirection: "column", padding: "var(--space-md)", position: "sticky", top: "var(--space-lg)" }}>
+        <aside className="sidebar-container">
             {/* Brand Header */}
-            <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text-main)", marginBottom: "2rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span style={{ color: "var(--primary)" }}>✦</span> flowday
-            </h1>
+            <div className="app-logo">
+                <Hexagon className="logo-icon" size={28} strokeWidth={2.5} />
+                <span>Flowday</span>
+            </div>
 
             {/* Main Navigation */}
-            <nav style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "2rem" }}>
+            <h4 className="nav-section-title">Menu</h4>
+            <nav style={{ display: "flex", flexDirection: "column" }}>
                 {navItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
-                        className={({ isActive }) => (isActive ? "active-nav" : "")}
-                        style={({ isActive }) => ({
-                            textDecoration: "none",
-                            padding: "0.6rem 0.8rem",
-                            borderRadius: "var(--radius-md)",
-                            color: isActive ? "var(--text-main)" : "var(--text-muted)",
-                            background: isActive ? "rgba(255,255,255,0.1)" : "transparent",
-                            fontWeight: isActive ? 600 : 400,
-                            display: "flex",
-                            alignItems: "center",
-                            transition: "all 0.2s"
-                        })}
+                        className={({ isActive }) =>
+                            `nav-item ${isActive ? "active-nav" : ""} `
+                        }
                     >
-                        {item.label}
+                        <item.icon className="nav-icon" />
+                        <span>{item.label}</span>
                     </NavLink>
                 ))}
             </nav>
 
             {/* Projects List */}
-            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "var(--space-xs)" }}>
-                <h4 style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: "0.5rem", letterSpacing: "0.05em" }}>
+            <div className="project-list">
+                <h4 className="nav-section-title" style={{ marginTop: "1.5rem" }}>
                     Projects
                 </h4>
 
@@ -70,19 +73,12 @@ export default function Sidebar() {
                     <div
                         key={p.id}
                         onClick={() => setActiveProjectId(p.id)}
-                        style={{
-                            cursor: "pointer",
-                            padding: "0.6rem 0.8rem",
-                            borderRadius: "var(--radius-md)",
-                            background: p.id === activeProjectId ? "var(--bg-card-hover)" : "transparent",
-                            color: p.id === activeProjectId ? "var(--text-main)" : "var(--text-muted)",
-                            fontWeight: p.id === activeProjectId ? 500 : 400,
-                            fontSize: "0.9rem",
-                            border: `1px solid ${p.id === activeProjectId ? "var(--border-active)" : "transparent"}`,
-                            transition: "all 0.15s"
-                        }}
+                        className={`project-item ${p.id === activeProjectId ? "active-project" : ""} `}
                     >
-                        {p.name}
+                        <div className="project-color-dot" />
+                        <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {p.name}
+                        </span>
                     </div>
                 ))}
 
@@ -101,23 +97,10 @@ export default function Sidebar() {
                 ) : (
                     <button
                         onClick={() => setIsCreating(true)}
-                        style={{
-                            marginTop: "0.5rem",
-                            background: "transparent",
-                            border: "1px dashed var(--border)",
-                            color: "var(--text-muted)",
-                            padding: "0.6rem",
-                            borderRadius: "var(--radius-md)",
-                            cursor: "pointer",
-                            textAlign: "left",
-                            fontSize: "0.85rem",
-                            width: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem"
-                        }}
+                        className="create-project-btn"
                     >
-                        + Create New Project
+                        <Plus size={16} />
+                        <span>Create Project</span>
                     </button>
                 )}
             </div>

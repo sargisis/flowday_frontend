@@ -6,15 +6,10 @@ export default function CreateTaskForm() {
     return (
         <button
             onClick={() => navigate("/app/v1/tasks/new")}
-            className="btn"
-            style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-                fontSize: "0.9rem"
-            }}
+            className="btn-add-task"
         >
-            <span style={{ fontSize: "1.2rem" }}>+</span> Add Task
+            <span>Add Task</span>
+            <span className="shortcut-key">C</span>
         </button>
     );
 }
