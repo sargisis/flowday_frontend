@@ -25,7 +25,13 @@ export default function ForgotPassword() {
     };
 
     return (
-        <div className="center-container">
+        <div style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem"
+        }}>
             <div className="card" style={{ width: "100%", maxWidth: "400px" }}>
                 <h2 style={{ textAlign: "center", marginBottom: "1rem" }}>Forgot Password</h2>
                 <p style={{ textAlign: "center", color: "var(--text-muted)", marginBottom: "2rem" }}>
@@ -54,7 +60,6 @@ export default function ForgotPassword() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            placeholder="you@example.com"
                             style={{ width: "100%" }}
                         />
                     </div>

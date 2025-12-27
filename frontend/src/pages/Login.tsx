@@ -15,8 +15,8 @@ export default function Login() {
             localStorage.setItem("token", data.token);
 
             // Redirect to the page they were trying to access, or dashboard
-            const from = (location.state as any)?.from?.pathname || "/app/v1/dashboard";
-            navigate(from, { replace: true });
+            const from = location.state?.from?.pathname || "/app/v1/dashboard";
+            navigate(from);
         } catch (error: any) {
             alert(error.response?.data?.error || "Login failed. Please check your credentials.");
         }

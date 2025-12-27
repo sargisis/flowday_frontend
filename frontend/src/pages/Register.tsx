@@ -11,9 +11,6 @@ export default function Register() {
         e.preventDefault();
         try {
             await register(email, password);
-            // Automatically log in after registration
-            const data = await login(email, password);
-            localStorage.setItem("token", data.token);
             navigate("/app/v1/login");
         } catch (error: any) {
             alert(error.response?.data?.error || "Registration failed");

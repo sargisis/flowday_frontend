@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { type Task, updateTask, deleteTask } from "../api/tasks";
 import { useNavigate } from "react-router-dom";
+import { Maximize2 } from "lucide-react";
 import StatusSelector from "./StatusSelector";
 
 interface TaskItemProps {
@@ -10,6 +12,12 @@ interface TaskItemProps {
 
 export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
     const navigate = useNavigate();
+    const [optimisticStatus, setOptimisticStatus] = useState(task.status);
+
+    // Sync optimistic state if parent updates (e.g. initial load or other user changes)
+    useEffect(() => {
+        setOptimisticStatus(task.status);
+    }, [task.status]);
 
     const handleDelete = async () => {
         if (window.confirm("Are you sure you want to delete this task?")) {
@@ -45,20 +53,38 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
             {/* Status Column */}
             <div className="-ml-2">
                 <StatusSelector
-                    currentStatus={task.status}
+                    currentStatus={optimisticStatus}
                     onStatusChange={async (newStatus) => {
+                        const previousStatus = optimisticStatus;
+                        // 1. Optimistic Update
+                        setOptimisticStatus(newStatus);
+
                         try {
+                            // 2. API Call in background
                             await updateTask(task.id, { status: newStatus });
+                            // 3. Sync with parent (optional, but good for consistency)
                             onUpdate();
                         } catch {
+                            // 4. Rollback on failure
+                            setOptimisticStatus(previousStatus);
                             alert("Failed to update status");
                         }
                     }}
                 />
             </div>
 
+
             {/* Actions Column */}
             <div className="task-actions">
+                {/* New Focus Mode Button */}
+                <button
+                    className="action-btn view"
+                    onClick={() => navigate(`/app/v1/focus/${task.id}`)}
+                    title="Enter Focus Mode"
+                >
+                    <Maximize2 size={16} />
+                </button>
+
                 {/* View Description Button (Only if description exists) */}
                 {task.description && (
                     <button

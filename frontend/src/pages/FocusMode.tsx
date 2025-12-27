@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Play, Pause, RotateCcw, ArrowLeft, Maximize2, Headphones, Volume2 } from "lucide-react";
 import api from "../api/axios";
 import type { Task } from "../api/tasks";
+import "./FocusMode.css";
+import { focusAudio } from "../utils/audioEngine";
 
 export default function FocusMode() {
     const { taskId } = useParams();
@@ -10,13 +13,25 @@ export default function FocusMode() {
     const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
     const [isActive, setIsActive] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [audioActive, setAudioActive] = useState(false);
+
+    const toggleAudio = () => {
+        const isNowPlaying = focusAudio.toggle();
+        setAudioActive(isNowPlaying);
+    };
+
+    // Stop audio when unmounting
+    useEffect(() => {
+        return () => {
+            focusAudio.stop();
+        };
+    }, []);
 
     useEffect(() => {
         async function fetchTask() {
             try {
-                // Ideally this should be api.get(\`/tasks/\${taskId}\`)
-                // We default to a catch-all for now if endpoint varies
-                const res = await api.get(`/tasks/${taskId}`);
+                if (!taskId) return;
+                const res = await api.get(`/tasks/ids/${taskId}`);
                 setTask(res.data);
             } catch (err) {
                 console.error("Failed to fetch task", err);
@@ -26,6 +41,8 @@ export default function FocusMode() {
         }
         if (taskId) {
             fetchTask();
+        } else {
+            setLoading(false);
         }
     }, [taskId]);
 
@@ -37,6 +54,7 @@ export default function FocusMode() {
             }, 1000);
         } else if (timeLeft === 0) {
             setIsActive(false);
+            // Optional: Play a sound here
         }
         return () => clearInterval(interval);
     }, [isActive, timeLeft]);
@@ -50,110 +68,84 @@ export default function FocusMode() {
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
-        return `${mins.toString().padStart(2, "0")}: ${secs.toString().padStart(2, "0")}`;
+        return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     };
 
-    if (loading) return <div className="p-8 text-center text-white">Loading Focus Mode...</div>;
+    if (loading) return <div className="focus-container">Loading...</div>;
 
     return (
-        <div style={{
-            height: "100vh",
-            width: "100vw",
-            background: "#0f0f13",
-            color: "#fff",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            zIndex: 9999
-        }}>
-            <button
-                onClick={() => navigate(-1)}
-                style={{
-                    position: "absolute",
-                    top: "2rem",
-                    left: "2rem",
-                    background: "transparent",
-                    border: "none",
-                    color: "rgba(255,255,255,0.5)",
-                    cursor: "pointer",
-                    fontSize: "1rem"
-                }}
-            >
-                ← Exit Focus
+        <div className="focus-container">
+            {/* Ambient Background */}
+            <div
+                className="focus-bg-orb"
+                style={{ width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%)', top: '10%', right: '20%' }}
+            />
+            <div
+                className="focus-bg-orb"
+                style={{ width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)', bottom: '10%', left: '15%', animationDelay: '-5s' }}
+            />
+
+            <button onClick={() => navigate(-1)} className="focus-exit-btn">
+                <ArrowLeft size={18} />
+                Exit Focus
             </button>
 
-            <div style={{ textAlign: "center", maxWidth: "600px", padding: "2rem" }}>
-                <h2 style={{
-                    fontSize: "2.5rem",
-                    marginBottom: "1rem",
-                    background: "linear-gradient(90deg, #a78bfa, #f472b6)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent"
-                }}>
-                    {task?.title || "Deep Work Session"}
-                </h2>
+            <div className="focus-content">
+                <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        background: 'rgba(255,255,255,0.1)',
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '20px',
+                        fontSize: '0.8rem',
+                        color: '#ddd',
+                        marginBottom: '1rem'
+                    }}>
+                        <Maximize2 size={12} />
+                        <span>IMMERSIVE MODE</span>
+                    </div>
+                    <h2 className="focus-task-title">
+                        {task?.title || "Deep Work Session"}
+                    </h2>
+                    {task?.description && (
+                        <p style={{ color: 'rgba(255,255,255,0.5)', maxWidth: '600px', margin: '0 auto' }}>
+                            {task.description}
+                        </p>
+                    )}
+                </div>
 
-                <div style={{
-                    fontSize: "8rem",
-                    fontWeight: "bold",
-                    fontVariantNumeric: "tabular-nums",
-                    lineHeight: 1,
-                    margin: "2rem 0",
-                    textShadow: "0 0 40px rgba(167, 139, 250, 0.3)"
-                }}>
+                <div className={`focus-timer-display ${isActive ? 'timer-active' : 'timer-paused'}`}>
                     {formatTime(timeLeft)}
                 </div>
 
-                <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+                <div className="focus-controls">
                     <button
-                        onClick={toggleTimer}
-                        style={{
-                            padding: "1rem 3rem",
-                            fontSize: "1.2rem",
-                            borderRadius: "99px",
-                            border: "none",
-                            background: isActive ? "rgba(255,255,255,0.1)" : "#8b5cf6",
-                            color: "#fff",
-                            cursor: "pointer",
-                            transition: "all 0.2s"
-                        }}
+                        className={`btn-focus-secondary ${audioActive ? 'active-audio' : ''}`}
+                        onClick={toggleAudio}
+                        title="Focus Sound (Brown Noise)"
                     >
-                        {isActive ? "Pause" : "Start Focus"}
+                        {audioActive ? <Volume2 size={20} /> : <Headphones size={20} />}
                     </button>
 
-                    <button
-                        onClick={resetTimer}
-                        style={{
-                            padding: "1rem",
-                            borderRadius: "50%",
-                            border: "1px solid rgba(255,255,255,0.2)",
-                            background: "transparent",
-                            color: "rgba(255,255,255,0.5)",
-                            cursor: "pointer",
-                            width: "3.5rem",
-                            height: "3.5rem",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                        }}
-                        title="Reset Timer"
-                    >
-                        ↻
+                    <button className="btn-focus-secondary" onClick={resetTimer} title="Reset">
+                        <RotateCcw size={20} />
                     </button>
+
+                    <button className="btn-focus-primary" onClick={toggleTimer}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            {isActive ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}
+                            <span>{isActive ? "Pause Focus" : "Start Focus"}</span>
+                        </div>
+                    </button>
+
+                    {/* Placeholder for future specific focus blockers or music controls */}
                 </div>
             </div>
 
-            <p style={{
-                position: "absolute",
-                bottom: "2rem",
-                color: "rgba(255,255,255,0.3)",
-                fontSize: "0.9rem"
-            }}>
-                Flowday Zen Mode
+            <p style={{ position: 'absolute', bottom: '2rem', opacity: 0.3, letterSpacing: '0.05em', fontSize: '0.8rem' }}>
+                "The secret of future is hidden in your daily routine."
             </p>
         </div>
     );

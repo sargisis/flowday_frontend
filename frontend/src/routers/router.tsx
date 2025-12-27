@@ -14,9 +14,11 @@ import { ProjectProvider } from "../context/ProjectContext";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import FocusMode from "../pages/FocusMode";
+import LandingPage from "../pages/LandingPage";
 
 export const router = createBrowserRouter([
-    { path: "/", element: <Navigate to="/app/v1/login" replace /> },
+    { path: "/", element: <LandingPage /> },
+    { path: "/app/v1", element: <Navigate to="/app/v1/dashboard" replace /> },
     { path: "/app/v1/login", element: <Login /> },
     { path: "/app/v1/register", element: <Register /> },
     { path: "/app/v1/forgot-password", element: <ForgotPassword /> },
@@ -38,7 +40,15 @@ export const router = createBrowserRouter([
             { path: "team", element: <TeamPage /> },
             { path: "invitations", element: <InvitationsPage /> },
             { path: "settings", element: <SettingsPage /> },
-            { path: "focus/:taskId", element: <FocusMode /> },
         ]
     },
+    {
+        path: "/app/v1/focus/:taskId",
+        element: (
+            <ProtectedRoute>
+                <FocusMode />
+            </ProtectedRoute>
+        )
+    },
+
 ]);
