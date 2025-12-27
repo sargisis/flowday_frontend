@@ -1,97 +1,107 @@
-# Flowday - Smart Project & Task Management
+# Flowday - Flow State OS
 
-Flowday is a modern, collaborative platform designed to streamline project management and task tracking. This repository contains both the **React Frontend** and the **Go Backend**.
+**Flowday** is more than a project management tool—it is an **Operating System for Deep Work**. Designed to remove friction and help you manage your attention, not just your tasks.
 
 > [!NOTE]  
-> This project is currently in **pre-v1** status. Many core features are implemented, but refinement and final stabilizing work are ongoing.
+> This project is currently in **Beta (Pre-v1)**. Core flows are stable, but we are actively refining the "Deep Work" features.
 
 ---
 
-## 🚀 Key Features
+## 🧠 Core Philosophy: The Flow State
 
-### 🔐 Authentication & Security
-- Secure **JWT-based Authentication**.
-- **User Registration & Login** with password hashing (bcrypt).
-- **Password Reset** flow via email notifications.
-- **Protected Routes** ensuring project data is only accessible to authorized members.
+Most tools distract you with notifications and clutter. Flowday is designed to **disappear**, allowing you to enter a state of deep focus.
 
-### 📁 Project Management
-- Create, manage, and track multiple projects.
-- **Ownership Control:** Projects are managed by owners who can invite/remove members.
-- **Team Management:** Seamless invitation system (GitHub style).
-- **Email Notifications:** Automatic emails for invitations, acceptance, and rejection.
+### 🌟 Key Experience Features
 
-### 📝 Task Tracking
-- **Detailed Tasks:** Add descriptions, set statuses (Pending, In Progress, Completed).
-- **Calendar Integration:** View your tasks organized by date.
-- **Real-time Statistics:** Visual dashboard showing task progress and project metrics.
+#### 🧘 Daily Ritual
+- **Intention Setting:** Start your day with a guided morning ritual.
+- **Commitment:** Select 1-3 critical tasks to conquer. "Inbox Zero" for your mind before you start.
+
+#### ⚡ Focus Mode
+- **Immersive Interface:** Enter a distraction-free full-screen environment for a specific task.
+- **Neuro-Audio Engine:** Built-in **Brown Noise** generator to mask distractions and improve concentration.
+- **Pomodoro Timer:** Integrated 25-minute deep work cycles.
+
+#### � Visual Intelligence
+- **Glassmorphism UI:** A premium, modern dark-mode aesthetic that feels calm and professional.
+- **Real-time Specs:** Dashboard with progress tracking, flow scores, and activity trends.
 
 ---
 
-## 🛠 Tech Stack
+## 🚀 Standard Features
+
+### 🔐 Security & Identity
+- **JWT Authentication:** Secure login/registration sessions.
+- **Team Invitations:** GitHub-style invitation system with email notifications.
+- **Role Control:** Project owners manage access and permissions.
+
+### � Project & Task Management
+- **Projects:** Organize work into dedicated workspaces.
+- **Tasks:** Rich task details, status tracking (Todo, In Progress, Done).
+- **Calendar:** Unified view of deadlines and schedules.
+
+---
+
+## 🛠 Technology Stack
 
 ### Frontend
-- **Framework:** React 18 with Vite
+- **Framework:** React 18 + Vite
 - **Language:** TypeScript
-- **Styling:** Vanilla CSS (Modern custom design system)
-- **State/Routing:** React Router v6, Context API for project/auth state
-- **API Client:** Axios
+- **Styling:** Vanilla CSS (Custom Design System with Variables & Glassmorphism)
+- **Audio:** Web Audio API (Custom Audio Engine)
+- **State:** React Context + Hooks
 
 ### Backend
 - **Language:** Go (Golang)
-- **Web Framework:** Gin
-- **Database:** MongoDB (using official Go driver)
-- **Email:** Native SMTP integration
-- **Auth:** JWT (Golang JWT v5)
+- **Framework:** Gin Web Framework
+- **Database:** MongoDB (Official Driver)
+- **Auth:** JWT v5 + Bcrypt
+- **Email:** Native SMTP
 
 ---
 
-## 📁 Project Structure
-
-```text
-├── frontend/          # Frontend (React)
-│   ├── src/
-│   │   ├── api/       # API integration layers
-│   │   ├── components/# Reusable UI components
-│   │   ├── context/   # React Contexts (Auth, Project)
-│   │   └── pages/     # Main page views
-│   └── ...
-└── ...
-```
-
----
-
-## ⚙️ Setup & Installation
+## ⚙️ Quick Start
 
 ### Prerequisites
 - [Go 1.21+](https://go.dev/)
 - [Node.js 18+](https://nodejs.org/)
-- [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or local MongoDB instance
+- [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) or local instance.
 
-### Environment Configuration
+### Installation
 
-### Running the Application
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/sargisis/flowday_frontend.git
+   ```
 
-1. **Start the Backend:**
+2. **Start the Backend:**
    ```bash
    cd Flowday/flowday
+   # Create a .env file based on .env.example (if available)
    go run ./server
    ```
 
-2. **Start the Frontend:**
+3. **Start the Frontend:**
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
 
+The app will be available at `http://localhost:5173` (Frontend) and `http://localhost:8080` (Backend API).
+
 ---
 
-## 📈 Roadmap (Pre-v1)
-- [x] Core Authentication
-- [x] Project and Task CRUD
-- [x] Team Invitation System
-- [x] Calendar View
-- [ ] Drag-and-drop Task Kanban
-- [ ] Real-time Collaboration (WebSockets)
-- [ ] Advanced Dashboard Analytics
+## 📈 Roadmap
+- [x] **Focus Mode (v1):** Timer & Audio
+- [x] **Daily Ritual:** Morning planning flow
+- [x] **New Branding:** "Flow State OS"
+- [ ] **Advanced Analytics:** usage heatmaps & "Flow Score" calculation
+- [ ] **Team Chat:** Real-time collaboration updates
+- [ ] **Mobile Support:** Responsive layouts for phone/tablet
+
+---
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Built%20with-Deep%20Work-orange?style=for-the-badge" alt="Built with Deep Work" />
+</p>
