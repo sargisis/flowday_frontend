@@ -10,11 +10,11 @@ import InvitationsPage from "../pages/InvitationsPage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { ProjectProvider } from "../context/ProjectContext";
-
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import FocusMode from "../pages/FocusMode";
 import LandingPage from "../pages/LandingPage";
+import { UserProvider } from "../context/UserContext";
 
 export const router = createBrowserRouter([
     { path: "/", element: <LandingPage /> },
@@ -27,9 +27,11 @@ export const router = createBrowserRouter([
         path: "/app/v1",
         element: (
             <ProtectedRoute>
-                <ProjectProvider>
-                    <DashboardLayout />
-                </ProjectProvider>
+                <UserProvider>
+                    <ProjectProvider>
+                        <DashboardLayout />
+                    </ProjectProvider>
+                </UserProvider>
             </ProtectedRoute>
         ),
         children: [

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { type ProjectMember, getMyInvitations, acceptInvitation, rejectInvitation } from "../api/projectMembers";
 import { useNavigate } from "react-router-dom";
 import { useProject } from "../context/ProjectContext";
+import { Check, X, Mail } from "lucide-react";
 
 export default function InvitationsPage() {
     const [invitations, setInvitations] = useState<ProjectMember[]>([]);
@@ -26,12 +27,11 @@ export default function InvitationsPage() {
         loadInvitations();
     }, []);
 
-    const handleAccept = async (projectId: string, projectName: string) => {
+    const handleAccept = async (projectId: string, _p0: string) => {
         try {
             await acceptInvitation(projectId);
-            alert(`You are now a member of "${projectName}"!`);
-            setActiveProjectId(projectId); // Set as active project
-            navigate("/app/v1/team"); // Go to team page to see yourself as member
+            setActiveProjectId(projectId);
+            navigate("/app/v1/team");
         } catch (err: any) {
             alert(err.response?.data?.error || "Failed to accept invitation");
         }
@@ -42,103 +42,78 @@ export default function InvitationsPage() {
 
         try {
             await rejectInvitation(projectId);
-            alert(`Invitation to join "${projectName}" rejected.`);
-            loadInvitations(); // Refresh list
+            loadInvitations();
         } catch (err: any) {
             alert(err.response?.data?.error || "Failed to reject invitation");
         }
     };
 
     return (
-        <>
-            <header style={{ marginBottom: "2rem" }}>
-                <h2 style={{ marginBottom: "0.2rem" }}>Project Invitations</h2>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+        <div className="max-w-4xl mx-auto py-8">
+            <header className="mb-8">
+                <h2 className="text-3xl font-bold text-white mb-2">Project Invitations</h2>
+                <p className="text-zinc-400">
                     {invitations?.length || 0} pending invitation{(invitations?.length || 0) !== 1 ? 's' : ''}
                 </p>
             </header>
 
-            <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+            <div className="space-y-4">
                 {loading ? (
-                    <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                    <div className="text-center py-12 text-zinc-500">
                         Loading invitations...
                     </div>
                 ) : (!invitations || invitations.length === 0) ? (
-                    <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
-                        <p>No pending invitations</p>
-                        <p style={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>When someone invites you to a project, it will appear here.</p>
+                    <div className="text-center py-12 bg-zinc-900/30 border border-white/5 rounded-3xl">
+                        <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-zinc-600">
+                            <Mail size={32} />
+                        </div>
+                        <h3 className="text-lg font-medium text-white mb-1">No pending invitations</h3>
+                        <p className="text-zinc-500">When you're invited to a project, it will appear here.</p>
                     </div>
                 ) : (
                     invitations.map(inv => (
                         <div
                             key={inv.id}
-                            style={{
-                                padding: "1.5rem",
-                                borderBottom: "1px solid var(--border)",
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center"
-                            }}
+                            className="bg-black/40 border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 hover:bg-black/60 transition-colors group"
                         >
-                            <div>
-                                <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.1rem" }}>
-                                    Join "{inv.project?.name || "Unknown Project"}"
-                                </h3>
-                                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", margin: "0 0 0.3rem 0" }}>
-                                    You've been invited to collaborate as a <strong>Member</strong>
-                                </p>
-                                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", margin: 0 }}>
-                                    Invited {new Date(inv.invited_at).toLocaleDateString()}
-                                </p>
+                            <div className="flex items-center gap-5">
+                                {/* Avatar Placeholder */}
+                                <div className="h-14 w-14 rounded-xl bg-zinc-800 flex items-center justify-center text-lg font-bold text-indigo-400 border border-white/5 shadow-inner shrink-0">
+                                    {(inv.project?.name?.[0] || "P").toUpperCase()}
+                                </div>
+
+                                <div>
+                                    <h3 className="text-lg text-zinc-200">
+                                        <span className="font-bold text-white">Project Admin</span> invited you to <span className="font-bold text-indigo-400">{inv.project?.name || "Unknown Project"}</span>
+                                    </h3>
+                                    <div className="flex items-center gap-2 mt-1 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                                        <span>Role: Member</span>
+                                        <span>•</span>
+                                        <span>{new Date(inv.invited_at).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div style={{ display: "flex", gap: "0.75rem" }}>
+
+                            <div className="flex items-center gap-3 self-end sm:self-auto">
                                 <button
-                                    onClick={() => handleReject(inv.project_id, inv.project?.name || "this project")}
-                                    style={{
-                                        background: "transparent",
-                                        border: "1px solid #e74c3c",
-                                        color: "#e74c3c",
-                                        padding: "0.75rem 1.5rem",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        fontWeight: 600,
-                                        transition: "all 0.2s"
-                                    }}
-                                    onMouseOver={(e) => {
-                                        e.currentTarget.style.background = "rgba(231, 76, 60, 0.1)";
-                                    }}
-                                    onMouseOut={(e) => {
-                                        e.currentTarget.style.background = "transparent";
-                                    }}
+                                    onClick={() => handleReject(inv.project_id, inv.project?.name || "")}
+                                    className="h-11 w-11 flex items-center justify-center rounded-xl border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all"
+                                    title="Reject"
                                 >
-                                    ✕ Reject
+                                    <X size={20} />
                                 </button>
                                 <button
-                                    onClick={() => handleAccept(inv.project_id, inv.project?.name || "this project")}
-                                    style={{
-                                        background: "#27ae60",
-                                        border: "none",
-                                        color: "white",
-                                        padding: "0.75rem 1.5rem",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        fontWeight: 600,
-                                        transition: "all 0.2s"
-                                    }}
-                                    onMouseOver={(e) => {
-                                        e.currentTarget.style.background = "#229954";
-                                    }}
-                                    onMouseOut={(e) => {
-                                        e.currentTarget.style.background = "#27ae60";
-                                    }}
+                                    onClick={() => handleAccept(inv.project_id, inv.project?.name || "")}
+                                    className="h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium flex items-center gap-2 transition-all shadow-lg shadow-indigo-600/20"
                                 >
-                                    ✓ Accept
+                                    <Check size={18} />
+                                    <span>Accept</span>
                                 </button>
                             </div>
                         </div>
                     ))
                 )}
             </div>
-        </>
+        </div>
     );
 }

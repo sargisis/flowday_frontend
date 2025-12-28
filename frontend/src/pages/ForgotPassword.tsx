@@ -25,52 +25,38 @@ export default function ForgotPassword() {
     };
 
     return (
-        <div style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1rem"
-        }}>
-            <div className="card" style={{ width: "100%", maxWidth: "400px" }}>
-                <h2 style={{ textAlign: "center", marginBottom: "1rem" }}>Forgot Password</h2>
-                <p style={{ textAlign: "center", color: "var(--text-muted)", marginBottom: "2rem" }}>
+        <div className="min-h-screen w-full flex items-center justify-center p-4 bg-background">
+            <div className="card w-full max-w-md">
+                <h2 className="text-center text-2xl font-bold mb-4 font-outfit">Forgot Password</h2>
+                <p className="text-center text-muted-foreground mb-8">
                     Enter your email and we'll send you a code to reset your password.
                 </p>
 
                 {error && (
-                    <div style={{
-                        background: "rgba(231, 76, 60, 0.1)",
-                        color: "#e74c3c",
-                        padding: "0.75rem",
-                        borderRadius: "8px",
-                        marginBottom: "1rem",
-                        textAlign: "center"
-                    }}>
+                    <div className="bg-destructive/10 text-destructive p-3 rounded-lg mb-6 text-center text-sm border border-destructive/20">
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div>
-                        <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem" }}>Email Address</label>
+                        <label className="block mb-2 text-sm font-medium text-foreground">Email Address</label>
                         <input
                             type="email"
                             className="input-field"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            style={{ width: "100%" }}
                         />
                     </div>
 
-                    <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                    <button type="submit" className="btn w-full" disabled={isLoading}>
                         {isLoading ? "Sending Code..." : "Send Reset Code"}
                     </button>
                 </form>
 
-                <div style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.9rem" }}>
-                    <Link to="/app/v1/login" style={{ color: "var(--text-muted)", textDecoration: "none" }}>
+                <div className="mt-6 text-center text-sm">
+                    <Link to="/app/v1/login" className="text-muted-foreground hover:text-foreground transition-colors">
                         Back to Login
                     </Link>
                 </div>

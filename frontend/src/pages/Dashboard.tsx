@@ -1,14 +1,74 @@
 import { useEffect, useState } from "react";
-import { type Task, getTasksByProject } from "../api/tasks";
+import { type Task, getTasksByProject, getTasksByRange } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
 import { LayoutList, Activity, CheckCircle2, AlertCircle, Zap, TrendingUp } from "lucide-react";
 import StatsCard from "../components/StatsCard";
+import AiFlowCoach from "../components/AiFlowCoach";
+import PriorityPipeline from "../components/PriorityPipeline";
 
 export default function Dashboard() {
     const { activeProjectId } = useProject();
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [greeting, setGreeting] = useState("");
     const [mounted, setMounted] = useState(false);
+    const [focusData, setFocusData] = useState<{ day: string; percent: number }[]>([]);
+
+    useEffect(() => {
+        const fetchFocusTrend = async () => {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(end.getDate() - 6); // Last 7 days including today
+
+            const formatDate = (d: Date) => d.toISOString().split('T')[0];
+            const tasksInRange = await getTasksByRange(formatDate(start), formatDate(end));
+
+            const dailyStats = new Map<string, { total: number; done: number }>();
+
+            // Initialize last 7 days with 0
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                const dateStr = formatDate(d);
+                dailyStats.set(dateStr, { total: 0, done: 0 });
+            }
+
+            // Fill with task data
+
+            tasksInRange.forEach(t => {
+                if (t.due_date) {
+                    const dateStr = t.due_date.split('T')[0]; // Assuming due_date is ISO string
+                    if (dailyStats.has(dateStr)) {
+                        const stat = dailyStats.get(dateStr)!;
+                        stat.total++;
+                        if (t.status.toLowerCase() === 'done') {
+                            stat.done++;
+                        }
+                    }
+                }
+            });
+
+            // Convert map to array
+            const data: { day: string; percent: number }[] = [];
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(start);
+                d.setDate(start.getDate() + i);
+                const dateStr = formatDate(d);
+                const stat = dailyStats.get(dateStr) || { total: 0, done: 0 };
+
+                const percent = stat.total > 0 ? Math.round((stat.done / stat.total) * 100) : 0;
+                data.push({
+                    day: daysOfWeek[d.getDay()],
+                    percent: percent
+                });
+            }
+            setFocusData(data);
+        };
+
+        if (activeProjectId) {
+            fetchFocusTrend();
+        }
+    }, [activeProjectId]);
 
     useEffect(() => {
         setMounted(true);
@@ -16,13 +76,6 @@ export default function Dashboard() {
             getTasksByProject(activeProjectId).then(setTasks);
         }
     }, [activeProjectId]);
-
-    useEffect(() => {
-        const hour = new Date().getHours();
-        if (hour < 12) setGreeting("Good Morning");
-        else if (hour < 18) setGreeting("Good Afternoon");
-        else setGreeting("Good Evening");
-    }, []);
 
     // Calculate Stats
     const totalTasks = tasks.length;
@@ -39,27 +92,10 @@ export default function Dashboard() {
 
     return (
         <div className={`min-h-screen p-8 lg:p-12 space-y-12 transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
-            {/* Header Section */}
-            <header className="relative z-10 animate-in slide-in-from-top-5 duration-700">
-                <div className="flex items-center justify-between mb-2">
-                    <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-white via-white/90 to-white/50 tracking-tight font-[Outfit]">
-                        {greeting}, User.
-                    </h1>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-xl shadow-lg shadow-black/10 group cursor-default hover:bg-white/10 transition-colors">
-                        <div className="relative">
-                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse relative z-10" />
-                            <div className="absolute inset-0 bg-emerald-500 blur-sm animate-pulse" />
-                        </div>
-                        <span className="text-xs font-semibold text-emerald-100/80 tracking-wide uppercase">System Online</span>
-                    </div>
-                </div>
-                <p className="text-zinc-400 text-lg font-light tracking-wide">
-                    Ready to enter the <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300 font-semibold shadow-orange-500/20 drop-shadow-sm">Flow State</span>?
-                </p>
-            </header>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-bottom-5 duration-700 delay-100 fill-mode-backwards">
+            {/* Stats Grid - Now at the Top */}
+            {/* Stats Grid - Now at the Top */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-5 duration-700">
                 <StatsCard
                     title="Total Tasks"
                     value={totalTasks}
@@ -68,6 +104,7 @@ export default function Dashboard() {
                     bg="from-blue-500/[0.15] to-blue-500/[0.02]"
                     border="border-blue-500/20 group-hover:border-blue-500/30"
                     shadow="shadow-blue-500/10"
+                    animation="pulse"
                 />
                 <StatsCard
                     title="In Progress"
@@ -77,6 +114,7 @@ export default function Dashboard() {
                     bg="from-amber-500/[0.15] to-amber-500/[0.02]"
                     border="border-amber-500/20 group-hover:border-amber-500/30"
                     shadow="shadow-amber-500/10"
+                    animation="pulse"
                 />
                 <StatsCard
                     title="Completed"
@@ -86,6 +124,7 @@ export default function Dashboard() {
                     bg="from-emerald-500/[0.15] to-emerald-500/[0.02]"
                     border="border-emerald-500/20 group-hover:border-emerald-500/30"
                     shadow="shadow-emerald-500/10"
+                    animation="pulse"
                 />
                 <StatsCard
                     title="Blocked"
@@ -95,89 +134,54 @@ export default function Dashboard() {
                     bg="from-rose-500/[0.15] to-rose-500/[0.02]"
                     border="border-rose-500/20 group-hover:border-rose-500/30"
                     shadow="shadow-rose-500/10"
+                    animation="pulse"
                 />
             </div>
-
-            {/* Productivity Insight Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-backwards">
+            {/* Productivity Stats - Moved Up */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-10 duration-700 delay-100">
                 {/* Flow Score Card */}
-                <div className="col-span-1 p-8 rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-white/[0.08] via-white/[0.02] to-transparent relative overflow-hidden group hover:border-white/20 transition-all duration-500 shadow-xl shadow-black/20 backdrop-blur-xl flex flex-col justify-between min-h-[320px]">
-                    <div className="absolute top-0 right-0 p-8 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity duration-500 scale-150 rotate-12 origin-top-right">
-                        <Zap size={180} className="text-white" />
+                <div className="col-span-1 p-8 rounded-[1.5rem] border border-white/5 bg-white/[0.02] relative overflow-hidden group hover:-translate-y-1 hover:border-white/10 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/10">
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="flex items-center gap-3 mb-4 relative z-10">
+                        <div className="p-2 rounded-lg bg-orange-500/10 text-orange-400 group-hover:animate-pulse">
+                            <Zap size={18} />
+                        </div>
+                        <h3 className="text-lg font-medium text-zinc-300">Flow Score</h3>
                     </div>
-
-                    <div className="relative z-10 flex flex-col h-full justify-between">
-                        <div>
-                            <div className="flex items-center gap-3 mb-8">
-                                <div className="p-3 rounded-2xl bg-orange-500/20 text-orange-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] ring-1 ring-orange-500/20 group-hover:scale-105 transition-transform duration-300">
-                                    <Zap size={24} className="fill-orange-500/20" />
-                                </div>
-                                <h3 className="text-xl font-semibold text-white tracking-wide font-[Outfit]">Flow Score</h3>
-                            </div>
-
-                            <div className="flex items-baseline gap-2 mb-2">
-                                <span className={`text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${completionRate === 100 ? 'from-amber-300 via-orange-400 to-amber-300 animate-text-shimmer bg-[length:200%_auto]' : 'from-white to-white/60'} tracking-tight drop-shadow-sm font-[Outfit]`}>
-                                    {completionRate}%
-                                </span>
-                            </div>
-                            <p className="text-zinc-400 text-sm font-medium leading-relaxed max-w-[80%]">
-                                Your daily momentum based on task completion velocity.
-                            </p>
-                        </div>
-
-                        <div className="mt-8 relative">
-                            <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 inset-shadow-sm">
-                                <div
-                                    className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-400 shadow-[0_0_20px_rgba(251,146,60,0.4)] relative overflow-hidden"
-                                    style={{ width: `${completionRate}%`, transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)' }}
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 animate-shimmer" />
-                                </div>
-                            </div>
-                        </div>
+                    <div className="flex items-end gap-2 relative z-10">
+                        <span className="text-4xl font-bold text-white font-[Outfit]">{completionRate}%</span>
+                        <span className="text-sm text-zinc-500 mb-1">daily velocity</span>
                     </div>
                 </div>
 
-                {/* Recent Activity / Focus Suggestion */}
-                <div className="col-span-1 lg:col-span-2 p-8 rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-purple-500/[0.05] via-purple-500/[0.01] to-transparent relative overflow-hidden shadow-xl shadow-black/20 backdrop-blur-xl group hover:border-purple-500/20 transition-all duration-500 min-h-[320px]">
-                    <div className="absolute inset-0 bg-gradient-to-t from-purple-500/[0.03] to-transparent opacity-50" />
-
-                    <div className="flex items-center justify-between mb-8 relative z-10">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 rounded-2xl bg-purple-500/20 text-purple-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] ring-1 ring-purple-500/20 group-hover:scale-105 transition-transform duration-300">
-                                <TrendingUp size={24} />
-                            </div>
-                            <h3 className="text-xl font-semibold text-white tracking-wide font-[Outfit]">Focus Trend</h3>
+                {/* Focus Trend Simple Card */}
+                <div className="col-span-1 lg:col-span-2 p-8 rounded-[1.5rem] border border-white/5 bg-white/[0.02] relative overflow-hidden group hover:-translate-y-1 hover:border-white/10 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="flex items-center gap-3 mb-4 relative z-10">
+                        <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 group-hover:animate-pulse">
+                            <TrendingUp size={18} />
                         </div>
-                        <div className="flex gap-2">
-                            <div className="h-2 w-2 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)] animate-pulse" />
-                        </div>
+                        <h3 className="text-lg font-medium text-zinc-300">7-Day Focus Trend</h3>
                     </div>
 
-                    <div className="h-48 flex items-end gap-4 px-2 relative z-10">
-                        {/* Mock Chart Bars */}
-                        {[45, 70, 50, 85, 60, 95, 75].map((h, i) => (
-                            <div key={i} className="flex-1 flex flex-col justify-end group/bar cursor-default h-full">
-                                <div className="flex flex-col h-full justify-end relative">
-                                    <div
-                                        className="w-full bg-gradient-to-t from-purple-500/20 to-purple-500/5 group-hover/bar:from-purple-500 group-hover/bar:to-purple-400 transition-all duration-500 ease-out relative rounded-xl backdrop-blur-sm border border-purple-500/10 group-hover/bar:border-purple-500/50 group-hover/bar:shadow-[0_0_30px_rgba(168,85,247,0.4)]"
-                                        style={{ height: `${h}%` }}
-                                    >
-                                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-zinc-900/90 text-white text-xs font-bold py-1.5 px-3 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-all duration-300 translate-y-2 group-hover/bar:translate-y-0 shadow-xl border border-white/10 whitespace-nowrap z-20 backdrop-blur-md pointer-events-none">
-                                            {h}% Focus
-                                            <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-transparent border-t-zinc-900/90" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mt-4 text-center">
-                                    <span className="text-xs font-medium text-zinc-500 group-hover/bar:text-purple-300 transition-colors uppercase tracking-wider">
-                                        Day {i + 1}
-                                    </span>
-                                </div>
+                    <div className="h-32 flex items-end gap-3 px-2 relative z-10">
+                        {focusData.map((data, i) => (
+                            <div key={i} className="flex-1 flex flex-col justify-end group/bar h-full">
+                                <div
+                                    className="w-full bg-purple-500/10 rounded-t-sm group-hover/bar:bg-purple-500/40 transition-all duration-300"
+                                    style={{ height: `${data.percent || 5}%` }}
+                                />
+                                <span className="text-[10px] text-zinc-500 text-center mt-2 uppercase">{data.day}</span>
                             </div>
                         ))}
                     </div>
                 </div>
+            </div>
+
+            {/* Main Content Grid: AI Coach & Priority Pipeline */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-5 duration-700 delay-200 fill-mode-backwards">
+                <AiFlowCoach />
+                <PriorityPipeline />
             </div>
         </div>
     );

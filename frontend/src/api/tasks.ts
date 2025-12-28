@@ -7,6 +7,8 @@ export interface Task {
     priority: string;
     project_id: string; // MongoDB ObjectID
     description?: string;
+    due_date?: string;
+    created_at?: string;
 }
 
 export const getTasksByProject = async (projectId: string): Promise<Task[]> => {
@@ -32,4 +34,9 @@ export const createTask = async (data: {
 export const deleteTask = async (id: string) => {
     const res = await api.delete(`/tasks/${id}`);
     return res.data;
+};
+
+export const getTasksByRange = async (from: string, to: string): Promise<Task[]> => {
+    const res = await api.get(`/tasks/by-range?from=${from}&to=${to}`);
+    return res.data || [];
 };

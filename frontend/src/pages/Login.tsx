@@ -23,9 +23,9 @@ export default function Login() {
     };
 
     return (
-        <div className="container" style={{ alignItems: 'center', justifyContent: 'center' }}>
-            <form onSubmit={handleSubmit} className="card" style={{ width: '100%', maxWidth: '400px' }}>
-                <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Welcome Back</h1>
+        <div className="min-h-screen w-full flex items-center justify-center p-4 bg-background">
+            <form onSubmit={handleSubmit} className="card w-full max-w-md">
+                <h1 className="text-center text-3xl font-bold mb-8 font-outfit">Welcome Back</h1>
 
                 <div className="input-group">
                     <input
@@ -47,19 +47,19 @@ export default function Login() {
                     />
                 </div>
 
-                <div style={{ textAlign: "right", marginTop: "-1rem", marginBottom: "1.5rem" }}>
-                    <Link to="/app/v1/forgot-password" style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                <div className="text-right -mt-4 mb-6">
+                    <Link to="/app/v1/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                         Forgot Password?
                     </Link>
                 </div>
 
-                <button type="submit" className="btn" style={{ width: '100%' }}>
+                <button type="submit" className="btn w-full">
                     Sign In
                 </button>
 
-                <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--text-muted)' }}>
+                <p className="text-center mt-6 text-muted-foreground">
                     Don't have an account?{' '}
-                    <Link to="/app/v1/register" style={{ fontWeight: 500 }}>Create one</Link>
+                    <Link to="/app/v1/register" className="font-medium text-foreground hover:underline">Create one</Link>
                 </p>
             </form>
         </div>

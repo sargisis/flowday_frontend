@@ -11,6 +11,7 @@ export interface ProjectMember {
     accepted_at?: string;
     user?: {
         id: string; // MongoDB ObjectID
+        name: string;
         email: string;
     };
     project?: {
@@ -46,5 +47,10 @@ export const rejectInvitation = async (projectId: string) => {
 
 export const removeMember = async (projectId: string, userId: string) => {
     const res = await api.delete(`/projects/${projectId}/members/${userId}`);
+    return res.data;
+};
+
+export const updateMemberRole = async (projectId: string, userId: string, role: string) => {
+    const res = await api.put(`/projects/${projectId}/members/${userId}`, { role });
     return res.data;
 };

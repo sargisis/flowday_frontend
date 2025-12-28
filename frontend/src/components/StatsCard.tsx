@@ -8,6 +8,7 @@ interface StatsCardProps {
     bg?: string;
     border?: string;
     shadow?: string;
+    animation?: 'bounce' | 'pulse' | 'spin' | 'ping' | 'none';
 }
 
 export default function StatsCard({
@@ -17,21 +18,32 @@ export default function StatsCard({
     color,
     bg = "from-zinc-800/50 to-zinc-900/50",
     border = "border-white/5",
-    shadow = "shadow-lg"
+    shadow = "shadow-lg",
+    animation = 'none'
 }: StatsCardProps) {
+    const getAnimationClass = () => {
+        switch (animation) {
+            case 'bounce': return "group-hover:animate-bounce";
+            case 'pulse': return "group-hover:animate-pulse";
+            case 'spin': return "group-hover:animate-spin";
+            case 'ping': return "group-hover:animate-ping";
+            default: return "";
+        }
+    };
+
     return (
         <div className={`
             relative p-6 rounded-[1.5rem] 
             border ${border} 
             bg-gradient-to-br ${bg} 
-            group hover:-translate-y-1 transition-all duration-500 
-            overflow-hidden backdrop-blur-xl ${shadow} hover:shadow-2xl 
+            group hover:-translate-y-2 transition-all duration-500 ease-out
+            overflow-hidden backdrop-blur-xl ${shadow} hover:shadow-2xl hover:shadow-indigo-500/10
             flex flex-col justify-between h-40
         `}>
             {/* Glossy overlay effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-            {/* Background Icon Decoration - Moved and reduced opacity */}
+            {/* Background Icon Decoration */}
             <div className="absolute -right-6 -bottom-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 rotate-12 pointer-events-none z-0">
                 <Icon size={140} className={color} />
             </div>
@@ -43,6 +55,7 @@ export default function StatsCard({
                     ring-1 ring-white/10 shadow-sm 
                     group-hover:scale-110 transition-transform duration-300
                     backdrop-blur-md
+                    ${getAnimationClass()}
                 `}>
                     <Icon size={20} />
                 </div>
@@ -53,7 +66,7 @@ export default function StatsCard({
                 <div className="text-4xl font-bold text-white tracking-tight leading-none font-[Outfit] group-hover:translate-x-1 transition-transform duration-300">
                     {value}
                 </div>
-                <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest group-hover:text-zinc-300 transition-colors truncate pl-0.5">
+                <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest group-hover:text-zinc-300 transition-colors truncate pl-0.5 flex items-center gap-1">
                     {title}
                 </div>
             </div>
