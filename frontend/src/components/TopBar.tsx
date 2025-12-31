@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Search, Bell, Command, User } from "lucide-react";
+import { Search, Command, User } from "lucide-react";
 
 import { useUser } from "../context/UserContext";
 import { useProject } from "../context/ProjectContext";
 import { getProjectMembers } from "../api/projectMembers";
+import NotificationDropdown from "./NotificationDropdown";
 
 export default function TopBar() {
     const { user } = useUser();
@@ -41,15 +42,19 @@ export default function TopBar() {
     return (
         <div className="flex items-center justify-between py-4 px-8 border-b border-white/5 bg-background sticky top-0 z-40 backdrop-blur-md bg-opacity-80">
             {/* Search Bar */}
-            <div className="relative group max-w-xl w-full">
+            <div
+                className="relative group max-w-xl w-full cursor-pointer"
+                onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            >
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search className="h-5 w-5 text-zinc-500 group-focus-within:text-purple-400 transition-colors" />
                 </div>
-                <input
-                    type="text"
-                    className="block w-full pl-10 pr-12 py-2.5 bg-zinc-900/50 border border-white/10 rounded-xl text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all text-zinc-200"
-                    placeholder="Search anything..."
-                />
+                <div
+                    className="block w-full pl-10 pr-12 py-2.5 bg-zinc-900/50 border border-white/10 rounded-xl text-sm text-zinc-500 transition-all hover:bg-zinc-900 select-none"
+                    title="Search tasks or navigate (Cmd+K)"
+                >
+                    Search anything...
+                </div>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2">
                     <kbd className="inline-flex items-center border border-white/10 rounded px-2 text-xs font-mono font-medium text-zinc-500 bg-white/5">
                         <Command size={10} className="mr-1" /> K
@@ -59,11 +64,8 @@ export default function TopBar() {
 
             {/* Right Section */}
             <div className="flex items-center gap-6">
-                {/* Notification Bell */}
-                <button className="relative p-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors group">
-                    <Bell className="h-5 w-5 text-zinc-400 group-hover:text-zinc-200" />
-                    <span className="absolute top-2.5 right-3 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-zinc-950 animate-pulse" />
-                </button>
+                {/* Notification Dropdown */}
+                <NotificationDropdown />
 
                 {/* Profile Pill */}
                 <div className="flex items-center gap-3 pl-4 border-l border-white/10">

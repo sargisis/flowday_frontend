@@ -5,15 +5,17 @@ import api from "../api/axios";
 import type { Task } from "../api/tasks";
 import "./FocusMode.css";
 import { focusAudio } from "../utils/audioEngine";
+import { useFocus } from "../context/FocusContext";
 
 export default function FocusMode() {
     const { taskId } = useParams();
     const navigate = useNavigate();
     const [task, setTask] = useState<Task | null>(null);
-    const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
-    const [isActive, setIsActive] = useState(false);
     const [loading, setLoading] = useState(true);
     const [audioActive, setAudioActive] = useState(false);
+
+    // Use global focus context
+    const { isActive, timeLeft, startSession, pauseSession, resumeSession, resetSession } = useFocus();
 
     const toggleAudio = () => {
         const isNowPlaying = focusAudio.toggle();
@@ -46,23 +48,22 @@ export default function FocusMode() {
         }
     }, [taskId]);
 
-    useEffect(() => {
-        let interval: ReturnType<typeof setInterval>;
-        if (isActive && timeLeft > 0) {
-            interval = setInterval(() => {
-                setTimeLeft((prev) => prev - 1);
-            }, 1000);
-        } else if (timeLeft === 0) {
-            setIsActive(false);
-            // Optional: Play a sound here
+    const toggleTimer = () => {
+        if (isActive) {
+            pauseSession();
+        } else {
+            // If the timer was already running (not at 25:00), resume it
+            if (timeLeft < 25 * 60) {
+                resumeSession();
+            } else {
+                // Start a fresh session
+                startSession(task?.title || "Deep Work Session", 25 * 60);
+            }
         }
-        return () => clearInterval(interval);
-    }, [isActive, timeLeft]);
+    };
 
-    const toggleTimer = () => setIsActive(!isActive);
-    const resetTimer = () => {
-        setIsActive(false);
-        setTimeLeft(25 * 60);
+    const handleReset = () => {
+        resetSession();
     };
 
     const formatTime = (seconds: number) => {
@@ -129,7 +130,7 @@ export default function FocusMode() {
                         {audioActive ? <Volume2 size={20} /> : <Headphones size={20} />}
                     </button>
 
-                    <button className="btn-focus-secondary" onClick={resetTimer} title="Reset">
+                    <button className="btn-focus-secondary" onClick={handleReset} title="Reset">
                         <RotateCcw size={20} />
                     </button>
 

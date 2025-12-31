@@ -2,8 +2,8 @@
 
 **Flowday** is more than a project management tool—it is an **Operating System for Deep Work**. Designed to remove friction and help you manage your attention, not just your tasks.
 
-> [!NOTE]  
-> This project is currently in **Beta (Pre-v1)**. Core flows are stable, but we are actively refining the "Deep Work" features.
+> [!IMPORTANT]  
+> **Latest Update (Dec 31, 2024):** Core "Deep Work" infrastructure overhaul. Implemented Global Task Management and Interactive Calendar.
 
 ---
 
@@ -20,9 +20,15 @@ Most tools distract you with notifications and clutter. Flowday is designed to *
 #### ⚡ Focus Mode
 - **Immersive Interface:** Enter a distraction-free full-screen environment for a specific task.
 - **Neuro-Audio Engine:** Built-in **Brown Noise** generator to mask distractions and improve concentration.
-- **Pomodoro Timer:** Integrated 25-minute deep work cycles.
+- **Smart Timer:** Resume-ready Pomodoro timer that remembers your progress during breaks.
+- **Quick-Access Widget:** Floating interactive timer to stay focused while browsing other apps.
 
-#### � Visual Intelligence
+#### 📅 Interactive Calendar (New!)
+- **Seamless Planning:** Click any date to instantly create a task with a pre-set deadline.
+- **Unified Overview:** View and edit tasks directly from the calendar grid.
+- **Real-time Sync:** All changes reflect instantly across the Dashboard and Task pages.
+
+#### 📊 Visual Intelligence
 - **Glassmorphism UI:** A premium, modern dark-mode aesthetic that feels calm and professional.
 - **Real-time Specs:** Dashboard with progress tracking, flow scores, and activity trends.
 
@@ -33,12 +39,12 @@ Most tools distract you with notifications and clutter. Flowday is designed to *
 ### 🔐 Security & Identity
 - **JWT Authentication:** Secure login/registration sessions.
 - **Team Invitations:** GitHub-style invitation system with email notifications.
-- **Role Control:** Project owners manage access and permissions.
+- **Granular Access:** Project members (not just owners) can now manage tasks, facilitating true team collaboration.
+- **Session Stability:** Fixed authentication handling to prevent accidental logouts during task management.
 
-### � Project & Task Management
-- **Projects:** Organize work into dedicated workspaces.
-- **Tasks:** Rich task details, status tracking (Todo, In Progress, Done).
-- **Calendar:** Unified view of deadlines and schedules.
+### 🛠️ Global Task Engine
+- **TaskContext:** Centralized state management for tasks across the entire app.
+- **Command Palette:** `Cmd+K` integration to search and edit tasks from anywhere.
 
 ---
 
@@ -47,16 +53,15 @@ Most tools distract you with notifications and clutter. Flowday is designed to *
 ### Frontend
 - **Framework:** React 18 + Vite
 - **Language:** TypeScript
+- **State Management:** React Context API (Custom Task & Project providers)
 - **Styling:** Vanilla CSS (Custom Design System with Variables & Glassmorphism)
 - **Audio:** Web Audio API (Custom Audio Engine)
-- **State:** React Context + Hooks
 
 ### Backend
 - **Language:** Go (Golang)
 - **Framework:** Gin Web Framework
 - **Database:** MongoDB (Official Driver)
 - **Auth:** JWT v5 + Bcrypt
-- **Email:** Native SMTP
 
 ---
 
@@ -77,7 +82,6 @@ Most tools distract you with notifications and clutter. Flowday is designed to *
 2. **Start the Backend:**
    ```bash
    cd Flowday/flowday
-   # Create a .env file based on .env.example (if available)
    go run ./server
    ```
 
@@ -88,14 +92,13 @@ Most tools distract you with notifications and clutter. Flowday is designed to *
    npm run dev
    ```
 
-The app will be available at `http://localhost:5173` (Frontend) and `http://localhost:8080` (Backend API).
-
 ---
 
 ## 📈 Roadmap
 - [x] **Focus Mode (v1):** Timer & Audio
 - [x] **Daily Ritual:** Morning planning flow
-- [x] **New Branding:** "Flow State OS"
+- [x] **Global Task Infrastructure:** TaskContext & Shared Modals
+- [x] **Interactive Calendar:** Date-click creation & editing
 - [ ] **Advanced Analytics:** usage heatmaps & "Flow Score" calculation
 - [ ] **Team Chat:** Real-time collaboration updates
 - [ ] **Mobile Support:** Responsive layouts for phone/tablet

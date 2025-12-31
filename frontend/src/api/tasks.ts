@@ -26,6 +26,7 @@ export const createTask = async (data: {
     priority: string;
     project_id: string;
     description?: string;
+    due_date?: string;
 }) => {
     const res = await api.post("/tasks", data);
     return res.data;

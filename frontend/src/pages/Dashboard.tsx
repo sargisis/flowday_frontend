@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { type Task, getTasksByProject, getTasksByRange } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
+import { useTasks } from "../context/TaskContext";
 import { LayoutList, Activity, CheckCircle2, AlertCircle, Zap, TrendingUp } from "lucide-react";
 import StatsCard from "../components/StatsCard";
 import AiFlowCoach from "../components/AiFlowCoach";
@@ -8,6 +9,7 @@ import PriorityPipeline from "../components/PriorityPipeline";
 
 export default function Dashboard() {
     const { activeProjectId } = useProject();
+    const { refreshTrigger } = useTasks();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [mounted, setMounted] = useState(false);
     const [focusData, setFocusData] = useState<{ day: string; percent: number }[]>([]);
@@ -32,10 +34,9 @@ export default function Dashboard() {
             }
 
             // Fill with task data
-
             tasksInRange.forEach(t => {
                 if (t.due_date) {
-                    const dateStr = t.due_date.split('T')[0]; // Assuming due_date is ISO string
+                    const dateStr = t.due_date.split('T')[0];
                     if (dailyStats.has(dateStr)) {
                         const stat = dailyStats.get(dateStr)!;
                         stat.total++;
@@ -68,14 +69,14 @@ export default function Dashboard() {
         if (activeProjectId) {
             fetchFocusTrend();
         }
-    }, [activeProjectId]);
+    }, [activeProjectId, refreshTrigger]);
 
     useEffect(() => {
         setMounted(true);
         if (activeProjectId) {
             getTasksByProject(activeProjectId).then(setTasks);
         }
-    }, [activeProjectId]);
+    }, [activeProjectId, refreshTrigger]);
 
     // Calculate Stats
     const totalTasks = tasks.length;
@@ -93,8 +94,7 @@ export default function Dashboard() {
     return (
         <div className={`min-h-screen p-8 lg:p-12 space-y-12 transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
 
-            {/* Stats Grid - Now at the Top */}
-            {/* Stats Grid - Now at the Top */}
+            {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-5 duration-700">
                 <StatsCard
                     title="Total Tasks"
@@ -137,7 +137,7 @@ export default function Dashboard() {
                     animation="pulse"
                 />
             </div>
-            {/* Productivity Stats - Moved Up */}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-10 duration-700 delay-100">
                 {/* Flow Score Card */}
                 <div className="col-span-1 p-8 rounded-[1.5rem] border border-white/5 bg-white/[0.02] relative overflow-hidden group hover:-translate-y-1 hover:border-white/10 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/10">
@@ -154,7 +154,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Focus Trend Simple Card */}
+                {/* Focus Trend Card */}
                 <div className="col-span-1 lg:col-span-2 p-8 rounded-[1.5rem] border border-white/5 bg-white/[0.02] relative overflow-hidden group hover:-translate-y-1 hover:border-white/10 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10">
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                     <div className="flex items-center gap-3 mb-4 relative z-10">
@@ -180,7 +180,7 @@ export default function Dashboard() {
 
             {/* Main Content Grid: AI Coach & Priority Pipeline */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-5 duration-700 delay-200 fill-mode-backwards">
-                <AiFlowCoach />
+                <AiFlowCoach tasks={tasks} />
                 <PriorityPipeline />
             </div>
         </div>

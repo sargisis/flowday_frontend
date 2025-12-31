@@ -1,6 +1,9 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
+import FloatingTimerWidget from "../components/FloatingTimerWidget";
+import NotificationPermissionBanner from "../components/NotificationPermissionBanner";
+import CommandPalette from "../components/CommandPalette";
 
 export default function DashboardLayout() {
     return (
@@ -14,8 +17,12 @@ export default function DashboardLayout() {
                     </div>
                 </main>
             </div>
-            {/* DailyRitual moved or removed based on new design preferences, kept hidden for now if not compatible */}
-            {/* <DailyRitual /> */}
+            {/* Floating Timer Widget - appears when Focus Mode is active */}
+            <FloatingTimerWidget />
+            {/* Notification Permission Banner */}
+            <NotificationPermissionBanner />
+            {/* Global Search & Command Palette */}
+            <CommandPalette />
         </div>
 
     );

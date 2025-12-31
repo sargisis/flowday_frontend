@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { type Task, getTasksByProject } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
-import CreateTaskForm from "../components/CreateTaskForm";
-import TaskItem from "../components/TaskItem";
+import { useTasks } from "../context/TaskContext";
+import KanbanBoard from "../components/kanban/KanbanBoard";
 
 export default function TasksPage() {
     const { activeProjectId } = useProject();
+    const { openCreateModal, openDetailsModal, handleUpdateTask, handleDeleteTask, refreshTrigger } = useTasks();
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     const loadTasks = () => {
         if (activeProjectId) {
@@ -17,7 +17,19 @@ export default function TasksPage() {
 
     useEffect(() => {
         loadTasks();
-    }, [activeProjectId]);
+    }, [activeProjectId, refreshTrigger]);
+
+    // Keyboard shortcut 'c' to open modal
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() === 'c' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+                e.preventDefault();
+                openCreateModal();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [openCreateModal]);
 
     if (!activeProjectId) {
         return (
@@ -32,61 +44,31 @@ export default function TasksPage() {
     }
 
     return (
-        <div className="startup-container">
-            <header className="startup-header">
+        <div className="h-full flex flex-col p-8 overflow-hidden">
+            <header className="flex items-center justify-between mb-8 shrink-0">
                 <div>
-                    <h1 className="startup-title">Tasks</h1>
-                    <p className="startup-subtitle">Manage your project deliverables</p>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">Tasks</h1>
+                    <p className="text-zinc-500 text-sm mt-1">Manage your project deliverables</p>
                 </div>
-                <CreateTaskForm />
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => openCreateModal()}
+                        className="btn-add-task"
+                    >
+                        <span>Add Task</span>
+                        <span className="shortcut-key">C</span>
+                    </button>
+                </div>
             </header>
 
-            <div className="task-list">
-                {/* List Header */}
-                <div className="task-list-header">
-                    <div>Title</div>
-                    <div>Priority</div>
-                    <div>Status</div>
-                    <div className="text-right">Actions</div>
-                </div>
-
-                {/* List Body */}
-                <div>
-                    {tasks.map((t) => (
-                        <TaskItem
-                            key={t.id}
-                            task={t}
-                            onUpdate={loadTasks}
-                            onView={(task) => setSelectedTask(task)}
-                        />
-                    ))}
-
-                    {tasks.length === 0 && (
-                        <div style={{ padding: '5rem 0', textAlign: 'center' }}>
-                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 mb-4">
-                                <span className="text-xl text-zinc-600">✨</span>
-                            </div>
-                            <h3 className="text-zinc-400 font-medium text-sm">No tasks yet</h3>
-                            <p className="text-zinc-600 text-xs mt-1">Add a task to get started</p>
-                        </div>
-                    )}
-                </div>
+            <div className="flex-1 overflow-hidden min-h-0">
+                <KanbanBoard
+                    tasks={tasks}
+                    onTaskUpdate={(id, status) => handleUpdateTask(id, { status })}
+                    onTaskDelete={handleDeleteTask}
+                    onTaskClick={openDetailsModal}
+                />
             </div>
-
-            {/* Description Modal */}
-            {selectedTask && (
-                <div className="modal-overlay" onClick={() => setSelectedTask(null)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <button className="modal-close" onClick={() => setSelectedTask(null)}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-                        </button>
-                        <h2 className="text-2xl font-bold text-white mb-4 pr-8">{selectedTask.title}</h2>
-                        <div className="text-zinc-300 leading-relaxed whitespace-pre-wrap text-sm max-h-[60vh] overflow-y-auto pr-2">
-                            {selectedTask.description}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

@@ -1,6 +1,162 @@
-import { Zap, Trophy, Lightbulb, AlertTriangle, ArrowRight } from "lucide-react";
+import { Zap, Trophy, Lightbulb, AlertTriangle, ArrowRight, Target, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import type { Task } from "../api/tasks";
+import { useMemo } from "react";
 
-export default function AiFlowCoach() {
+interface AiFlowCoachProps {
+    tasks: Task[];
+}
+
+interface Insight {
+    id: string;
+    icon: typeof Trophy;
+    iconColor: string;
+    title: string;
+    message: string;
+    variant: 'positive' | 'neutral' | 'warning';
+}
+
+export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
+    const navigate = useNavigate();
+
+    const insights = useMemo<Insight[]>(() => {
+        const results: Insight[] = [];
+
+        // Count tasks by status
+        const inProgressTasks = tasks.filter(t => {
+            const s = t.status.toLowerCase();
+            return ['in_progress', 'review'].includes(s);
+        });
+        const todoTasks = tasks.filter(t => t.status.toLowerCase() === 'todo');
+        const doneTasks = tasks.filter(t => t.status.toLowerCase() === 'done');
+        const blockedTasks = tasks.filter(t => t.status.toLowerCase() === 'blocked');
+
+        // Count high priority tasks in Todo
+        const highPriorityTodo = todoTasks.filter(t => t.priority.toLowerCase() === 'high');
+
+        // Calculate completion rate
+        const total = tasks.length;
+        const completionRate = total > 0 ? (doneTasks.length / total) * 100 : 0;
+
+        // Check for overdue tasks
+        const now = new Date();
+        const overdueTasks = tasks.filter(t => {
+            if (!t.due_date) return false;
+            const dueDate = new Date(t.due_date);
+            return dueDate < now && t.status.toLowerCase() !== 'done';
+        });
+
+        // HEURISTIC 1: Too many WIP
+        if (inProgressTasks.length > 3) {
+            results.push({
+                id: 'too-many-wip',
+                icon: AlertTriangle,
+                iconColor: 'text-orange-400',
+                title: 'Stop Starting, Start Finishing',
+                message: `You have ${inProgressTasks.length} tasks in progress. Focus on completing a few before starting new ones.`,
+                variant: 'warning'
+            });
+        }
+
+        // HEURISTIC 2: High priority waiting
+        if (highPriorityTodo.length > 0) {
+            results.push({
+                id: 'high-priority-waiting',
+                icon: Target,
+                iconColor: 'text-rose-400',
+                title: 'High Priority Task Waiting',
+                message: `${highPriorityTodo.length} high-priority ${highPriorityTodo.length === 1 ? 'task' : 'tasks'} in To Do. Consider tackling ${highPriorityTodo.length === 1 ? 'it' : 'them'} first for maximum impact.`,
+                variant: 'warning'
+            });
+        }
+
+        // HEURISTIC 3: Great momentum
+        if (completionRate >= 70 && total >= 5) {
+            results.push({
+                id: 'great-momentum',
+                icon: Trophy,
+                iconColor: 'text-amber-400',
+                title: 'Excellent Progress!',
+                message: `You've completed ${Math.round(completionRate)}% of tasks. Keep this momentum going to finish strong!`,
+                variant: 'positive'
+            });
+        }
+
+        // HEURISTIC 4: Overdue alert
+        if (overdueTasks.length > 0) {
+            results.push({
+                id: 'overdue-alert',
+                icon: AlertTriangle,
+                iconColor: 'text-red-400',
+                title: 'Overdue Tasks Detected',
+                message: `${overdueTasks.length} ${overdueTasks.length === 1 ? 'task is' : 'tasks are'} past their due date. Prioritize or reschedule them.`,
+                variant: 'warning'
+            });
+        }
+
+        // HEURISTIC 5: Blocked tasks
+        if (blockedTasks.length > 0) {
+            results.push({
+                id: 'blocked-tasks',
+                icon: AlertTriangle,
+                iconColor: 'text-orange-400',
+                title: 'Blocked Tasks Need Attention',
+                message: `${blockedTasks.length} ${blockedTasks.length === 1 ? 'task is' : 'tasks are'} blocked. Address blockers to maintain flow.`,
+                variant: 'warning'
+            });
+        }
+
+        // HEURISTIC 6: Low WIP = Good
+        if (inProgressTasks.length <= 2 && inProgressTasks.length > 0) {
+            results.push({
+                id: 'good-focus',
+                icon: Lightbulb,
+                iconColor: 'text-blue-400',
+                title: 'Single-Tasking Champion',
+                message: 'You\'re maintaining a healthy WIP limit. This focus will maximize your productivity.',
+                variant: 'positive'
+            });
+        }
+
+        // HEURISTIC 7: Steady progress
+        if (completionRate >= 40 && completionRate < 70 && total >= 5) {
+            results.push({
+                id: 'steady-progress',
+                icon: TrendingUp,
+                iconColor: 'text-emerald-400',
+                title: 'Making Steady Progress',
+                message: `${Math.round(completionRate)}% complete. You're on track. Keep the rhythm going!`,
+                variant: 'neutral'
+            });
+        }
+
+        // Default insight if no data
+        if (results.length === 0) {
+            results.push({
+                id: 'get-started',
+                icon: Lightbulb,
+                iconColor: 'text-blue-400',
+                title: 'Ready to Achieve Flow',
+                message: 'Add tasks to your board and I\'ll provide personalized insights to help you stay productive.',
+                variant: 'neutral'
+            });
+        }
+
+        // Return max 3 insights
+        return results.slice(0, 3);
+    }, [tasks]);
+
+    const getBorderClass = (variant: Insight['variant']) => {
+        switch (variant) {
+            case 'positive':
+                return 'bg-emerald-500/[0.05] border-emerald-500/10 hover:border-emerald-500/20';
+            case 'warning':
+                return 'bg-orange-500/[0.05] border-orange-500/10 hover:border-orange-500/20';
+            default:
+                return 'bg-white/[0.03] border-white/5 hover:border-white/10';
+        }
+    };
+
     return (
         <div className="p-8 rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-indigo-950/30 to-background shadow-xl backdrop-blur-xl relative overflow-hidden group">
             {/* Background Effects */}
@@ -19,59 +175,42 @@ export default function AiFlowCoach() {
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </span>
-                            <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest">Live Engine</span>
+                            <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest">
+                                {tasks.length} {tasks.length === 1 ? 'Task' : 'Tasks'} Analyzed
+                            </span>
                         </div>
                     </div>
                 </div>
-                <button className="text-xs font-medium text-zinc-500 hover:text-white transition-colors flex items-center gap-1 group/refresh">
-                    REFRESH <ArrowRight size={12} className="group-hover/refresh:translate-x-0.5 transition-transform" />
-                </button>
             </div>
 
-            {/* Content List */}
+            {/* Insights */}
             <div className="space-y-4 relative z-10">
-                {/* Item 1 */}
-                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors flex gap-4 group/item">
-                    <div className="mt-1">
-                        <Trophy size={18} className="text-amber-400" />
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-semibold text-zinc-200 mb-1">Momentum Gained</h4>
-                        <p className="text-xs text-zinc-400 leading-relaxed group-hover/item:text-zinc-300 transition-colors">
-                            You have already finished 8 out of 12 tasks. Leverage this progress to power through the final stretch.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Item 2 */}
-                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-colors flex gap-4 group/item">
-                    <div className="mt-1">
-                        <Lightbulb size={18} className="text-blue-400" />
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-semibold text-zinc-200 mb-1">Single-Tasking Mode</h4>
-                        <p className="text-xs text-zinc-400 leading-relaxed group-hover/item:text-zinc-300 transition-colors">
-                            Close all tabs unrelated to your current objective to minimize cognitive switching costs.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Item 3 */}
-                <div className="p-4 rounded-xl bg-orange-500/[0.05] border border-orange-500/10 hover:border-orange-500/20 transition-colors flex gap-4 group/item">
-                    <div className="mt-1">
-                        <AlertTriangle size={18} className="text-orange-400" />
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-semibold text-zinc-200 mb-1">Avoid Distraction Traps</h4>
-                        <p className="text-xs text-zinc-400 leading-relaxed group-hover/item:text-zinc-300 transition-colors">
-                            Even a 30-second phone check can derail your deep work state for up to 20 minutes.
-                        </p>
-                    </div>
-                </div>
+                {insights.map(insight => {
+                    const Icon = insight.icon;
+                    return (
+                        <div
+                            key={insight.id}
+                            className={`p-4 rounded-xl border transition-colors flex gap-4 group/item ${getBorderClass(insight.variant)}`}
+                        >
+                            <div className="mt-1">
+                                <Icon size={18} className={insight.iconColor} />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-semibold text-zinc-200 mb-1">{insight.title}</h4>
+                                <p className="text-xs text-zinc-400 leading-relaxed group-hover/item:text-zinc-300 transition-colors">
+                                    {insight.message}
+                                </p>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Action Button */}
-            <button className="w-full mt-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 group/btn relative z-10">
+            <button
+                onClick={() => navigate('/app/v1/focus')}
+                className="w-full mt-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 group/btn relative z-10"
+            >
                 Start Focus Session
                 <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
             </button>

@@ -1,13 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Bell, Palette, Shield, LogOut, Mail, Slack, Monitor, Moon, LayoutGrid } from "lucide-react";
+import { User, Bell, Palette, Shield, LogOut, Mail, Slack, Monitor, Moon, LayoutGrid, Check, X } from "lucide-react";
 
 import { useUser } from "../context/UserContext";
+import { notificationManager } from "../utils/notificationManager";
 
 export default function SettingsPage() {
     const navigate = useNavigate();
     const { user } = useUser();
     const [activeTab, setActiveTab] = useState("general");
+    const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+
+    useEffect(() => {
+        setNotificationPermission(Notification.permission);
+    }, []);
+
+    const handleEnableNotifications = async () => {
+        const granted = await notificationManager.requestPermission();
+        if (granted) {
+            setNotificationPermission('granted');
+            notificationManager.notify('🎉 Notifications Enabled!', {
+                body: 'You\'ll now receive task reminders and focus session alerts',
+            });
+        } else {
+            setNotificationPermission('denied');
+        }
+    };
 
     const handleLogout = () => {
         if (confirm("Are you sure you want to log out?")) {
@@ -117,6 +135,58 @@ export default function SettingsPage() {
                             </div>
 
                             <div className="space-y-4">
+                                {/* Browser Notifications */}
+                                <div className="p-6 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                                                <Bell size={20} />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-base font-medium text-white">Browser Notifications</h4>
+                                                <p className="text-sm text-zinc-500">Get alerts for task reminders and focus sessions</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {notificationPermission === 'granted' && (
+                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-medium">
+                                                    <Check size={14} />
+                                                    Enabled
+                                                </div>
+                                            )}
+                                            {notificationPermission === 'denied' && (
+                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-xs font-medium">
+                                                    <X size={14} />
+                                                    Blocked
+                                                </div>
+                                            )}
+                                            {notificationPermission === 'default' && (
+                                                <button
+                                                    onClick={handleEnableNotifications}
+                                                    className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-all"
+                                                >
+                                                    Enable
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {notificationPermission === 'denied' && (
+                                        <div className="mt-4 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                                            <p className="text-xs text-orange-400">
+                                                <strong>Notifications are blocked.</strong> Please enable them in your browser settings:
+                                                <br />
+                                                <span className="text-orange-300/60">
+                                                    Chrome: Settings → Privacy → Site Settings → Notifications
+                                                    <br />
+                                                    Safari: Preferences → Websites → Notifications
+                                                </span>
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Other notification options */}
                                 {[
                                     { title: "Email Notifications", desc: "Receive daily summaries and high priority alerts.", icon: Mail, checked: true },
                                     { title: "Slack Integration", desc: "Forward task updates to your team Slack channel.", icon: Slack, checked: false }

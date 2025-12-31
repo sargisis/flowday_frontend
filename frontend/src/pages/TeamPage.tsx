@@ -53,6 +53,13 @@ export default function TeamPage() {
 
     useEffect(() => {
         loadData();
+
+        // Auto-refresh every 10 seconds
+        const interval = setInterval(() => {
+            loadData();
+        }, 10000);
+
+        return () => clearInterval(interval);
     }, [activeProjectId]);
 
     // Close menu when clicking outside
@@ -285,8 +292,8 @@ export default function TeamPage() {
                                         key={role}
                                         onClick={() => handleRoleUpdate(role)}
                                         className={`w-full text-left px-4 py-3 rounded-xl flex items-center justify-between transition-colors ${editingMember.role === role
-                                                ? "bg-indigo-600/20 text-indigo-400"
-                                                : "text-zinc-300 hover:bg-white/5 hover:text-white"
+                                            ? "bg-indigo-600/20 text-indigo-400"
+                                            : "text-zinc-300 hover:bg-white/5 hover:text-white"
                                             }`}
                                     >
                                         <span className="font-medium">{role}</span>

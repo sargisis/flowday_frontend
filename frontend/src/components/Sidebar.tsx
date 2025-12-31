@@ -9,6 +9,7 @@ import {
     Mail,
     Settings,
     Plus,
+    Calendar,
     Hexagon
 } from "lucide-react";
 
@@ -32,6 +33,7 @@ export default function Sidebar() {
 
     const navItems = [
         { label: "Dashboard", path: "/app/v1/dashboard", icon: LayoutDashboard },
+        { label: "Calendar", path: "/app/v1/calendar", icon: Calendar },
         { label: "My Tasks", path: "/app/v1/tasks", icon: CheckSquare },
         { label: "Team", path: "/app/v1/team", icon: Users },
         { label: "Invitations", path: "/app/v1/invitations", icon: Mail },

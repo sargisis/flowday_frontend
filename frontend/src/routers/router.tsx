@@ -14,7 +14,10 @@ import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import FocusMode from "../pages/FocusMode";
 import LandingPage from "../pages/LandingPage";
+import Calendar from "../pages/Calendar";
 import { UserProvider } from "../context/UserContext";
+import { FocusProvider } from "../context/FocusContext";
+import { TaskProvider } from "../context/TaskContext";
 
 export const router = createBrowserRouter([
     { path: "/", element: <LandingPage /> },
@@ -29,7 +32,11 @@ export const router = createBrowserRouter([
             <ProtectedRoute>
                 <UserProvider>
                     <ProjectProvider>
-                        <DashboardLayout />
+                        <FocusProvider>
+                            <TaskProvider>
+                                <DashboardLayout />
+                            </TaskProvider>
+                        </FocusProvider>
                     </ProjectProvider>
                 </UserProvider>
             </ProtectedRoute>
@@ -37,20 +44,15 @@ export const router = createBrowserRouter([
         children: [
             { index: true, element: <Navigate to="/app/v1/dashboard" replace /> },
             { path: "dashboard", element: <Dashboard /> },
+            { path: "calendar", element: <Calendar /> },
             { path: "tasks", element: <TasksPage /> },
             { path: "tasks/new", element: <CreateTaskPage /> },
             { path: "team", element: <TeamPage /> },
             { path: "invitations", element: <InvitationsPage /> },
             { path: "settings", element: <SettingsPage /> },
+            { path: "focus", element: <FocusMode /> },
+            { path: "focus/:taskId", element: <FocusMode /> },
         ]
-    },
-    {
-        path: "/app/v1/focus/:taskId",
-        element: (
-            <ProtectedRoute>
-                <FocusMode />
-            </ProtectedRoute>
-        )
     },
 
 ]);
