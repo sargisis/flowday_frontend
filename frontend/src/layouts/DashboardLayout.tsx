@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
@@ -6,6 +7,20 @@ import NotificationPermissionBanner from "../components/NotificationPermissionBa
 import CommandPalette from "../components/CommandPalette";
 
 export default function DashboardLayout() {
+    const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsCommandPaletteOpen(prev => !prev);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     return (
         <div className="flex h-screen bg-black text-white overflow-hidden">
             <Sidebar />
@@ -22,8 +37,10 @@ export default function DashboardLayout() {
             {/* Notification Permission Banner */}
             <NotificationPermissionBanner />
             {/* Global Search & Command Palette */}
-            <CommandPalette />
+            <CommandPalette
+                isOpen={isCommandPaletteOpen}
+                onClose={() => setIsCommandPaletteOpen(false)}
+            />
         </div>
-
     );
 }
