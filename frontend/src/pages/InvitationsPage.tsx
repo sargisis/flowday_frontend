@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { type ProjectMember, getMyInvitations, acceptInvitation, rejectInvitation } from "../api/projectMembers";
 import { useNavigate } from "react-router-dom";
 import { useProject } from "../context/ProjectContext";
-import { Check, X, Mail } from "lucide-react";
+import { Check, X, Inbox } from "lucide-react";
+import EmptyState from "../components/EmptyState";
 
 export default function InvitationsPage() {
     const [invitations, setInvitations] = useState<ProjectMember[]>([]);
@@ -63,12 +64,12 @@ export default function InvitationsPage() {
                         Loading invitations...
                     </div>
                 ) : (!invitations || invitations.length === 0) ? (
-                    <div className="text-center py-12 bg-zinc-900/30 border border-white/5 rounded-3xl">
-                        <div className="h-16 w-16 bg-zinc-800/50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-zinc-600">
-                            <Mail size={32} />
-                        </div>
-                        <h3 className="text-lg font-medium text-white mb-1">No pending invitations</h3>
-                        <p className="text-zinc-500">When you're invited to a project, it will appear here.</p>
+                    <div className="py-12">
+                        <EmptyState
+                            icon={Inbox}
+                            title="Comms Frequency Quiet"
+                            description="No incoming project invitations detected. Your transmission logs are currently empty."
+                        />
                     </div>
                 ) : (
                     invitations.map(inv => (

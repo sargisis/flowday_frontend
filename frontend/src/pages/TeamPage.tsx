@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useProject } from "../context/ProjectContext";
 import { type ProjectMember, getProjectMembers, inviteMember, removeMember, updateMemberRole } from "../api/projectMembers";
 import { getMe } from "../api/auth";
-import { MessageSquare, Zap, MoreVertical, Plus, User as UserIcon, Trash2, Shield, X, Check } from "lucide-react";
+import { MessageSquare, Zap, MoreVertical, Plus, User as UserIcon, Trash2, Shield, X, Check, Users } from "lucide-react";
+import EmptyState from "../components/EmptyState";
 
 const ROLES = [
     "Project Lead",
@@ -115,8 +116,12 @@ export default function TeamPage() {
 
     if (!activeProjectId) {
         return (
-            <div className="flex items-center justify-center h-full text-zinc-500">
-                Select a project to manage team
+            <div className="h-full flex items-center justify-center p-8">
+                <EmptyState
+                    icon={Users}
+                    title="Operation Hub Locked"
+                    description="Select a project to authorize team access and coordinate with your squad."
+                />
             </div>
         );
     }

@@ -43,12 +43,12 @@ export default function TasksPage() {
 
     if (!activeProjectId) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 text-center h-[50vh]">
-                <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mb-4 border border-zinc-800">
-                    <span className="text-2xl">📂</span>
-                </div>
-                <h3 className="text-lg font-medium text-white mb-2">No Project Selected</h3>
-                <p className="text-zinc-500 max-w-sm">Select a project from the sidebar to view and manage your tasks.</p>
+            <div className="h-full flex items-center justify-center p-8">
+                <EmptyState
+                    icon={CheckSquare}
+                    title="No Project Selected"
+                    description="Select a project from the sidebar to view your mission tasks and manage deliverables."
+                />
             </div>
         );
     }
