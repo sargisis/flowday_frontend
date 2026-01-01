@@ -11,23 +11,39 @@ export default function TasksPage() {
     const { activeProjectId } = useProject();
     const { openCreateModal, openDetailsModal, handleUpdateTask, handleDeleteTask, refreshTrigger } = useTasks();
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const loadTasks = async () => {
-        if (activeProjectId) {
-            setIsLoading(true);
-            try {
+    // Initial load when project changes
+    useEffect(() => {
+        const initProject = async () => {
+            if (activeProjectId) {
+                setIsLoading(true);
+                try {
+                    const data = await getTasksByProject(activeProjectId);
+                    setTasks(data);
+                } finally {
+                    setIsLoading(false);
+                }
+            }
+        };
+        initProject();
+    }, [activeProjectId]);
+
+    // Silent refresh when data changes (e.g. from drag and drop)
+    useEffect(() => {
+        const silentRefresh = async () => {
+            if (activeProjectId) {
                 const data = await getTasksByProject(activeProjectId);
                 setTasks(data);
-            } finally {
-                setIsLoading(false);
             }
-        }
-    };
+        };
 
-    useEffect(() => {
-        loadTasks();
-    }, [activeProjectId, refreshTrigger]);
+        // Skip calling this on mount/project change since the first effect handles it
+        // Only run when refreshTrigger changes
+        if (refreshTrigger > 0) {
+            silentRefresh();
+        }
+    }, [refreshTrigger, activeProjectId]);
 
     // Keyboard shortcut 'c' to open modal
     useEffect(() => {
