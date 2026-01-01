@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { createProject } from "../api/projects";
 import { useProject } from "../context/ProjectContext";

@@ -5,6 +5,7 @@ import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 import EmptyState from "../components/EmptyState";
 import { CheckSquare } from "lucide-react";
+import useSound from "../hooks/useSound";
 
 export default function TasksPage() {
     const { activeProjectId } = useProject();
@@ -52,7 +53,15 @@ export default function TasksPage() {
         );
     }
 
+    // Use a premium "glass" sounding chime
+    const playSuccess = useSound("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3", 0.6);
+
     const onTaskUpdateOptimistic = async (id: string, status: string) => {
+        // Play sound if completing task
+        if (status.toLowerCase() === 'done') {
+            playSuccess();
+        }
+
         // Optimistic update
         setTasks(prev => prev.map(t => t.id === id ? { ...t, status } : t));
 
