@@ -269,6 +269,83 @@ export default function SettingsPage() {
                     </div>
                 )}
 
+                {/* Billing Tab */}
+                {activeTab === 'billing' && (
+                    <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
+                        <section className="p-8 rounded-[1.5rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    <CreditCard size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-semibold text-white">Subscription & Billing</h3>
+                                    <p className="text-zinc-500 text-sm">Manage your plan and payment methods.</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Free Tier Card */}
+                                <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.02] space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="text-lg font-bold text-white">Standard</h4>
+                                            <p className="text-zinc-500 text-xs">For individual focus</p>
+                                        </div>
+                                        <span className="px-2 py-1 rounded-md bg-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-widest border border-white/5">Current Plan</span>
+                                    </div>
+                                    <div className="text-3xl font-bold text-white">$0 <span className="text-sm text-zinc-500 font-normal">/ month</span></div>
+                                    <ul className="space-y-2 text-sm text-zinc-400">
+                                        <li className="flex items-center gap-2"><Check size={14} className="text-emerald-500" /> 3 Active Projects</li>
+                                        <li className="flex items-center gap-2"><Check size={14} className="text-emerald-500" /> Basic AI Coach</li>
+                                        <li className="flex items-center gap-2"><Check size={14} className="text-emerald-500" /> Kanban Board</li>
+                                    </ul>
+                                </div>
+
+                                {/* PRO Tier Card */}
+                                <div className="p-6 rounded-2xl border-2 border-indigo-500/50 bg-indigo-500/[0.03] space-y-4 relative overflow-hidden group">
+                                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-indigo-500/10 blur-3xl group-hover:bg-indigo-500/20 transition-all duration-500" />
+                                    <div className="flex justify-between items-start relative z-10">
+                                        <div>
+                                            <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                                                Flowday PRO
+                                                <Zap size={16} className="text-indigo-400 fill-indigo-400" />
+                                            </h4>
+                                            <p className="text-indigo-200/50 text-xs text-indigo-400">For power users</p>
+                                        </div>
+                                        <span className="px-2 py-1 rounded-md bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-indigo-500/20 animate-pulse">Best Value</span>
+                                    </div>
+                                    <div className="text-3xl font-bold text-white relative z-10">$9.99 <span className="text-sm text-indigo-200/50 font-normal text-indigo-400">/ month</span></div>
+                                    <ul className="space-y-2 text-sm text-indigo-200/70 relative z-10 text-indigo-400">
+                                        <li className="flex items-center gap-2"><Zap size={14} className="text-amber-400" /> Unlimited Projects</li>
+                                        <li className="flex items-center gap-2"><Zap size={14} className="text-amber-400" /> AI Task Decomposition</li>
+                                        <li className="flex items-center gap-2"><Zap size={14} className="text-amber-400" /> Premium Soundscapes</li>
+                                        <li className="flex items-center gap-2"><Zap size={14} className="text-amber-400" /> Global Task Search</li>
+                                    </ul>
+                                    <button className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/20 mt-2 relative z-10 active:scale-[0.98]">
+                                        Upgrade to PRO
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section className="p-6 rounded-2xl border border-white/5 bg-white/[0.02] flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="p-2 rounded-xl bg-white/5 text-zinc-400">
+                                    <Mail size={18} />
+                                </div>
+                                <div>
+                                    <h4 className="text-white font-medium">Need something custom?</h4>
+                                    <p className="text-xs text-zinc-500">Contact us for team licenses and custom enterprise builds.</p>
+                                </div>
+                            </div>
+                            <button className="text-sm text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1 group">
+                                Support Channel
+                                <ExternalLink size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                            </button>
+                        </section>
+                    </div>
+                )}
+
                 {/* Account Tab */}
                 {activeTab === 'account' && (
                     <div className="space-y-6 animate-in slide-in-from-bottom-5 duration-500">

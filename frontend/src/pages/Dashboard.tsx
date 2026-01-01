@@ -98,7 +98,7 @@ export default function Dashboard() {
                 <EmptyState
                     icon={LayoutList}
                     title="No Project Selected"
-                    description="Select a project from the sidebar to view your dashboard analytics and track your mission."
+                    description="Synchronize with a project from the command interface to initialize mission analytics."
                 />
             </div>
         );
@@ -110,7 +110,7 @@ export default function Dashboard() {
                 <EmptyState
                     icon={Plus}
                     title="Mission Blueprint Empty"
-                    description="This project doesn't have any tasks yet. Launch your first task to see analytics and AI coaching."
+                    description="Inert project detected. No active tasks found. Initialize your first objective to engage system monitoring."
                     action={{
                         label: "Go to Tasks",
                         onClick: () => navigate("/app/v1/tasks")
