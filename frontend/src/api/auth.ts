@@ -24,3 +24,28 @@ export const resetPassword = async (email: string, code: string, newPassword: st
   const res = await api.post("/auth/reset-password", { email, code, new_password: newPassword });
   return res.data;
 };
+
+export const updateProfile = async (data: { name?: string; bio?: string }) => {
+  const res = await api.patch("/users/profile", data);
+  return res.data;
+};
+
+export const uploadAvatar = async (file: File) => {
+  const formData = new FormData();
+  formData.append("avatar", file);
+  const res = await api.post("/users/avatar", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return res.data;
+};
+export const requestEmailChange = async (currentPassword: string, newEmail: string) => {
+  const res = await api.post("/users/email-change/request", { current_password: currentPassword, new_email: newEmail });
+  return res.data;
+};
+
+export const confirmEmailChange = async (newEmail: string, code: string) => {
+  const res = await api.post("/users/email-change/confirm", { new_email: newEmail, code });
+  return res.data;
+};

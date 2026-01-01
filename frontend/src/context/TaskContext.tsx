@@ -20,7 +20,7 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
     const { activeProjectId } = useProject();
-    const { refreshUser } = useUser();
+    const { reloadUser } = useUser();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [initialDate, setInitialDate] = useState<string | undefined>(undefined);
@@ -60,7 +60,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
             // If task was completed, refresh user to update XP/Level
             if (updates.status?.toLowerCase() === 'done') {
-                refreshUser();
+                reloadUser();
             }
 
             // Update selected task if it's the one being updated
