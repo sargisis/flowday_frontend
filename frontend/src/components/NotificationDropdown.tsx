@@ -217,7 +217,13 @@ export default function NotificationDropdown() {
                     {/* Footer */}
                     {notifications.length > 0 && (
                         <div className="p-3 border-t border-white/10">
-                            <button className="w-full text-center text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+                            <button
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    window.location.href = '/app/v1/notifications';
+                                }}
+                                className="w-full text-center text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+                            >
                                 View All Notifications
                             </button>
                         </div>

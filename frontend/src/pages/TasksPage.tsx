@@ -3,15 +3,24 @@ import { type Task, getTasksByProject } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
+import EmptyState from "../components/EmptyState";
+import { CheckSquare } from "lucide-react";
 
 export default function TasksPage() {
     const { activeProjectId } = useProject();
     const { openCreateModal, openDetailsModal, handleUpdateTask, handleDeleteTask, refreshTrigger } = useTasks();
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const loadTasks = () => {
+    const loadTasks = async () => {
         if (activeProjectId) {
-            getTasksByProject(activeProjectId).then(setTasks);
+            setIsLoading(true);
+            try {
+                const data = await getTasksByProject(activeProjectId);
+                setTasks(data);
+            } finally {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -52,7 +61,8 @@ export default function TasksPage() {
         } catch (error) {
             // Revert on error
             if (activeProjectId) {
-                getTasksByProject(activeProjectId).then(setTasks);
+                const data = await getTasksByProject(activeProjectId);
+                setTasks(data);
             }
         }
     };
@@ -75,13 +85,30 @@ export default function TasksPage() {
                 </div>
             </header>
 
-            <div className="flex-1 overflow-hidden min-h-0">
-                <KanbanBoard
-                    tasks={tasks}
-                    onTaskUpdate={onTaskUpdateOptimistic}
-                    onTaskDelete={handleDeleteTask}
-                    onTaskClick={openDetailsModal}
-                />
+            <div className="flex-1 overflow-hidden min-h-0 bg-transparent rounded-3xl">
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-full">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
+                    </div>
+                ) : tasks.length === 0 ? (
+                    <EmptyState
+                        icon={CheckSquare}
+                        title="No tasks yet"
+                        description="Get started by creating your first task for this project."
+                        action={{
+                            label: "Create Task",
+                            onClick: () => openCreateModal()
+                        }}
+                        className="h-full bg-black/10 backdrop-blur-sm border-white/5"
+                    />
+                ) : (
+                    <KanbanBoard
+                        tasks={tasks}
+                        onTaskUpdate={onTaskUpdateOptimistic}
+                        onTaskDelete={handleDeleteTask}
+                        onTaskClick={openDetailsModal}
+                    />
+                )}
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { createProject } from "../api/projects";
 import { useProject } from "../context/ProjectContext";
@@ -17,6 +17,8 @@ export default function Sidebar() {
     const { projects, activeProjectId, setActiveProjectId, refreshProjects } = useProject();
     const [isCreating, setIsCreating] = useState(false);
     const [newProjectName, setNewProjectName] = useState("");
+    // Notifications logic moved to TopBar/NotificationsPage
+    // Keeping this clean for future features
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,6 +63,11 @@ export default function Sidebar() {
                     >
                         <item.icon className="nav-icon" />
                         <span>{item.label}</span>
+                        {(item as any).badge ? (
+                            <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                {(item as any).badge}
+                            </span>
+                        ) : null}
                     </NavLink>
                 ))}
             </nav>

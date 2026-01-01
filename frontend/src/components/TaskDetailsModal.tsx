@@ -12,6 +12,8 @@ interface TaskDetailsModalProps {
     onDelete: (taskId: string) => Promise<void>;
 }
 
+import { toast } from "sonner";
+
 export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDelete }: TaskDetailsModalProps) {
     const { handleEnrichTask } = useTasks();
     const [title, setTitle] = useState("");
@@ -46,9 +48,10 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 due_date: dueDate ? new Date(dueDate).toISOString() : undefined
             });
             onClose();
+            toast.success("Task updated");
         } catch (error) {
             console.error("Failed to update task", error);
-            alert("Failed to save changes");
+            toast.error("Failed to save changes");
         } finally {
             setIsSaving(false);
         }
@@ -59,8 +62,10 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         try {
             await onDelete(task.id);
             onClose();
+            toast.success("Task deleted");
         } catch (error) {
             console.error("Failed to delete task", error);
+            toast.error("Failed to delete task");
         }
     };
 
@@ -70,9 +75,10 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         try {
             const newDescription = await handleEnrichTask(task.id);
             setDescription(newDescription);
+            toast.success("Magic Plan generated!");
         } catch (error) {
             console.error("AI Enrichment failed", error);
-            alert("AI Enrichment failed. Make sure GROQ_API_KEY is set in backend.");
+            toast.error("AI Enrichment failed. Check backend logs.");
         } finally {
             setIsEnriching(false);
         }
