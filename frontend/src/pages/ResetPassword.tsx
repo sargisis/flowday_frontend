@@ -1,231 +1,220 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import api from "../api/axios";
+import { resetPassword } from "../api/auth";
+import { toast } from "sonner";
+import { Lock, Mail, ArrowRight, ShieldCheck, KeyRound, Hexagon } from "lucide-react";
+import { z } from "zod";
+
+const resetSchema = z.object({
+    code: z.string().min(3, "Security code must be at least 3 characters"),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 export default function ResetPassword() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Get email from previous page navigation state
     const [email, setEmail] = useState("");
     const [code, setCode] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
 
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
     const [step, setStep] = useState(1);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (location.state?.email) {
             setEmail(location.state.email);
+        } else {
+            // If direct access without email in state, return to base
+            navigate("/app/v1/forgot-password");
         }
-    }, [location]);
+    }, [location, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError("");
+        setErrors({});
 
         if (newPassword !== confirmPassword) {
-            setError("Passwords do not match");
+            toast.error("Password verification mismatch");
             return;
         }
 
-        if (newPassword.length < 6) {
-            setError("Password must be at least 6 characters");
+        const validation = resetSchema.safeParse({ code, newPassword });
+        if (!validation.success) {
+            const newErrors: Record<string, string> = {};
+            validation.error.issues.forEach(issue => {
+                const path = issue.path[0] as string;
+                newErrors[path] = issue.message;
+            });
+            setErrors(newErrors);
+            toast.error("Validation failed");
             return;
         }
 
         setIsLoading(true);
 
         try {
-            await api.post("/auth/reset-password", {
-                email,
-                code,
-                new_password: newPassword
-            });
+            await resetPassword(email, code, newPassword);
             setSuccess(true);
+            toast.success("Identity verified. Password updated.");
             setTimeout(() => {
                 navigate("/app/v1/login");
-            }, 2000);
+            }, 2500);
         } catch (err: any) {
-            setError(err.response?.data?.error || "Failed to reset password. Code may be invalid or expired.");
+            toast.error(err.response?.data?.error || "Neural link broken: Reset failed.");
             setIsLoading(false);
         }
     };
 
     if (success) {
         return (
-            <div className="container" style={{ alignItems: 'center', justifyContent: 'center' }}>
-                <div className="card" style={{ width: "100%", maxWidth: "400px", textAlign: "center" }}>
-                    <div style={{ color: "var(--status-done)", fontSize: "3rem", marginBottom: "1rem" }}>✓</div>
-                    <h2>Password Reset!</h2>
-                    <p style={{ color: "var(--text-muted)", marginBottom: "2rem" }}>
-                        Your password has been successfully updated. Redirecting to login...
-                    </p>
-                    <Link to="/app/v1/login" className="btn btn-primary" style={{ display: "inline-block", width: "100%" }}>
-                        Go to Login Now
-                    </Link>
+            <div className="min-h-screen w-full flex items-center justify-center p-6 bg-zinc-950 relative overflow-hidden auth-mesh-bg">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-600/10 blur-[120px] rounded-full -mr-64 -mt-64" />
+                <div className="w-full max-w-[440px] relative z-10 text-center animate-in fade-in zoom-in-95 duration-700">
+                    <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center border border-emerald-500/20 shadow-2xl mx-auto mb-8 animate-bounce">
+                        <ShieldCheck className="text-emerald-400" size={40} />
+                    </div>
+                    <h1 className="text-4xl font-bold text-white tracking-tight font-outfit mb-4">Reset Complete</h1>
+                    <p className="text-zinc-500 font-medium mb-10">Your security credentials have been rotated. Returning to base...</p>
+                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 animate-[progress_2.5s_ease-in-out]" />
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1rem",
-            background: "radial-gradient(circle at 50% 10%, rgba(249, 115, 22, 0.05), transparent 40%)"
-        }}>
-            <div className="card" style={{ width: "100%", maxWidth: "420px", padding: "2.5rem", position: "relative", overflow: "hidden" }}>
-                {/* Decorative glow */}
-                <div style={{ position: "absolute", top: "-50%", left: "-50%", width: "200%", height: "200%", background: "radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%)", pointerEvents: "none" }} />
+        <div className="min-h-screen w-full flex items-center justify-center p-6 bg-zinc-950 relative overflow-hidden auth-mesh-bg">
+            {/* Ambient Glows */}
+            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] rounded-full -ml-64 -mt-64" />
+            <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] rounded-full -mr-64 -mb-64" />
 
-                <h2 style={{ textAlign: "center", marginBottom: "0.5rem", fontSize: "1.75rem", fontWeight: "600" }}>Secure Reset</h2>
-                <p style={{ textAlign: "center", color: "var(--text-muted)", marginBottom: "2rem", fontSize: "0.95rem" }}>
-                    Enter the code sent to your email and set a new password.
-                </p>
-
-                {error && (
-                    <div style={{
-                        background: "rgba(231, 76, 60, 0.1)",
-                        border: "1px solid rgba(231, 76, 60, 0.2)",
-                        color: "#ff6b6b",
-                        padding: "0.75rem",
-                        borderRadius: "12px",
-                        marginBottom: "1.5rem",
-                        textAlign: "center",
-                        fontSize: "0.9rem"
-                    }}>
-                        {error}
+            <div className="w-full max-w-[460px] relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                <div className="flex flex-col items-center mb-10">
+                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shadow-2xl mb-6 group transition-all duration-500 hover:scale-110">
+                        <Hexagon className="text-zinc-400 group-hover:text-amber-400 logo-animate transition-colors" size={32} strokeWidth={1.5} />
                     </div>
-                )}
+                    <h1 className="text-4xl font-bold text-white tracking-tight font-outfit">Secure Reset</h1>
+                    <p className="text-zinc-500 mt-2 font-medium text-center">Verify the neural code to set new credentials</p>
+                </div>
 
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                    {/* Read-only Email Field */}
-                    <div style={{ opacity: 0.7 }}>
-                        <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.85rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Email Address</label>
-                        <div style={{
-                            padding: "0.75rem 1rem",
-                            background: "rgba(255,255,255,0.03)",
-                            borderRadius: "10px",
-                            border: "1px solid rgba(255,255,255,0.05)",
-                            color: "var(--text-muted)",
-                            fontSize: "0.95rem",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem"
-                        }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                            {email || "No email provided"}
+                <form onSubmit={handleSubmit} className="glass-auth-card p-10 space-y-6">
+                    {/* Read-only Identity Field */}
+                    <div className="space-y-2 opacity-60">
+                        <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Identity (Verified)</label>
+                        <div className="relative">
+                            <Mail className="absolute left-5 top-[50%] -translate-y-[50%] text-zinc-500" size={18} />
+                            <div className="premium-input w-full bg-white/[0.02] border-white/5 cursor-not-allowed">
+                                {email || "Awaiting signal..."}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Step 1: Verification Code */}
-                    {step === 1 && (
-                        <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
-                            <div>
-                                <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.85rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Security Code</label>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    value={code}
-                                    onChange={(e) => setCode(e.target.value)}
-                                    required
-                                    style={{
-                                        width: "100%",
-                                        letterSpacing: "0.25em",
-                                        textAlign: "center",
-                                        fontSize: "1.5rem",
-                                        fontWeight: "600",
-                                        padding: "1rem"
-                                    }}
-                                />
+                    {step === 1 ? (
+                        <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Security Code</label>
+                                <div className="relative group">
+                                    <KeyRound className="absolute left-5 top-[50%] -translate-y-[50%] text-zinc-500 group-focus-within:text-indigo-400 transition-colors" size={18} />
+                                    <input
+                                        className={`premium-input w-full text-center tracking-[0.5em] text-xl font-bold uppercase ${errors.code ? 'border-rose-500/50 bg-rose-500/5' : ''}`}
+                                        type="text"
+                                        placeholder=""
+                                        maxLength={10}
+                                        value={code}
+                                        onChange={(e) => setCode(e.target.value)}
+                                    />
+                                </div>
+                                {errors.code && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errors.code}</p>}
                             </div>
-                            <div style={{ marginTop: "1.5rem" }}>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        if (code.length < 3) {
-                                            setError("Please enter a valid code");
-                                            return;
-                                        }
-                                        setError("");
-                                        setStep(2);
-                                    }}
-                                    className="btn btn-primary"
-                                    style={{ width: "100%", padding: "0.875rem", fontSize: "1rem" }}
-                                >
-                                    Verify Code
-                                </button>
-                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (code.length < 3) {
+                                        toast.error("Code too short for verification");
+                                        return;
+                                    }
+                                    setStep(2);
+                                }}
+                                className="premium-btn w-full flex items-center justify-center gap-2 group"
+                            >
+                                Verify Identity
+                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                            </button>
                         </div>
-                    )}
-
-                    {/* Step 2: New Password */}
-                    {step === 2 && (
-                        <div className="space-y-5 animate-in slide-in-from-right-4 duration-300">
-
-                            <div style={{ height: "1px", background: "rgba(255,255,255,0.1)", margin: "0 0" }} />
-
-                            <div>
-                                <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.85rem", color: "var(--text-muted)" }}>New Password</label>
-                                <input
-                                    type="password"
-                                    className="input-field"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    required
-                                    placeholder="Minimum 6 characters"
-                                    style={{ width: "100%" }}
-                                />
+                    ) : (
+                        <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">New Access Key</label>
+                                <div className="relative group">
+                                    <Lock className="absolute left-5 top-[50%] -translate-y-[50%] text-zinc-500 group-focus-within:text-indigo-400 transition-colors" size={18} />
+                                    <input
+                                        className={`premium-input w-full ${errors.newPassword ? 'border-rose-500/50 bg-rose-500/5' : ''}`}
+                                        type="password"
+                                        placeholder=""
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                    />
+                                </div>
+                                {errors.newPassword && <p className="text-xs text-rose-500 mt-1 ml-1 font-medium">{errors.newPassword}</p>}
                             </div>
 
-                            <div style={{ marginTop: "1rem" }}>
-                                <input
-                                    type="password"
-                                    className="input-field"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    required
-                                    placeholder="Confirm new password"
-                                    style={{ width: "100%" }}
-                                />
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Confirm Access Key</label>
+                                <div className="relative group">
+                                    <Lock className="absolute left-5 top-[50%] -translate-y-[50%] text-zinc-500 group-focus-within:text-indigo-400 transition-colors" size={18} />
+                                    <input
+                                        className="premium-input w-full"
+                                        type="password"
+                                        placeholder=""
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
-                            <div className="flex gap-3" style={{ marginTop: "2.5rem" }}>
+                            <div className="flex gap-4">
                                 <button
                                     type="button"
                                     onClick={() => setStep(1)}
-                                    className="btn"
-                                    style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", width: "30%" }}
+                                    className="px-6 py-4 rounded-2xl border border-white/5 bg-white/[0.02] text-zinc-400 font-bold text-xs uppercase tracking-widest hover:bg-white/[0.05] transition-colors"
                                 >
                                     Back
                                 </button>
                                 <button
                                     type="submit"
-                                    className="btn btn-primary"
                                     disabled={isLoading}
-                                    style={{ width: "70%", padding: "0.875rem", fontSize: "1rem" }}
+                                    className="premium-btn flex-1 flex items-center justify-center gap-2 group disabled:opacity-50"
                                 >
-                                    {isLoading ? "Updating..." : "Reset Password"}
+                                    {isLoading ? (
+                                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        <>
+                                            Reset Credentials
+                                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
                     )}
+
+                    <div className="pt-2 text-center">
+                        <Link to="/app/v1/login" className="text-zinc-500 hover:text-white text-sm font-medium transition-colors inline-flex items-center gap-2 group">
+                            Return to Base
+                        </Link>
+                    </div>
                 </form>
 
-                <div style={{ marginTop: "2rem", textAlign: "center" }}>
-                    <Link to="/app/v1/login" style={{ fontSize: "0.9rem", color: "var(--text-muted)", textDecoration: "none", transition: "color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.color = "white"} onMouseOut={(e) => e.currentTarget.style.color = "var(--text-muted)"}>
-                        ← Return to Login
-                    </Link>
-                </div>
+                <p className="text-center mt-10 text-[10px] text-zinc-600 uppercase tracking-[0.2em] font-bold">
+                    Security Protocol Alpha-9 • Flowday OS
+                </p>
             </div>
         </div>
     );
-
 }
