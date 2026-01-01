@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { createProject } from "../api/projects";
 import { useProject } from "../context/ProjectContext";
@@ -10,16 +10,73 @@ import {
     Settings,
     Plus,
     Calendar,
-    Hexagon
+    Hexagon,
+    Bell
 } from "lucide-react";
 
 export default function Sidebar() {
     const { projects, activeProjectId, setActiveProjectId, refreshProjects } = useProject();
     const [isCreating, setIsCreating] = useState(false);
     const [newProjectName, setNewProjectName] = useState("");
-    // Notifications logic moved to TopBar/NotificationsPage
-    // Keeping this clean for future features
+    const [permissionGranted, setPermissionGranted] = useState(false);
 
+    useEffect(() => {
+        // Request permission on load
+        import("../utils/notificationManager").then(({ notificationManager }) => {
+            if (!notificationManager.canNotify()) {
+                // Don't auto-spam, maybe show a toast or banner later
+                // For now, we'll try silently or check permission
+                setPermissionGranted(false);
+            } else {
+                setPermissionGranted(true);
+            }
+        });
+
+        // Background poller for due tasks
+        const checkDueTasks = async () => {
+            const { notificationManager } = await import("../utils/notificationManager");
+            const { getTasksByProject } = await import("../api/tasks");
+
+            if (!notificationManager.canNotify() || !activeProjectId) return;
+
+            try {
+                const tasks = await getTasksByProject(activeProjectId);
+                const now = new Date();
+
+                tasks.forEach(t => {
+                    if (t.status.toLowerCase() === 'done' || !t.due_date) return;
+
+                    const due = new Date(t.due_date);
+                    const diffMs = due.getTime() - now.getTime();
+                    const diffMins = diffMs / (1000 * 60);
+
+                    // Notify if due in exactly ~1 hour (window of 5 mins)
+                    if (diffMins > 55 && diffMins < 65) {
+                        // Check if already notified using localStorage to avoid spam
+                        const key = `notified-due-${t.id}`;
+                        if (!localStorage.getItem(key)) {
+                            notificationManager.notifyTaskDue(t.title, "in 1 hour");
+                            localStorage.setItem(key, "true");
+                        }
+                    }
+
+                    // Notify if overdue recently (window of 5 mins ago)
+                    if (diffMins < 0 && diffMins > -5) {
+                        const key = `notified-overdue-${t.id}`;
+                        if (!localStorage.getItem(key)) {
+                            notificationManager.notifyTaskOverdue(t.title);
+                            localStorage.setItem(key, "true");
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Bg check failed", e);
+            }
+        };
+
+        const interval = setInterval(checkDueTasks, 60000); // Check every minute
+        return () => clearInterval(interval);
+    }, [activeProjectId]);
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newProjectName.trim()) return;
@@ -90,6 +147,21 @@ export default function Sidebar() {
                         </span>
                     </div>
                 ))}
+
+                {!permissionGranted && (
+                    <div className="mt-8 px-4 pb-4">
+                        <button
+                            onClick={async () => {
+                                const { notificationManager } = await import("../utils/notificationManager");
+                                const granted = await notificationManager.requestPermission();
+                                setPermissionGranted(granted);
+                            }}
+                            className="w-full text-xs text-zinc-500 hover:text-indigo-400 flex items-center justify-center gap-2 py-2 border border-dashed border-zinc-800 rounded-lg hover:bg-white/5 transition-all"
+                        >
+                            <Bell size={12} /> Enable Alerts
+                        </button>
+                    </div>
+                )}
 
                 {isCreating ? (
                     <form onSubmit={handleCreate} style={{ marginTop: "0.5rem" }}>
