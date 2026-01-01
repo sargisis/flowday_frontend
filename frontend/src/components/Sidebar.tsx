@@ -103,7 +103,7 @@ export default function Sidebar() {
         <aside className="sidebar-container">
             {/* Brand Header */}
             <div className="app-logo">
-                <Hexagon className="logo-icon" size={28} strokeWidth={2.5} />
+                <Hexagon className="logo-icon logo-animate" size={24} strokeWidth={2.5} />
                 <span>Flowday</span>
             </div>
 

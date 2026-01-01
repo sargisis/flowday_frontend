@@ -2,16 +2,19 @@ import { useEffect, useState } from "react";
 import { type Task, getTasksByProject, getTasksByRange } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
-import { LayoutList, Activity, CheckCircle2, AlertCircle, Zap, TrendingUp, Trophy } from "lucide-react";
+import { LayoutList, Activity, CheckCircle2, AlertCircle, Zap, TrendingUp, Trophy, Plus } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import StatsCard from "../components/StatsCard";
 import AiFlowCoach from "../components/AiFlowCoach";
 import PriorityPipeline from "../components/PriorityPipeline";
+import EmptyState from "../components/EmptyState";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
     const { activeProjectId } = useProject();
     const { refreshTrigger } = useTasks();
     const { user } = useUser();
+    const navigate = useNavigate();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [mounted, setMounted] = useState(false);
     const [focusData, setFocusData] = useState<{ day: string; percent: number }[]>([]);
@@ -90,7 +93,31 @@ export default function Dashboard() {
     const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     if (!activeProjectId) {
-        return <EmptyState />;
+        return (
+            <div className="h-full flex items-center justify-center p-8">
+                <EmptyState
+                    icon={LayoutList}
+                    title="No Project Selected"
+                    description="Select a project from the sidebar to view your dashboard analytics and track your mission."
+                />
+            </div>
+        );
+    }
+
+    if (totalTasks === 0) {
+        return (
+            <div className="h-full flex items-center justify-center p-8">
+                <EmptyState
+                    icon={Plus}
+                    title="Mission Blueprint Empty"
+                    description="This project doesn't have any tasks yet. Launch your first task to see analytics and AI coaching."
+                    action={{
+                        label: "Go to Tasks",
+                        onClick: () => navigate("/app/v1/tasks")
+                    }}
+                />
+            </div>
+        );
     }
 
     return (
@@ -211,20 +238,6 @@ export default function Dashboard() {
                 <AiFlowCoach tasks={tasks} />
                 <PriorityPipeline />
             </div>
-        </div>
-    );
-}
-
-function EmptyState() {
-    return (
-        <div className="h-[80vh] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-700">
-            <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/10 shadow-[0_0_50px_rgba(255,255,255,0.05)]">
-                <LayoutList size={40} className="text-zinc-500" />
-            </div>
-            <h3 className="text-2xl font-semibold text-white mb-3 font-[Outfit]">No Project Selected</h3>
-            <p className="text-zinc-400 max-w-md mx-auto leading-relaxed">
-                Select a project from the sidebar to view your dashboard analytics, or create a new one to begin your <span className="text-white font-medium">Flow</span> journey.
-            </p>
         </div>
     );
 }

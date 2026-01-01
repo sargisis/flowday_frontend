@@ -213,9 +213,96 @@
 }
 
 /* ========================================= */
-/*       MODERN TASKS PAGE STYLES           */
-/*       (Scoped to .startup-container)     */
+/*       PREMIUM AUTH ANIMATIONS             */
 /* ========================================= */
+
+@keyframes mesh-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes logo-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(99, 102, 241, 0));
+  }
+
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+  }
+}
+
+.logo-animate {
+  animation: logo-pulse 3s ease-in-out infinite;
+}
+
+.auth-mesh-bg {
+  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.1) 0%, transparent 40%);
+  background-size: 200% 200%;
+  animation: mesh-gradient 15s ease infinite;
+}
+
+.glass-auth-card {
+  background: rgba(24, 24, 27, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 2rem;
+}
+
+.premium-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1.1rem 1.25rem 1.1rem 3.5rem;
+  /* Increased left padding for icons */
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.95rem;
+}
+
+.premium-input:focus {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+  outline: none;
+}
+
+.premium-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  font-weight: 700;
+  padding: 1rem;
+  border-radius: 1rem;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.premium-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.6);
+  filter: brightness(1.1);
+}
+
+.premium-btn:active {
+  transform: translateY(0) scale(0.98);
+}
 
 .startup-container {
   width: 100%;
