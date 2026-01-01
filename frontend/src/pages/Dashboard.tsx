@@ -123,6 +123,34 @@ export default function Dashboard() {
     return (
         <div className={`min-h-screen p-8 lg:p-12 space-y-12 transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
 
+            {/* Mission Welcome */}
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in fade-in slide-in-from-left-5 duration-700">
+                <div className="space-y-2">
+                    <h1 className="text-4xl font-bold text-white tracking-tight font-[Outfit] flex items-center gap-3">
+                        Welcome back, {user?.name?.split(' ')[0] || 'Member'}
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+                            <Zap size={14} className="text-indigo-400 fill-indigo-400" />
+                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Level {user?.level || 1}</span>
+                        </div>
+                    </h1>
+                    <p className="text-zinc-400 text-lg max-w-2xl">
+                        {user?.bio || "Initialize your daily mission. The coach is analyzing your throughput."}
+                    </p>
+                </div>
+
+                <div className="hidden lg:flex items-center gap-4 px-6 py-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-sm">
+                    <div className="text-right">
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Global XP</p>
+                        <p className="text-xl font-bold text-white">{user?.xp || 0} <span className="text-xs text-zinc-500 font-normal">pts</span></p>
+                    </div>
+                    <div className="h-10 w-px bg-white/10" />
+                    <div className="text-right">
+                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Efficiency</p>
+                        <p className="text-xl font-bold text-indigo-400">{(totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0)}%</p>
+                    </div>
+                </div>
+            </header>
+
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-5 duration-700">
                 <StatsCard

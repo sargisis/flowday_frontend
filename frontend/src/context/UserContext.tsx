@@ -5,6 +5,8 @@ interface User {
     id: string;
     name: string;
     email: string;
+    bio?: string;
+    avatar_url?: string;
     xp?: number;
     level?: number;
 }
@@ -12,7 +14,7 @@ interface User {
 interface UserContextType {
     user: User | null;
     loading: boolean;
-    refreshUser: () => Promise<void>;
+    reloadUser: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -21,7 +23,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const refreshUser = async () => {
+    const reloadUser = async () => {
         try {
             const userData = await getMe();
             setUser(userData);
@@ -34,11 +36,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
     };
 
     useEffect(() => {
-        refreshUser();
+        reloadUser();
     }, []);
 
     return (
-        <UserContext.Provider value={{ user, loading, refreshUser }}>
+        <UserContext.Provider value={{ user, loading, reloadUser }}>
             {children}
         </UserContext.Provider>
     );
