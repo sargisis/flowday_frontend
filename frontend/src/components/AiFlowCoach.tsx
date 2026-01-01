@@ -1,7 +1,7 @@
-import { Zap, Trophy, Lightbulb, AlertTriangle, ArrowRight, Target, TrendingUp } from "lucide-react";
+import { Zap, Trophy, Lightbulb, AlertTriangle, ArrowRight, Target, TrendingUp, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { Task } from "../api/tasks";
-import { useMemo } from "react";
+import { type Task, getAIHealthAdvice } from "../api/tasks";
+import { useMemo, useState, useEffect } from "react";
 
 interface AiFlowCoachProps {
     tasks: Task[];
@@ -9,18 +9,56 @@ interface AiFlowCoachProps {
 
 interface Insight {
     id: string;
-    icon: typeof Trophy;
+    icon: any;
     iconColor: string;
     title: string;
     message: string;
-    variant: 'positive' | 'neutral' | 'warning';
+    variant: 'positive' | 'neutral' | 'warning' | 'ai';
 }
 
 export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
     const navigate = useNavigate();
+    const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+    const [isThinking, setIsThinking] = useState(false);
+
+    useEffect(() => {
+        const fetchAdvice = async () => {
+            if (tasks.length === 0) return;
+            setIsThinking(true);
+            try {
+                const stats = {
+                    todo: tasks.filter(t => t.status.toLowerCase() === 'todo').length,
+                    in_progress: tasks.filter(t => t.status.toLowerCase() === 'in_progress').length,
+                    blocked: tasks.filter(t => t.status.toLowerCase() === 'blocked').length,
+                    done: tasks.filter(t => t.status.toLowerCase() === 'done').length,
+                    high_priority: tasks.filter(t => t.priority.toLowerCase() === 'high').length,
+                };
+                const res = await getAIHealthAdvice(stats);
+                setAiAdvice(res.advice);
+            } catch (err) {
+                console.error("Failed to fetch AI advice", err);
+            } finally {
+                setIsThinking(false);
+            }
+        };
+
+        fetchAdvice();
+    }, [tasks]);
 
     const insights = useMemo<Insight[]>(() => {
         const results: Insight[] = [];
+
+        // Add AI advice if available
+        if (aiAdvice) {
+            results.push({
+                id: 'ai-advice',
+                icon: Sparkles,
+                iconColor: 'text-indigo-400',
+                title: 'Flow Intelligence',
+                message: aiAdvice,
+                variant: 'ai'
+            });
+        }
 
         // Count tasks by status
         const inProgressTasks = tasks.filter(t => {
@@ -152,6 +190,8 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
                 return 'bg-emerald-500/[0.05] border-emerald-500/10 hover:border-emerald-500/20';
             case 'warning':
                 return 'bg-orange-500/[0.05] border-orange-500/10 hover:border-orange-500/20';
+            case 'ai':
+                return 'bg-indigo-500/[0.08] border-indigo-500/20 hover:border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.05)]';
             default:
                 return 'bg-white/[0.03] border-white/5 hover:border-white/10';
         }
@@ -185,6 +225,17 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
 
             {/* Insights */}
             <div className="space-y-4 relative z-10">
+                {isThinking && !aiAdvice && (
+                    <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.05] animate-pulse flex gap-4">
+                        <div className="mt-1">
+                            <Sparkles size={18} className="text-indigo-400 animate-spin" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-indigo-500/20 rounded w-1/3" />
+                            <div className="h-3 bg-indigo-500/10 rounded w-full" />
+                        </div>
+                    </div>
+                )}
                 {insights.map(insight => {
                     const Icon = insight.icon;
                     return (

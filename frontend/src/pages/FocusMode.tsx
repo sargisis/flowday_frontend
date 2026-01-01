@@ -4,7 +4,7 @@ import { Play, Pause, RotateCcw, ArrowLeft, Maximize2, Headphones, Volume2 } fro
 import api from "../api/axios";
 import type { Task } from "../api/tasks";
 import "./FocusMode.css";
-import { focusAudio } from "../utils/audioEngine";
+import { focusAudio, type SoundType } from "../utils/audioEngine";
 import { useFocus } from "../context/FocusContext";
 
 export default function FocusMode() {
@@ -13,13 +13,24 @@ export default function FocusMode() {
     const [task, setTask] = useState<Task | null>(null);
     const [loading, setLoading] = useState(true);
     const [audioActive, setAudioActive] = useState(false);
+    const [soundType, setSoundType] = useState<SoundType>('brown');
 
     // Use global focus context
     const { isActive, timeLeft, startSession, pauseSession, resumeSession, resetSession } = useFocus();
 
     const toggleAudio = () => {
-        const isNowPlaying = focusAudio.toggle();
+        const isNowPlaying = focusAudio.toggle(soundType);
         setAudioActive(isNowPlaying);
+    };
+
+    const handleSoundChange = (type: SoundType) => {
+        setSoundType(type);
+        if (audioActive) {
+            focusAudio.play(type);
+        } else {
+            focusAudio.play(type);
+            setAudioActive(true);
+        }
     };
 
     // Stop audio when unmounting
@@ -122,10 +133,34 @@ export default function FocusMode() {
                 </div>
 
                 <div className="focus-controls">
+                    {/* Sound Selector */}
+                    {audioActive && (
+                        <div className="sound-selector animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <button
+                                className={`sound-option ${soundType === 'brown' ? 'active' : ''}`}
+                                onClick={() => handleSoundChange('brown')}
+                            >
+                                Deep
+                            </button>
+                            <button
+                                className={`sound-option ${soundType === 'pink' ? 'active' : ''}`}
+                                onClick={() => handleSoundChange('pink')}
+                            >
+                                Rain
+                            </button>
+                            <button
+                                className={`sound-option ${soundType === 'white' ? 'active' : ''}`}
+                                onClick={() => handleSoundChange('white')}
+                            >
+                                White
+                            </button>
+                        </div>
+                    )}
+
                     <button
                         className={`btn-focus-secondary ${audioActive ? 'active-audio' : ''}`}
                         onClick={toggleAudio}
-                        title="Focus Sound (Brown Noise)"
+                        title="Toggle Focus Sound"
                     >
                         {audioActive ? <Volume2 size={20} /> : <Headphones size={20} />}
                     </button>
@@ -140,10 +175,16 @@ export default function FocusMode() {
                             <span>{isActive ? "Pause Focus" : "Start Focus"}</span>
                         </div>
                     </button>
-
-                    {/* Placeholder for future specific focus blockers or music controls */}
                 </div>
             </div>
+
+            {/* Breathing Animation Overlay */}
+            {isActive && (
+                <>
+                    <div className="breathing-overlay" />
+                    <div className="breathing-circle" />
+                </>
+            )}
 
             <p style={{ position: 'absolute', bottom: '2rem', opacity: 0.3, letterSpacing: '0.05em', fontSize: '0.8rem' }}>
                 "The secret of future is hidden in your daily routine."

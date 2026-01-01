@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Bell, Palette, Shield, LogOut, Mail, Slack, Monitor, Moon, LayoutGrid, Check, X } from "lucide-react";
+import { User, Bell, Palette, Shield, LogOut, Mail, Slack, Monitor, Moon, LayoutGrid, Check, X, CreditCard, ExternalLink, Zap } from "lucide-react";
 
 import { useUser } from "../context/UserContext";
 import { notificationManager } from "../utils/notificationManager";
@@ -38,6 +38,7 @@ export default function SettingsPage() {
         { id: "general", label: "General", icon: Shield },
         { id: "notifications", label: "Notifications", icon: Bell },
         { id: "appearance", label: "Appearance", icon: Palette },
+        { id: "billing", label: "Billing", icon: CreditCard },
         { id: "account", label: "Account", icon: User },
     ];
 

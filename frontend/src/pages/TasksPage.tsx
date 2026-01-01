@@ -43,6 +43,20 @@ export default function TasksPage() {
         );
     }
 
+    const onTaskUpdateOptimistic = async (id: string, status: string) => {
+        // Optimistic update
+        setTasks(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+
+        try {
+            await handleUpdateTask(id, { status });
+        } catch (error) {
+            // Revert on error
+            if (activeProjectId) {
+                getTasksByProject(activeProjectId).then(setTasks);
+            }
+        }
+    };
+
     return (
         <div className="h-full flex flex-col p-8 overflow-hidden">
             <header className="flex items-center justify-between mb-8 shrink-0">
@@ -64,7 +78,7 @@ export default function TasksPage() {
             <div className="flex-1 overflow-hidden min-h-0">
                 <KanbanBoard
                     tasks={tasks}
-                    onTaskUpdate={(id, status) => handleUpdateTask(id, { status })}
+                    onTaskUpdate={onTaskUpdateOptimistic}
                     onTaskDelete={handleDeleteTask}
                     onTaskClick={openDetailsModal}
                 />

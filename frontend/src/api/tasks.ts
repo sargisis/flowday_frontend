@@ -41,3 +41,18 @@ export const getTasksByRange = async (from: string, to: string): Promise<Task[]>
     const res = await api.get(`/tasks/by-range?from=${from}&to=${to}`);
     return res.data || [];
 };
+
+export const decomposeTask = async (id: string): Promise<{ message: string, subtasks: Task[] }> => {
+    const res = await api.post(`/tasks/${id}/decompose`);
+    return res.data;
+};
+
+export const enrichTask = async (id: string): Promise<{ message: string, description: string }> => {
+    const res = await api.post(`/tasks/${id}/enrich`);
+    return res.data;
+};
+
+export const getAIHealthAdvice = async (stats: Record<string, number>): Promise<{ advice: string }> => {
+    const res = await api.post("/ai/health-advice", stats);
+    return res.data;
+};

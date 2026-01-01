@@ -35,17 +35,17 @@ export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick }
     const taskIds = useMemo(() => tasks.map((task) => task.id), [tasks]);
 
     return (
-        <div ref={setNodeRef} style={style} className="flex flex-col bg-zinc-900/30 backdrop-blur-md border border-white/5 rounded-2xl p-4 h-full max-h-[800px] overflow-hidden">
+        <div ref={setNodeRef} style={style} className="flex flex-col bg-zinc-900/30 backdrop-blur-md border border-white/5 rounded-2xl p-4 h-full min-h-[500px] overflow-hidden">
             {/* Column Header */}
-            <div {...attributes} {...listeners} className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing">
+            <div {...attributes} {...listeners} className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing shrink-0">
                 <div>
                     <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400">{title}</h3>
                     <span className="text-xs text-zinc-600">{tasks.length} tasks</span>
                 </div>
             </div>
 
-            {/* Task List - No Overflow */}
-            <div className="flex-1 space-y-3">
+            {/* Task List - With Internal Scroll */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 -mr-1 space-y-3">
                 <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
                     {tasks.map((task) => (
                         <KanbanCard key={task.id} task={task} onDelete={onDelete} onClick={onTaskClick} />

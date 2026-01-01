@@ -1,9 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Task } from "../../api/tasks";
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Trash2, Sparkles } from "lucide-react";
 import { memo, useState } from "react";
-import { deleteTask } from "../../api/tasks";
 
 interface KanbanCardProps {
     task: Task;
@@ -37,13 +36,17 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
     };
 
     const handleDelete = async (e: React.MouseEvent) => {
+        // CRITICAL: Stop propagation so the click doesn't trigger onClick of the card
         e.stopPropagation();
+        e.preventDefault();
+
         if (!confirm(`Delete task "${task.title}"?`)) return;
 
         setIsDeleting(true);
         try {
-            await deleteTask(task.id);
-            onDelete?.(task.id);
+            // ONLY use the prop-passed onDelete. TaskContext already calls the API.
+            // Calling api directly here + onDelete causes 403 on the second call.
+            await onDelete?.(task.id);
         } catch (error) {
             console.error("Failed to delete task:", error);
             alert("Failed to delete task");
@@ -122,20 +125,30 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
                 <div className="flex items-center gap-1">
                     <button
                         onClick={handleDelete}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/10 text-zinc-600 hover:text-red-400 transition-all z-10"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-500/20 text-zinc-500 hover:text-red-400 transition-all duration-200 z-50 cursor-pointer"
                         title="Delete task"
                     >
                         <Trash2 size={14} />
                     </button>
-                    <div className="text-zinc-600">
+                    <div
+                        className="text-zinc-600 p-1.5"
+                    >
                         <GripVertical size={14} />
                     </div>
                 </div>
             </div>
 
-            <h4 className="text-sm font-medium text-zinc-200 leading-snug mb-1">
-                {task.title}
-            </h4>
+            <div className="flex items-center gap-2 mb-1">
+                <h4 className="text-sm font-medium text-zinc-200 leading-snug">
+                    {task.title}
+                </h4>
+                {task.description && (
+                    <div className="p-1 bg-indigo-500/10 rounded-md" title="AI Plan available">
+                        <Sparkles size={10} className="text-indigo-400" />
+                    </div>
+                )}
+            </div>
 
             {task.description && (
                 <p className="text-xs text-zinc-500 line-clamp-2">

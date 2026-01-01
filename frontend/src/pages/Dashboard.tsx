@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { type Task, getTasksByProject, getTasksByRange } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
-import { LayoutList, Activity, CheckCircle2, AlertCircle, Zap, TrendingUp } from "lucide-react";
+import { LayoutList, Activity, CheckCircle2, AlertCircle, Zap, TrendingUp, Trophy } from "lucide-react";
+import { useUser } from "../context/UserContext";
 import StatsCard from "../components/StatsCard";
 import AiFlowCoach from "../components/AiFlowCoach";
 import PriorityPipeline from "../components/PriorityPipeline";
@@ -10,6 +11,7 @@ import PriorityPipeline from "../components/PriorityPipeline";
 export default function Dashboard() {
     const { activeProjectId } = useProject();
     const { refreshTrigger } = useTasks();
+    const { user } = useUser();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [mounted, setMounted] = useState(false);
     const [focusData, setFocusData] = useState<{ day: string; percent: number }[]>([]);
@@ -151,6 +153,32 @@ export default function Dashboard() {
                     <div className="flex items-end gap-2 relative z-10">
                         <span className="text-4xl font-bold text-white font-[Outfit]">{completionRate}%</span>
                         <span className="text-sm text-zinc-500 mb-1">daily velocity</span>
+                    </div>
+                </div>
+
+                {/* Level Progress Card */}
+                <div className="col-span-1 p-8 rounded-[1.5rem] border border-white/5 bg-white/[0.02] relative overflow-hidden group hover:-translate-y-1 hover:border-white/10 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="flex items-center justify-between mb-4 relative z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 group-hover:animate-bounce">
+                                <Trophy size={18} />
+                            </div>
+                            <h3 className="text-lg font-medium text-zinc-300">Level {user?.level || 1}</h3>
+                        </div>
+                        <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{user?.xp || 0} XP</span>
+                    </div>
+
+                    <div className="space-y-3 relative z-10">
+                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-all duration-1000 ease-out shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                                style={{ width: `${(user?.xp || 0) % 100}%` }}
+                            />
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] uppercase tracking-tighter font-bold">
+                            <span className="text-blue-400/80">{100 - ((user?.xp || 0) % 100)} XP to level {(user?.level || 1) + 1}</span>
+                        </div>
                     </div>
                 </div>
 

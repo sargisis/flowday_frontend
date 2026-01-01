@@ -121,22 +121,22 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, onTaskC
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="h-full w-full overflow-y-auto custom-scrollbar p-2">
+            <div className="h-full w-full overflow-hidden p-2">
                 {/* 2x2 Grid Layout */}
-                <div className="grid grid-cols-2 gap-6 w-full max-w-7xl mx-auto">
+                <div className="grid grid-cols-2 grid-rows-2 gap-6 w-full h-full mx-auto pb-4">
                     {/* Row 1 */}
-                    <div className="h-full">
+                    <div className="min-h-0">
                         <KanbanColumn id="Todo" title="To Do" tasks={todoTasks} onDelete={onTaskDelete} onTaskClick={onTaskClick} />
                     </div>
-                    <div className="h-full">
+                    <div className="min-h-0">
                         <KanbanColumn id="In_Progress" title="In Progress" tasks={inProgressTasks} onDelete={onTaskDelete} onTaskClick={onTaskClick} />
                     </div>
 
                     {/* Row 2 */}
-                    <div className="h-full">
+                    <div className="min-h-0">
                         <KanbanColumn id="Blocked" title="Blocked" tasks={blockedTasks} onDelete={onTaskDelete} onTaskClick={onTaskClick} />
                     </div>
-                    <div className="h-full">
+                    <div className="min-h-0">
                         <KanbanColumn id="Done" title="Done" tasks={doneTasks} onDelete={onTaskDelete} onTaskClick={onTaskClick} />
                     </div>
                 </div>
