@@ -52,7 +52,15 @@ export const enrichTask = async (id: string): Promise<{ message: string, descrip
     return res.data;
 };
 
-export const getAIHealthAdvice = async (stats: Record<string, number>): Promise<{ advice: string }> => {
-    const res = await api.post("/ai/health-advice", stats);
+export interface AnalysisContext {
+    stats: Record<string, number>;
+    stale_tasks: string[];
+    blocked_tasks: string[];
+    velocity: number;
+    overdue_count: number;
+}
+
+export const getAIHealthAdvice = async (context: AnalysisContext): Promise<{ advice: string }> => {
+    const res = await api.post("/ai/health-advice", context);
     return res.data;
 };

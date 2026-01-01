@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { register } from "../api/auth";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const registerSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 export default function Register() {
     const [name, setName] = useState("");
@@ -10,11 +18,21 @@ export default function Register() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate input
+        const result = registerSchema.safeParse({ name, email, password });
+        if (!result.success) {
+            const errorMsg = result.error.issues[0].message;
+            toast.error(errorMsg);
+            return;
+        }
+
         try {
             await register(name, email, password);
+            toast.success("Registration successful! Please login.");
             navigate("/app/v1/login");
         } catch (error: any) {
-            alert(error.response?.data?.error || "Registration failed");
+            toast.error(error.response?.data?.error || "Registration failed");
         }
     };
 

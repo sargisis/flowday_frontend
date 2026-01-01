@@ -26,14 +26,45 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
             if (tasks.length === 0) return;
             setIsThinking(true);
             try {
+                // Calculate detailed statistics for "Background Analysis"
+                const now = new Date();
+                const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
+
+                // Identify stale tasks (In Progress for > 3 days)
+                const staleTasks = tasks
+                    .filter(t => t.status.toLowerCase() === 'in_progress' && t.created_at && new Date(t.created_at) < threeDaysAgo)
+                    .map(t => t.title);
+
+                // Identify blockers
+                const blockedTasks = tasks
+                    .filter(t => t.status.toLowerCase() === 'blocked')
+                    .map(t => t.title);
+
+                // Calculate simple weekly velocity (approximated by 'done' tasks created in last 7 days for MVP)
+                // Real velocity would need a 'completed_at' field, assume 'created_at' approximates activity for now or just use total done count
+                const doneCount = tasks.filter(t => t.status.toLowerCase() === 'done').length;
+
                 const stats = {
                     todo: tasks.filter(t => t.status.toLowerCase() === 'todo').length,
                     in_progress: tasks.filter(t => t.status.toLowerCase() === 'in_progress').length,
-                    blocked: tasks.filter(t => t.status.toLowerCase() === 'blocked').length,
-                    done: tasks.filter(t => t.status.toLowerCase() === 'done').length,
+                    blocked: blockedTasks.length,
+                    done: doneCount,
                     high_priority: tasks.filter(t => t.priority.toLowerCase() === 'high').length,
                 };
-                const res = await getAIHealthAdvice(stats);
+
+                const overdueCount = tasks.filter(t => {
+                    if (!t.due_date) return false;
+                    return new Date(t.due_date) < now && t.status.toLowerCase() !== 'done';
+                }).length;
+
+                const res = await getAIHealthAdvice({
+                    stats,
+                    stale_tasks: staleTasks,
+                    blocked_tasks: blockedTasks,
+                    velocity: doneCount, // Using total done as proxy for now
+                    overdue_count: overdueCount
+                });
+
                 setAiAdvice(res.advice);
             } catch (err) {
                 console.error("Failed to fetch AI advice", err);
@@ -42,7 +73,9 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
             }
         };
 
-        fetchAdvice();
+        // Debounce to prevent too many API calls
+        const timer = setTimeout(fetchAdvice, 1000);
+        return () => clearTimeout(timer);
     }, [tasks]);
 
     const insights = useMemo<Insight[]>(() => {

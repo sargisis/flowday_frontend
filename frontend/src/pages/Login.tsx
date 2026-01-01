@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { login } from "../api/auth";
 
+import { toast } from "sonner";
+
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -17,8 +19,9 @@ export default function Login() {
             // Redirect to the page they were trying to access, or dashboard
             const from = location.state?.from?.pathname || "/app/v1/dashboard";
             navigate(from);
+            toast.success("Welcome back!");
         } catch (error: any) {
-            alert(error.response?.data?.error || "Login failed. Please check your credentials.");
+            toast.error(error.response?.data?.error || "Login failed. Please check your credentials.");
         }
     };
 
