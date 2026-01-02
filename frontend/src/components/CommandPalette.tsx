@@ -31,7 +31,7 @@ interface Action {
 export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const navigate = useNavigate();
     const { projects, setActiveProjectId } = useProject();
-    const { openDetailsModal } = useTasks();
+    const { openDetailsModal, openCreateModal } = useTasks();
     const [query, setQuery] = useState('');
     const [activeIndex, setActiveIndex] = useState(0);
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -93,6 +93,15 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             icon: <Zap size={18} />,
             shortcut: '⌥ f',
             action: () => navigate('/app/v1/focus'),
+            category: 'Actions',
+            type: 'action'
+        },
+        {
+            id: 'quick-capture',
+            title: 'Quick Capture Task',
+            icon: <Plus size={18} />,
+            shortcut: '⌥ q',
+            action: () => openCreateModal(),
             category: 'Actions',
             type: 'action'
         },

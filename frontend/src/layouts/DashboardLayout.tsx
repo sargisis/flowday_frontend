@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
@@ -6,10 +6,34 @@ import TacticalOverlay from "../components/TacticalOverlay";
 import FloatingTimerWidget from "../components/FloatingTimerWidget";
 import NotificationPermissionBanner from "../components/NotificationPermissionBanner";
 import CommandPalette from "../components/CommandPalette";
+import { useTasks } from "../context/TaskContext";
+import { useUser } from "../context/UserContext";
+import confetti from "canvas-confetti";
 
 export default function DashboardLayout() {
     const navigate = useNavigate();
+    const { openCreateModal } = useTasks();
+    const { user } = useUser();
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+    const prevLevelRef = useRef<number | undefined>(undefined);
+
+    // Level-Up Celebration Logic
+    useEffect(() => {
+        if (user && prevLevelRef.current !== undefined && (user.level || 0) > prevLevelRef.current) {
+            // Level increased!
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#6366f1', '#a855f7', '#ec4899']
+            });
+
+            // Optional: Play a sound if available
+        }
+        if (user) {
+            prevLevelRef.current = user.level || 0;
+        }
+    }, [user?.level]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -60,13 +84,19 @@ export default function DashboardLayout() {
                     e.preventDefault();
                     navigate('/app/v1/notifications');
                     setIsCommandPaletteOpen(false);
+                } else if (code === 'KeyQ' || key === 'q' || key === 'œ') {
+                    e.preventDefault();
+                    openCreateModal();
+                } else if (code === 'KeyK' || key === 'k' || key === '˚') {
+                    e.preventDefault();
+                    setIsCommandPaletteOpen(prev => !prev);
                 }
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [navigate]);
+    }, [navigate, openCreateModal]);
 
     return (
         <div className="flex h-screen bg-black text-white overflow-hidden">
