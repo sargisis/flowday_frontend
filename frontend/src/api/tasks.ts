@@ -16,6 +16,11 @@ export const getTasksByProject = async (projectId: string): Promise<Task[]> => {
     return res.data || [];
 };
 
+export const getAllTasks = async (): Promise<Task[]> => {
+    const res = await api.get("/tasks/all");
+    return res.data || [];
+};
+
 export const updateTask = async (id: string, updates: Partial<Task>) => {
     const res = await api.patch(`/tasks/${id}`, updates);
     return res.data;

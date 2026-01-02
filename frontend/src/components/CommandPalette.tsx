@@ -14,6 +14,8 @@ import {
     Users
 } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
+import { useTasks } from '../context/TaskContext';
+import { getAllTasks, type Task } from '../api/tasks';
 
 interface Action {
     id: string;
@@ -22,14 +24,18 @@ interface Action {
     shortcut?: string;
     action: () => void;
     category: string;
-    type?: 'page' | 'project' | 'action';
+    type?: 'page' | 'project' | 'action' | 'task';
+    metadata?: any;
 }
 
 export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const navigate = useNavigate();
     const { projects, setActiveProjectId } = useProject();
+    const { openDetailsModal } = useTasks();
     const [query, setQuery] = useState('');
     const [activeIndex, setActiveIndex] = useState(0);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [isLoadingTasks, setIsLoadingTasks] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const navigationActions: Action[] = [
@@ -37,7 +43,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             id: 'dash',
             title: 'Go to Dashboard',
             icon: <LayoutDashboard size={18} />,
-            shortcut: 'G D',
+            shortcut: '⌥ d',
             action: () => navigate('/app/v1/dashboard'),
             category: 'Navigation',
             type: 'page'
@@ -46,7 +52,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             id: 'tasks',
             title: 'Go to Tasks',
             icon: <CheckSquare size={18} />,
-            shortcut: 'G T',
+            shortcut: '⌥ t',
             action: () => navigate('/app/v1/tasks'),
             category: 'Navigation',
             type: 'page'
@@ -55,7 +61,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             id: 'calendar',
             title: 'Open Calendar',
             icon: <Calendar size={18} />,
-            shortcut: 'G C',
+            shortcut: '⌥ c',
             action: () => navigate('/app/v1/calendar'),
             category: 'Navigation',
             type: 'page'
@@ -64,7 +70,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             id: 'team',
             title: 'Team Members',
             icon: <Users size={18} />,
-            shortcut: 'G P',
+            shortcut: '⌥ p',
             action: () => navigate('/app/v1/team'),
             category: 'Navigation',
             type: 'page'
@@ -73,7 +79,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             id: 'settings',
             title: 'Open Settings',
             icon: <Settings size={18} />,
-            shortcut: 'G S',
+            shortcut: '⌥ s',
             action: () => navigate('/app/v1/settings'),
             category: 'Navigation',
             type: 'page'
@@ -85,7 +91,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             id: 'focus',
             title: 'Start Focus Session',
             icon: <Zap size={18} />,
-            shortcut: 'F',
+            shortcut: '⌥ f',
             action: () => navigate('/app/v1/focus'),
             category: 'Actions',
             type: 'action'
@@ -94,7 +100,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             id: 'new-project',
             title: 'Create New Project',
             icon: <Plus size={18} />,
-            shortcut: 'N',
+            shortcut: 'n',
             action: () => {
                 // Triggered via global event or specific route
                 navigate('/app/v1/dashboard');
@@ -106,7 +112,7 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             id: 'notifs',
             title: 'View Notifications',
             icon: <Bell size={18} />,
-            shortcut: 'G N',
+            shortcut: '⌥ n',
             action: () => navigate('/app/v1/notifications'),
             category: 'Navigation',
             type: 'page'
@@ -125,19 +131,43 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
         type: 'project'
     }));
 
-    const allActions = [...navigationActions, ...functionalActions, ...projectActions];
+    const taskActions: Action[] = tasks.map(t => ({
+        id: `task-${t.id}`,
+        title: t.title,
+        icon: <CheckSquare size={18} />,
+        action: () => openDetailsModal(t),
+        category: 'Tasks',
+        type: 'task',
+        metadata: t
+    }));
+
+    const allActions = [...navigationActions, ...functionalActions, ...projectActions, ...taskActions];
 
     const filteredActions = allActions.filter(a =>
         a.title.toLowerCase().includes(query.toLowerCase()) ||
-        a.category.toLowerCase().includes(query.toLowerCase())
+        a.category.toLowerCase().includes(query.toLowerCase()) ||
+        (a.type === 'task' && a.metadata?.description?.toLowerCase().includes(query.toLowerCase()))
     );
 
     useEffect(() => {
-        if (isOpen) {
-            setQuery('');
-            setActiveIndex(0);
-            setTimeout(() => inputRef.current?.focus(), 10);
-        }
+        const fetchTasks = async () => {
+            if (isOpen) {
+                setIsLoadingTasks(true);
+                try {
+                    const data = await getAllTasks();
+                    setTasks(data);
+                } catch (err) {
+                    console.error("Failed to fetch tasks for command palette", err);
+                } finally {
+                    setIsLoadingTasks(false);
+                }
+
+                setQuery('');
+                setActiveIndex(0);
+                setTimeout(() => inputRef.current?.focus(), 10);
+            }
+        };
+        fetchTasks();
     }, [isOpen]);
 
     useEffect(() => {
@@ -188,6 +218,13 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
                         }}
                     />
                     <div className="absolute right-6 top-6 flex items-center gap-2 opacity-50">
+                        {isLoadingTasks && (
+                            <div className="flex gap-1 items-center mr-2">
+                                <div className="w-1 h-1 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                                <div className="w-1 h-1 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                                <div className="w-1 h-1 bg-indigo-500 rounded-full animate-bounce" />
+                            </div>
+                        )}
                         <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Esc to close</span>
                     </div>
                 </div>
@@ -219,8 +256,8 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
                                                     onMouseEnter={() => setActiveIndex(globalIndex)}
                                                 >
                                                     <div className={`p-2 rounded-lg transition-colors ${isActive
-                                                            ? 'bg-indigo-500/20 text-indigo-400'
-                                                            : 'bg-white/5 text-zinc-500'
+                                                        ? 'bg-indigo-500/20 text-indigo-400'
+                                                        : 'bg-white/5 text-zinc-500'
                                                         }`}>
                                                         {action.icon}
                                                     </div>
