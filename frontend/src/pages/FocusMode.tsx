@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Play, Pause, RotateCcw, ArrowLeft, Maximize2, Headphones, Volume2 } from "lucide-react";
+import { updateUserStatus } from "../api/auth";
 import api from "../api/axios";
 import type { Task } from "../api/tasks";
 import "./FocusMode.css";
@@ -59,16 +60,19 @@ export default function FocusMode() {
         }
     }, [taskId]);
 
-    const toggleTimer = () => {
+    const toggleTimer = async () => {
         if (isActive) {
             pauseSession();
+            await updateUserStatus("Online");
         } else {
             // If the timer was already running (not at 25:00), resume it
             if (timeLeft < 25 * 60) {
                 resumeSession();
+                await updateUserStatus("Deep Work");
             } else {
                 // Start a fresh session
                 startSession(task?.title || "Deep Work Session", 25 * 60);
+                await updateUserStatus("Deep Work");
             }
         }
     };

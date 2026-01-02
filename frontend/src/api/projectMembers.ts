@@ -5,7 +5,6 @@ export interface ProjectMember {
     project_id: string; // MongoDB ObjectID
     user_id: string; // MongoDB ObjectID
     role: string;
-    status: string;
     token?: string;
     invited_at: string;
     accepted_at?: string;
@@ -13,6 +12,8 @@ export interface ProjectMember {
         id: string; // MongoDB ObjectID
         name: string;
         email: string;
+        status?: string;
+        velocity?: number;
     };
     project?: {
         id: string; // MongoDB ObjectID

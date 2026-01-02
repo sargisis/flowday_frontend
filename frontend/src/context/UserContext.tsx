@@ -7,6 +7,9 @@ interface User {
     email: string;
     bio?: string;
     avatar_url?: string;
+    workspace_name?: string;
+    status?: string;
+    velocity?: number;
     xp?: number;
     level?: number;
 }

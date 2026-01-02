@@ -184,11 +184,22 @@ export default function TeamPage() {
 
             {/* Grid Layout */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {members.map((m, index) => {
+                {members.map((m) => {
                     const isOwner = m.role === "owner";
-                    const status = index % 3 === 0 ? "Deep Work" : index % 3 === 1 ? "Online" : "In Meeting";
-                    const statusColor = index % 3 === 0 ? "text-indigo-400" : index % 3 === 1 ? "text-emerald-400" : "text-amber-400";
-                    const velocity = 85 + (index * 3) % 15;
+                    const status = m.user?.status || "Online";
+                    const velocity = m.user?.velocity || 0;
+
+                    const getStatusColor = (s: string) => {
+                        switch (s.toLowerCase()) {
+                            case 'deep work': return 'text-indigo-400';
+                            case 'online': return 'text-emerald-400';
+                            case 'away': return 'text-zinc-500';
+                            case 'in meeting': return 'text-amber-400';
+                            default: return 'text-emerald-400';
+                        }
+                    };
+
+                    const statusColor = getStatusColor(status);
 
                     return (
                         <div key={m.id} className="group relative bg-zinc-900/40 border border-white/5 rounded-3xl p-6 hover:bg-zinc-900/60 hover:border-white/10 transition-all duration-300">
