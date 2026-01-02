@@ -3,7 +3,7 @@ import { type Task, getTasksByProject } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
-import EmptyState from "../components/EmptyState";
+import EmptyState from "../components/state/EmptyState";
 import { CheckSquare } from "lucide-react";
 import useSound from "../hooks/useSound";
 

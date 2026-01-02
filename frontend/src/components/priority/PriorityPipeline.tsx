@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { type Task, getTasksByProject } from "../api/tasks";
-import { useProject } from "../context/ProjectContext";
+import { type Task, getTasksByProject } from "../../api/tasks";
+import { useProject } from "../../context/ProjectContext";
 
 export default function PriorityPipeline() {
     const { activeProjectId } = useProject();

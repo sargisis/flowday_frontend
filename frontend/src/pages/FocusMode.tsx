@@ -101,6 +101,13 @@ export default function FocusMode() {
                 style={{ width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)', bottom: '10%', left: '15%', animationDelay: '-5s' }}
             />
 
+            {isActive && (
+                <div className="dnd-badge animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="dnd-dot" />
+                    <span>DND ACTIVE</span>
+                </div>
+            )}
+
             <button onClick={() => navigate(-1)} className="focus-exit-btn">
                 <ArrowLeft size={18} />
                 Exit Focus
@@ -140,6 +147,12 @@ export default function FocusMode() {
                     {/* Sound Selector */}
                     {audioActive && (
                         <div className="sound-selector animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <button
+                                className={`sound-option ${soundType === 'deep_focus' ? 'active' : ''}`}
+                                onClick={() => handleSoundChange('deep_focus')}
+                            >
+                                Concentration
+                            </button>
                             <button
                                 className={`sound-option ${soundType === 'brown' ? 'active' : ''}`}
                                 onClick={() => handleSoundChange('brown')}

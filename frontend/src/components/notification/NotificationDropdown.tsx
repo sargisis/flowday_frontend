@@ -1,8 +1,8 @@
 import { Bell, CheckCircle2, AlertTriangle, Clock, Check } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import type { Task } from '../api/tasks';
-import { useProject } from '../context/ProjectContext';
-import { getTasksByProject } from '../api/tasks';
+import type { Task } from '../../api/tasks';
+import { useProject } from '../../context/ProjectContext';
+import { getTasksByProject } from '../../api/tasks';
 
 interface Notification {
     id: string;

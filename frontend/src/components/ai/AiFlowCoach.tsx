@@ -1,6 +1,6 @@
 import { Zap, Trophy, Lightbulb, AlertTriangle, ArrowRight, Target, TrendingUp, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { type Task, getAIHealthAdvice } from "../api/tasks";
+import { type Task, getAIHealthAdvice } from "../../api/tasks";
 import { useMemo, useState, useEffect } from "react";
 
 interface AiFlowCoachProps {

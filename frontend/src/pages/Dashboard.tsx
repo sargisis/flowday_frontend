@@ -4,10 +4,10 @@ import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
 import { LayoutList, Activity, CheckCircle2, AlertCircle, Zap, TrendingUp, Trophy, Plus } from "lucide-react";
 import { useUser } from "../context/UserContext";
-import StatsCard from "../components/StatsCard";
-import AiFlowCoach from "../components/AiFlowCoach";
-import PriorityPipeline from "../components/PriorityPipeline";
-import EmptyState from "../components/EmptyState";
+import StatsCard from "../components/status-bar-components/StatsCard";
+import AiFlowCoach from "../components/ai/AiFlowCoach";
+import PriorityPipeline from "../components/priority/PriorityPipeline";
+import EmptyState from "../components/state/EmptyState";
 import { useNavigate } from "react-router-dom";
 import { getAvatarUrl } from "../api/auth";
 
