@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import { type Task, createTask as apiCreateTask, updateTask as apiUpdateTask, deleteTask as apiDeleteTask, decomposeTask as apiDecomposeTask, enrichTask as apiEnrichTask } from "../api/tasks";
 import { useProject } from "./ProjectContext";
 import { useUser } from "./UserContext";
-import CreateTaskModal from "../components/CreateTaskModal";
-import TaskDetailsModal from "../components/TaskDetailsModal";
+import CreateTaskModal from "../components/create-task-components/CreateTaskModal";
+import TaskDetailsModal from "../components/task-components/TaskDetailsModal";
 
 interface TaskContextType {
     openCreateModal: (initialDate?: string) => void;

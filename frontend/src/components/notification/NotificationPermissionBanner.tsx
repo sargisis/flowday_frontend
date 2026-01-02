@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Bell, BellOff } from 'lucide-react';
-import { notificationManager } from '../utils/notificationManager';
+import { notificationManager } from '../../utils/notificationManager';
 
 export default function NotificationPermissionBanner() {
     const [permission, setPermission] = useState<NotificationPermission>('default');

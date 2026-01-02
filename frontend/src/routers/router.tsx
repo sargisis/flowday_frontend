@@ -8,7 +8,7 @@ import TeamPage from "../pages/TeamPage";
 import SettingsPage from "../pages/SettingsPage";
 import InvitationsPage from "../pages/InvitationsPage";
 import NotificationsPage from "../pages/NotificationsPage";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "../components/protected-router/ProtectedRoute";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { ProjectProvider } from "../context/ProjectContext";
 import ForgotPassword from "../pages/ForgotPassword";

@@ -3,7 +3,7 @@ import { useProject } from "../context/ProjectContext";
 import { type ProjectMember, getProjectMembers, inviteMember, removeMember, updateMemberRole } from "../api/projectMembers";
 import { getMe } from "../api/auth";
 import { MessageSquare, Zap, MoreVertical, Plus, User as UserIcon, Trash2, Shield, X, Check, Users } from "lucide-react";
-import EmptyState from "../components/EmptyState";
+import EmptyState from "../components/state/EmptyState";
 
 const ROLES = [
     "Project Lead",

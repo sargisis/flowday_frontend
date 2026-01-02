@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getNotifications, markNotificationRead, type Notification } from "../api/notifications";
-import EmptyState from "../components/EmptyState";
+import EmptyState from "../components/state/EmptyState";
 import { Bell, Check, Clock, AlertTriangle, CheckCircle2, ShieldAlert, Zap, Target } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 

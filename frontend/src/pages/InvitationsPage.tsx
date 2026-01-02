@@ -3,7 +3,7 @@ import { type ProjectMember, getMyInvitations, acceptInvitation, rejectInvitatio
 import { useNavigate } from "react-router-dom";
 import { useProject } from "../context/ProjectContext";
 import { Check, X, Inbox } from "lucide-react";
-import EmptyState from "../components/EmptyState";
+import EmptyState from "../components/state/EmptyState";
 
 export default function InvitationsPage() {
     const [invitations, setInvitations] = useState<ProjectMember[]>([]);

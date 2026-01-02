@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { X, Calendar, CheckCircle2, Clock, Trash2, Sparkles, Edit3, Eye } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import type { Task } from "../api/tasks";
-import { useTasks } from "../context/TaskContext";
+import type { Task } from "../../api/tasks";
+import { useTasks } from "../../context/TaskContext";
 
 interface TaskDetailsModalProps {
     task: Task | null;

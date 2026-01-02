@@ -13,9 +13,9 @@ import {
     Calendar,
     Users
 } from 'lucide-react';
-import { useProject } from '../context/ProjectContext';
-import { useTasks } from '../context/TaskContext';
-import { getAllTasks, type Task } from '../api/tasks';
+import { useProject } from '../../context/ProjectContext';
+import { useTasks } from '../../context/TaskContext';
+import { getAllTasks, type Task } from '../../api/tasks';
 
 interface Action {
     id: string;

@@ -1,7 +1,7 @@
 
 // src/utils/audioEngine.ts
 
-export type SoundType = 'brown' | 'white' | 'pink';
+export type SoundType = 'brown' | 'white' | 'pink' | 'deep_focus';
 
 export class AudioEngine {
     private ctx: AudioContext | null = null;
@@ -9,6 +9,7 @@ export class AudioEngine {
     private isPlaying: boolean = false;
     private currentType: SoundType = 'brown';
     private sourceNode: AudioBufferSourceNode | null = null;
+    private lfoNode: OscillatorNode | null = null;
 
     constructor() {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -42,7 +43,7 @@ export class AudioEngine {
                 b6 = white * 0.115926;
             }
         } else {
-            // Brown noise (default)
+            // Brown noise or Deep Focus
             let lastOut = 0;
             for (let i = 0; i < bufferSize; i++) {
                 const white = Math.random() * 2 - 1;
@@ -79,9 +80,9 @@ export class AudioEngine {
 
         // Filter based on type to shape the tone
         const filter = this.ctx.createBiquadFilter();
-        if (type === 'brown') {
+        if (type === 'brown' || type === 'deep_focus') {
             filter.type = 'lowpass';
-            filter.frequency.value = 400;
+            filter.frequency.value = type === 'deep_focus' ? 250 : 400;
         } else if (type === 'pink') {
             // Rain-like
             filter.type = 'lowpass';
@@ -96,6 +97,19 @@ export class AudioEngine {
         filter.connect(this.gainNode);
         this.gainNode.connect(this.ctx.destination);
 
+        // Add LFO for Deep Focus (Alpha/Theta wave simulation)
+        if (type === 'deep_focus') {
+            this.lfoNode = this.ctx.createOscillator();
+            const lfoGain = this.ctx.createGain();
+            this.lfoNode.type = 'sine';
+            this.lfoNode.frequency.value = 0.1; // Very slow pulsing
+            lfoGain.gain.value = 0.15; // Modulation depth
+
+            this.lfoNode.connect(lfoGain);
+            lfoGain.connect(this.gainNode.gain);
+            this.lfoNode.start();
+        }
+
         this.sourceNode.start(0);
         this.isPlaying = true;
 
@@ -109,6 +123,14 @@ export class AudioEngine {
 
         const fadeTime = immediate ? 0.1 : 1;
         this.gainNode.gain.linearRampToValueAtTime(0, this.ctx.currentTime + fadeTime);
+
+        // Stop LFO if active
+        if (this.lfoNode) {
+            try {
+                this.lfoNode.stop(this.ctx.currentTime + fadeTime);
+            } catch (e) { }
+            this.lfoNode = null;
+        }
 
         // Keep reference to stop later
         const source = this.sourceNode;

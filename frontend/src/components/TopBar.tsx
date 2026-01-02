@@ -4,7 +4,7 @@ import { useUser } from "../context/UserContext";
 import { useProject } from "../context/ProjectContext";
 import { getProjectMembers } from "../api/projectMembers";
 import { getAvatarUrl } from "../api/auth";
-import NotificationDropdown from "./NotificationDropdown";
+import NotificationDropdown from "./notification/NotificationDropdown";
 
 export default function TopBar() {
     const { user } = useUser();
