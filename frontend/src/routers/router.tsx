@@ -13,6 +13,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import { ProjectProvider } from "../context/ProjectContext";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import FocusHistoryPage from "../pages/FocusHistoryPage";
 import FocusMode from "../pages/FocusMode";
 import LandingPage from "../pages/LandingPage";
 import Calendar from "../pages/Calendar";
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
             { path: "settings", element: <SettingsPage /> },
             { path: "focus", element: <FocusMode /> },
             { path: "focus/:taskId", element: <FocusMode /> },
+            { path: "focus/history", element: <FocusHistoryPage /> },
         ]
     },
 

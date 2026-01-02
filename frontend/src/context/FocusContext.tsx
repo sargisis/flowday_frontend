@@ -1,11 +1,15 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { notificationManager } from "../utils/notificationManager";
+import api from "../api/axios";
+import { useUser } from "./UserContext";
 
 interface FocusContextType {
     isActive: boolean;
     timeLeft: number;
     taskTitle: string | null;
-    startSession: (title?: string, duration?: number) => void;
+    taskId: string | null;
+    duration: number; // original duration in seconds
+    startSession: (title?: string, duration?: number, taskId?: string) => void;
     pauseSession: () => void;
     resumeSession: () => void;
     resetSession: () => void;
@@ -14,9 +18,12 @@ interface FocusContextType {
 const FocusContext = createContext<FocusContextType | undefined>(undefined);
 
 export function FocusProvider({ children }: { children: ReactNode }) {
+    const { reloadUser } = useUser();
     const [isActive, setIsActive] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes default
+    const [timeLeft, setTimeLeft] = useState(25 * 60);
+    const [duration, setDuration] = useState(25 * 60);
     const [taskTitle, setTaskTitle] = useState<string | null>(null);
+    const [taskId, setTaskId] = useState<string | null>(null);
 
     useEffect(() => {
         let interval: ReturnType<typeof setInterval>;
@@ -25,16 +32,32 @@ export function FocusProvider({ children }: { children: ReactNode }) {
                 setTimeLeft((prev) => prev - 1);
             }, 1000);
         } else if (timeLeft === 0 && isActive) {
-            setIsActive(false);
-            // Notify user that Focus session is complete
-            notificationManager.notifyFocusComplete('25 minutes');
+            handleSessionComplete();
         }
         return () => clearInterval(interval);
     }, [isActive, timeLeft]);
 
-    const startSession = (title?: string, duration: number = 25 * 60) => {
+    const handleSessionComplete = async () => {
+        setIsActive(false);
+        notificationManager.notifyFocusComplete(`${duration / 60} minutes`);
+
+        try {
+            await api.post('/focus/sessions', {
+                task_id: taskId,
+                task_title: taskTitle || "Deep Work Session",
+                duration: Math.round(duration / 60)
+            });
+            reloadUser(); // Update XP/Level
+        } catch (err) {
+            console.error("Failed to save focus session", err);
+        }
+    };
+
+    const startSession = (title?: string, sessionDuration: number = 25 * 60, tid?: string) => {
         setTaskTitle(title || null);
-        setTimeLeft(duration);
+        setTaskId(tid || null);
+        setDuration(sessionDuration);
+        setTimeLeft(sessionDuration);
         setIsActive(true);
     };
 
@@ -58,6 +81,8 @@ export function FocusProvider({ children }: { children: ReactNode }) {
                 isActive,
                 timeLeft,
                 taskTitle,
+                taskId,
+                duration,
                 startSession,
                 pauseSession,
                 resumeSession,

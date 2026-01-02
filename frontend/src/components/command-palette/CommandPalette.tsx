@@ -11,7 +11,8 @@ import {
     Command,
     Folder,
     Calendar,
-    Users
+    Users,
+    History
 } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
 import { useTasks } from '../../context/TaskContext';
@@ -81,6 +82,15 @@ export default function CommandPalette({ isOpen, onClose }: { isOpen: boolean; o
             icon: <Settings size={18} />,
             shortcut: '⌥ s',
             action: () => navigate('/app/v1/settings'),
+            category: 'Navigation',
+            type: 'page'
+        },
+        {
+            id: 'focus-history',
+            title: 'Focus History',
+            icon: <History size={18} />,
+            shortcut: '⌥ h',
+            action: () => navigate('/app/v1/focus/history'),
             category: 'Navigation',
             type: 'page'
         }

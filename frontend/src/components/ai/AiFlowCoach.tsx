@@ -236,20 +236,20 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
             <div className="absolute top-0 right-0 p-12 opacity-5 bg-indigo-500 blur-3xl rounded-full translate-x-10 translate-y-[-50%]" />
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-8 relative z-10">
+            <div className="flex items-center justify-between mb-8 relative z-10 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                         <Zap size={20} className="fill-indigo-500/20" />
                     </div>
                     <div>
                         <h3 className="text-lg font-semibold text-white tracking-wide font-outfit">AI Flow Coach</h3>
-                        <div className="flex items-center gap-2">
-                            <span className="relative flex h-2 w-2">
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <span className="relative flex h-1.5 w-1.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                             </span>
-                            <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest">
-                                {tasks.length} {tasks.length === 1 ? 'Task' : 'Tasks'} Analyzed
+                            <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest">
+                                {tasks.length} Vectors Analyzed
                             </span>
                         </div>
                     </div>
@@ -257,7 +257,7 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
             </div>
 
             {/* Insights */}
-            <div className="space-y-4 relative z-10">
+            <div className="space-y-4 relative z-10 flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 fade-bottom">
                 {isThinking && !aiAdvice && (
                     <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.05] animate-pulse flex gap-4">
                         <div className="mt-1">
@@ -274,7 +274,7 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
                     return (
                         <div
                             key={insight.id}
-                            className={`p-4 rounded-xl border transition-colors flex gap-4 group/item ${getBorderClass(insight.variant)}`}
+                            className={`p-4 rounded-xl border transition-all flex gap-4 group/item ${getBorderClass(insight.variant)}`}
                         >
                             <div className="mt-1">
                                 <Icon size={18} className={insight.iconColor} />
@@ -291,13 +291,15 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
             </div>
 
             {/* Action Button */}
-            <button
-                onClick={() => navigate('/app/v1/focus')}
-                className="w-full mt-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 group/btn relative z-10"
-            >
-                Start Focus Session
-                <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
-            </button>
+            <div className="mt-6 shrink-0 pt-4 border-t border-white/5">
+                <button
+                    onClick={() => navigate('/app/v1/focus')}
+                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group/btn relative z-10"
+                >
+                    Start Focus Session
+                    <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                </button>
+            </div>
         </div>
     );
 }
