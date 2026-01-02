@@ -25,8 +25,13 @@ export const resetPassword = async (email: string, code: string, newPassword: st
   return res.data;
 };
 
-export const updateProfile = async (data: { name?: string; bio?: string }) => {
+export const updateProfile = async (data: { name?: string; bio?: string; workspace_name?: string }) => {
   const res = await api.patch("/users/profile", data);
+  return res.data;
+};
+
+export const updateUserStatus = async (status: string) => {
+  const res = await api.patch("/users/status", { status });
   return res.data;
 };
 

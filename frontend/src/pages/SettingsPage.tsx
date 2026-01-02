@@ -18,6 +18,7 @@ export default function SettingsPage() {
     // Profile State
     const [name, setName] = useState("");
     const [bio, setBio] = useState("");
+    const [workspaceName, setWorkspaceName] = useState("");
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,6 +37,7 @@ export default function SettingsPage() {
             setName(user.name || "");
             setBio(user.bio || "");
             setAvatarPreview(user.avatar_url || null);
+            setWorkspaceName(user.workspace_name || "");
         }
     }, [user]);
 
@@ -78,7 +80,7 @@ export default function SettingsPage() {
             }
 
             // 2. Update Profile info
-            await updateProfile({ name, bio });
+            await updateProfile({ name, bio, workspace_name: workspaceName });
 
             await reloadUser();
             toast.success("Profile updated successfully");
@@ -245,8 +247,10 @@ export default function SettingsPage() {
                                     <div className="space-y-2">
                                         <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-widest ml-1">Workspace Identity</label>
                                         <input
+                                            value={workspaceName}
+                                            onChange={(e) => setWorkspaceName(e.target.value)}
                                             className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all placeholder:text-zinc-700 hover:bg-black/30"
-                                            defaultValue="Flowday Engineering"
+                                            placeholder="Flowday Engineering"
                                         />
                                     </div>
                                 </div>
