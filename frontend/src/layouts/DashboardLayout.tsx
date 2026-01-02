@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import TacticalOverlay from "../components/TacticalOverlay";
@@ -8,19 +8,65 @@ import NotificationPermissionBanner from "../components/NotificationPermissionBa
 import CommandPalette from "../components/CommandPalette";
 
 export default function DashboardLayout() {
+    const navigate = useNavigate();
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            const isMod = e.metaKey || e.ctrlKey;
+            const isAlt = e.altKey;
+
+            // Don't trigger shortcuts if user is typing in an input or textarea
+            // EXCEPT when a modifier (Alt/Cmd/Ctrl) is held.
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                if (!isMod && !isAlt) return;
+            }
+
+            if (isMod && e.code === 'KeyK') {
                 e.preventDefault();
                 setIsCommandPaletteOpen(prev => !prev);
+                return;
+            }
+
+            if (isAlt) {
+                const key = e.key.toLowerCase();
+                const code = e.code;
+
+                if (code === 'KeyD' || key === 'd' || key === '∂') {
+                    e.preventDefault();
+                    navigate('/app/v1/dashboard');
+                    setIsCommandPaletteOpen(false);
+                } else if (code === 'KeyT' || key === 't' || key === '†') {
+                    e.preventDefault();
+                    navigate('/app/v1/tasks');
+                    setIsCommandPaletteOpen(false);
+                } else if (code === 'KeyC' || key === 'c' || key === 'ç') {
+                    e.preventDefault();
+                    navigate('/app/v1/calendar');
+                    setIsCommandPaletteOpen(false);
+                } else if (code === 'KeyP' || key === 'p' || key === 'π') {
+                    e.preventDefault();
+                    navigate('/app/v1/team');
+                    setIsCommandPaletteOpen(false);
+                } else if (code === 'KeyS' || key === 's' || key === 'ß') {
+                    e.preventDefault();
+                    navigate('/app/v1/settings');
+                    setIsCommandPaletteOpen(false);
+                } else if (code === 'KeyF' || key === 'f' || key === 'ƒ') {
+                    e.preventDefault();
+                    navigate('/app/v1/focus');
+                    setIsCommandPaletteOpen(false);
+                } else if (code === 'KeyN' || key === 'n' || key === '˜') {
+                    e.preventDefault();
+                    navigate('/app/v1/notifications');
+                    setIsCommandPaletteOpen(false);
+                }
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [navigate]);
 
     return (
         <div className="flex h-screen bg-black text-white overflow-hidden">
