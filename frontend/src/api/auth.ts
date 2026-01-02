@@ -49,3 +49,11 @@ export const confirmEmailChange = async (newEmail: string, code: string) => {
   const res = await api.post("/users/email-change/confirm", { new_email: newEmail, code });
   return res.data;
 };
+
+export const getAvatarUrl = (path?: string) => {
+  if (!path) return null;
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  // Ensure path starts with / if it's relative
+  const fullPath = path.startsWith('/') ? path : `/${path}`;
+  return `http://localhost:8080${fullPath}`;
+};

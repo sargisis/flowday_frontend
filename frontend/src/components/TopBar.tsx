@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Search, Command, User } from "lucide-react";
-
+import { Search, Command, User as UserIcon } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useProject } from "../context/ProjectContext";
 import { getProjectMembers } from "../api/projectMembers";
+import { getAvatarUrl } from "../api/auth";
 import NotificationDropdown from "./NotificationDropdown";
 
 export default function TopBar() {
@@ -77,12 +77,12 @@ export default function TopBar() {
                     <button className="relative h-10 w-10 rounded-xl overflow-hidden ring-2 ring-white/10 hover:ring-indigo-500/50 transition-all flex items-center justify-center bg-zinc-800 text-zinc-400">
                         {user?.avatar_url ? (
                             <img
-                                src={`${import.meta.env.VITE_API_BASE_URL}${user.avatar_url}`}
+                                src={getAvatarUrl(user.avatar_url) || ""}
                                 alt="Avatar"
                                 className="h-full w-full object-cover"
                             />
                         ) : (
-                            <User size={20} />
+                            <UserIcon size={20} />
                         )}
                     </button>
                 </div>

@@ -9,6 +9,7 @@ import AiFlowCoach from "../components/AiFlowCoach";
 import PriorityPipeline from "../components/PriorityPipeline";
 import EmptyState from "../components/EmptyState";
 import { useNavigate } from "react-router-dom";
+import { getAvatarUrl } from "../api/auth";
 
 export default function Dashboard() {
     const { activeProjectId } = useProject();
@@ -126,12 +127,21 @@ export default function Dashboard() {
             {/* Mission Welcome */}
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in fade-in slide-in-from-left-5 duration-700">
                 <div className="space-y-2">
-                    <h1 className="text-4xl font-bold text-white tracking-tight font-[Outfit] flex items-center gap-3">
-                        Welcome back, {user?.name?.split(' ')[0] || 'Member'}
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
-                            <Zap size={14} className="text-indigo-400 fill-indigo-400" />
-                            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Level {user?.level || 1}</span>
-                        </div>
+                    <h1 className="text-4xl font-bold text-white tracking-tight font-[Outfit] flex items-center gap-4">
+                        {user?.avatar_url && (
+                            <img
+                                src={getAvatarUrl(user.avatar_url) || ""}
+                                alt="Avatar"
+                                className="h-10 w-10 rounded-xl object-cover ring-2 ring-white/10"
+                            />
+                        )}
+                        <span className="flex items-center gap-3">
+                            Welcome back, {user?.name?.split(' ')[0] || 'Member'}
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+                                <Zap size={14} className="text-indigo-400 fill-indigo-400" />
+                                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Level {user?.level || 1}</span>
+                            </div>
+                        </span>
                     </h1>
                     <p className="text-zinc-400 text-lg max-w-2xl">
                         {user?.bio || "Initialize your daily mission. The coach is analyzing your throughput."}
