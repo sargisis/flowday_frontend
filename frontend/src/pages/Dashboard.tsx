@@ -8,6 +8,7 @@ import StatsCard from "../components/status-bar-components/StatsCard";
 import AiFlowCoach from "../components/ai/AiFlowCoach";
 import PriorityPipeline from "../components/priority/PriorityPipeline";
 import ActivityFeed from "../components/activity/ActivityFeed";
+import StreakCounter from "../components/achievements/StreakCounter";
 import EmptyState from "../components/state/EmptyState";
 import { useNavigate } from "react-router-dom";
 import { getAvatarUrl } from "../api/auth";
@@ -207,19 +208,9 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-10 duration-700 delay-100">
-                {/* Flow Score Card */}
-                <div className="col-span-1 p-8 rounded-[1.5rem] border border-white/5 bg-white/[0.02] relative overflow-hidden group hover:-translate-y-1 hover:border-white/10 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/10">
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                    <div className="flex items-center gap-3 mb-4 relative z-10">
-                        <div className="p-2 rounded-lg bg-orange-500/10 text-orange-400 group-hover:animate-pulse">
-                            <Zap size={18} />
-                        </div>
-                        <h3 className="text-lg font-medium text-zinc-300">Flow Score</h3>
-                    </div>
-                    <div className="flex items-end gap-2 relative z-10">
-                        <span className="text-4xl font-bold text-white font-[Outfit]">{completionRate}%</span>
-                        <span className="text-sm text-zinc-500 mb-1">daily velocity</span>
-                    </div>
+                {/* Streak Counter */}
+                <div className="col-span-1">
+                    <StreakCounter />
                 </div>
 
                 {/* Level Progress Card */}
