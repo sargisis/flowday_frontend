@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { type Task, getTasksByProject } from "../../api/tasks";
 import { useProject } from "../../context/ProjectContext";
 
 export default function PriorityPipeline() {
+    const navigate = useNavigate();
     const { activeProjectId } = useProject();
     const [priorityTasks, setPriorityTasks] = useState<Task[]>([]);
 
@@ -48,32 +50,35 @@ export default function PriorityPipeline() {
         <div className="p-8 rounded-[1.5rem] border border-white/10 bg-zinc-900/50 shadow-xl backdrop-blur-xl h-full flex flex-col">
             <div className="flex items-center justify-between mb-8">
                 <h3 className="text-xl font-semibold text-white tracking-wide font-outfit">Priority Pipeline</h3>
-                <button className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors tracking-wider uppercase flex items-center gap-1">
+                <button
+                    onClick={() => navigate('/app/v1/tasks')}
+                    className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors tracking-wider uppercase flex items-center gap-1"
+                >
                     View All Tasks <ArrowRight size={12} />
                 </button>
             </div>
 
-            <div className="space-y-3 flex-1">
+            <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 fade-bottom">
                 {priorityTasks.length > 0 ? (
                     priorityTasks.map((task) => (
-                        <div key={task.id} className="group p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] hover:border-white/10 transition-all flex items-center justify-between">
+                        <div key={task.id} className="group p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className={`w-1.5 h-10 rounded-full ${getAccentColor(task.priority)} shadow-[0_0_10px_rgba(0,0,0,0.5)]`} />
+                                <div className={`w-1 h-10 rounded-full ${getAccentColor(task.priority)} opacity-40`} />
                                 <div>
-                                    <h4 className="text-base font-medium text-zinc-200 group-hover:text-white transition-colors">{task.title}</h4>
+                                    <h4 className="text-base font-medium text-zinc-300 group-hover:text-white transition-colors tracking-tight">{task.title}</h4>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                                        <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">
                                             {task.status}
                                         </span>
-                                        <span className="text-zinc-600 text-[10px]">•</span>
-                                        <span className="text-[10px] font-medium text-zinc-400">
+                                        <span className="text-zinc-800 text-[10px]">•</span>
+                                        <span className="text-[10px] font-medium text-zinc-500">
                                             {task.due_date ? new Date(task.due_date).toLocaleDateString() : "No Due Date"}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getPriorityColor(task.priority)}`}>
+                            <div className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border ${getPriorityColor(task.priority)} opacity-80`}>
                                 {task.priority}
                             </div>
                         </div>

@@ -7,6 +7,7 @@ import { useUser } from "../context/UserContext";
 import StatsCard from "../components/status-bar-components/StatsCard";
 import AiFlowCoach from "../components/ai/AiFlowCoach";
 import PriorityPipeline from "../components/priority/PriorityPipeline";
+import ActivityFeed from "../components/activity/ActivityFeed";
 import EmptyState from "../components/state/EmptyState";
 import { useNavigate } from "react-router-dom";
 import { getAvatarUrl } from "../api/auth";
@@ -231,7 +232,12 @@ export default function Dashboard() {
                             </div>
                             <h3 className="text-lg font-medium text-zinc-300">Level {user?.level || 1}</h3>
                         </div>
-                        <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{user?.xp || 0} XP</span>
+                        <button
+                            onClick={() => navigate('/app/v1/focus/history')}
+                            className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-widest bg-indigo-500/10 px-2 py-1 rounded"
+                        >
+                            History
+                        </button>
                     </div>
 
                     <div className="space-y-3 relative z-10">
@@ -271,10 +277,11 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Main Content Grid: AI Coach & Priority Pipeline */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-5 duration-700 delay-200 fill-mode-backwards">
+            {/* Main Content Grid: AI Coach, Priority Pipeline & Activity Feed */}
+            <div className="lg:h-[500px] grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 animate-in slide-in-from-bottom-5 duration-700 delay-200 fill-mode-backwards">
                 <AiFlowCoach tasks={tasks} />
                 <PriorityPipeline />
+                <ActivityFeed />
             </div>
         </div>
     );

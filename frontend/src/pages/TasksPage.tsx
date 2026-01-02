@@ -13,6 +13,9 @@ export default function TasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
+    // Use a premium "glass" sounding chime
+    const playSuccess = useSound("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3", 0.6);
+
     // Initial load when project changes
     useEffect(() => {
         const initProject = async () => {
@@ -69,8 +72,6 @@ export default function TasksPage() {
         );
     }
 
-    // Use a premium "glass" sounding chime
-    const playSuccess = useSound("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3", 0.6);
 
     const onTaskUpdateOptimistic = async (id: string, status: string) => {
         // Play sound if completing task
