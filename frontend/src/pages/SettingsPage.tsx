@@ -4,7 +4,7 @@ import { User, Bell, Palette, Shield, LogOut, Mail as MailIcon, Slack, Monitor, 
 
 import { useUser } from "../context/UserContext";
 import { notificationManager } from "../utils/notificationManager";
-import { updateProfile, uploadAvatar, requestEmailChange, confirmEmailChange } from "../api/auth";
+import { updateProfile, uploadAvatar, requestEmailChange, confirmEmailChange, getAvatarUrl } from "../api/auth";
 import { toast } from "sonner";
 import { useRef } from "react";
 
@@ -184,7 +184,11 @@ export default function SettingsPage() {
                                     <div className="relative group">
                                         <div className="h-32 w-32 rounded-full ring-4 ring-white/5 overflow-hidden bg-zinc-900 flex items-center justify-center">
                                             {avatarPreview ? (
-                                                <img src={avatarPreview.startsWith('/api') ? `${import.meta.env.VITE_API_BASE_URL}${avatarPreview}` : avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
+                                                <img
+                                                    src={getAvatarUrl(avatarPreview) || ""}
+                                                    alt="Avatar"
+                                                    className="h-full w-full object-cover"
+                                                />
                                             ) : (
                                                 <span className="text-4xl font-bold text-zinc-700">{name[0]?.toUpperCase() || 'U'}</span>
                                             )}
