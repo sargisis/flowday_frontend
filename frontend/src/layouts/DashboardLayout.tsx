@@ -9,6 +9,7 @@ import CommandPalette from "../components/command-palette/CommandPalette";
 import { useTasks } from "../context/TaskContext";
 import { useUser } from "../context/UserContext";
 import confetti from "canvas-confetti";
+import FlowBotWidget from "../components/ai/FlowBotWidget";
 
 export default function DashboardLayout() {
     const navigate = useNavigate();
@@ -119,6 +120,7 @@ export default function DashboardLayout() {
                 isOpen={isCommandPaletteOpen}
                 onClose={() => setIsCommandPaletteOpen(false)}
             />
+            <FlowBotWidget />
         </div>
     );
 }

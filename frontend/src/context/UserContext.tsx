@@ -12,6 +12,8 @@ interface User {
     velocity?: number;
     xp?: number;
     level?: number;
+    plan?: 'free' | 'pro';
+    ai_quota_used?: number;
 }
 
 interface UserContextType {
