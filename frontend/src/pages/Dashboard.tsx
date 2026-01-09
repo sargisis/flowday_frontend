@@ -208,7 +208,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-10 duration-700 delay-100">
                 {/* Streak Counter */}
                 <div className="col-span-1">
-                    <StreakCounter />
+                    <StreakCounter refreshTrigger={refreshTrigger} />
                 </div>
 
                 {/* Level Progress Card */}

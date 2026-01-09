@@ -8,7 +8,11 @@ interface Streak {
     last_active_date?: string;
 }
 
-export default function StreakCounter() {
+interface StreakCounterProps {
+    refreshTrigger?: number;
+}
+
+export default function StreakCounter({ refreshTrigger = 0 }: StreakCounterProps) {
     const [streak, setStreak] = useState<Streak | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -27,10 +31,10 @@ export default function StreakCounter() {
 
         fetchStreak();
 
-        // Polling for streak updates every 30 seconds
-        const interval = setInterval(fetchStreak, 30000);
+        // Polling for streak updates every 10 seconds (more responsive)
+        const interval = setInterval(fetchStreak, 10000);
         return () => clearInterval(interval);
-    }, []);
+    }, [refreshTrigger]);
 
     if (loading || !streak) {
         return (
@@ -41,9 +45,9 @@ export default function StreakCounter() {
     }
 
     const getStreakMessage = () => {
-        if (streak.current_streak === 0) return 'Start your streak today!';
-        if (streak.current_streak === 1) return 'Keep it going!';
-        if (streak.current_streak < 7) return `${7 - streak.current_streak} days to Week Warrior 🏆`;
+        if (streak.current_streak === 0) return 'Complete any task to start your streak!';
+        if (streak.current_streak === 1) return 'Keep it going! Activity recorded for today.';
+        if (streak.current_streak < 7) return `${7 - streak.current_streak} days until Week Warrior 🏆`;
         return 'You\'re on fire! 🚀';
     };
 
@@ -75,8 +79,16 @@ export default function StreakCounter() {
                         <h3 className="text-lg font-medium text-zinc-300">Daily Streak</h3>
                     </div>
                     {streak.longest_streak > 0 && (
-                        <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-                            Best: <span className="text-amber-400">{streak.longest_streak}</span>
+                        <div className="flex flex-col items-end gap-1">
+                            <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+                                Best: <span className="text-amber-400">{streak.longest_streak}</span>
+                            </div>
+                            {isActive && (
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 rounded-md border border-emerald-500/20">
+                                    <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                                    <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest">Active today</span>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
