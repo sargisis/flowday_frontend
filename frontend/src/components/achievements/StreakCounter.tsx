@@ -38,87 +38,90 @@ export default function StreakCounter({ refreshTrigger = 0 }: StreakCounterProps
 
     if (loading || !streak) {
         return (
-            <div className="p-8 rounded-[1.5rem] border border-white/10 bg-zinc-900/50 backdrop-blur-xl animate-pulse">
-                <div className="h-20 bg-white/5 rounded" />
+            <div className="p-8 h-[200px] rounded-[2rem] border border-white/10 bg-zinc-900/50 backdrop-blur-3xl animate-pulse flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10" />
             </div>
         );
     }
 
     const getStreakMessage = () => {
         if (streak.current_streak === 0) return 'Complete any task to start your streak!';
-        if (streak.current_streak === 1) return 'Keep it going! Activity recorded for today.';
-        if (streak.current_streak < 7) return `${7 - streak.current_streak} days until Week Warrior 🏆`;
-        return 'You\'re on fire! 🚀';
+        if (streak.current_streak === 1) return 'Activity recorded for today. Keep it up!';
+        if (streak.current_streak < 7) return `${7 - streak.current_streak} days until your next milestone! 🏆`;
+        return 'You\'re on a legendary run! 🚀';
     };
 
     const isActive = streak.current_streak > 0;
 
     return (
-        <div className="p-8 rounded-[1.5rem] border border-white/5 bg-white/[0.02] relative overflow-hidden group hover:-translate-y-1 hover:border-white/10 transition-all duration-500 hover:shadow-2xl hover:shadow-orange-500/10">
-            {/* Animated Background Glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="group relative p-8 rounded-[2rem] border border-white/10 bg-zinc-950/40 backdrop-blur-3xl overflow-hidden transition-all duration-500 hover:border-orange-500/30 hover:shadow-[0_0_40px_rgba(249,115,22,0.15)]">
+            {/* Ambient Background Glows */}
+            <div className={`absolute -top-24 -right-24 w-64 h-64 bg-orange-600/10 blur-[100px] rounded-full transition-opacity duration-1000 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
+            <div className={`absolute -bottom-24 -left-24 w-64 h-64 bg-amber-600/10 blur-[100px] rounded-full transition-opacity duration-1000 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
 
-            {/* Flame particles effect when streak is active */}
-            {isActive && (
-                <>
-                    <div className="absolute top-4 right-4 w-24 h-24 bg-orange-500/10 blur-3xl rounded-full animate-pulse" />
-                    <div className="absolute bottom-4 left-4 w-20 h-20 bg-amber-500/10 blur-2xl rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
-                </>
-            )}
-
-            <div className="relative z-10">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${isActive
-                            ? 'bg-orange-500/10 text-orange-400 group-hover:animate-bounce'
-                            : 'bg-zinc-800/50 text-zinc-600'
+            <div className="relative z-10 flex flex-col h-full justify-between">
+                {/* Header Section */}
+                <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className={`relative p-3 rounded-2xl transition-all duration-500 ${isActive
+                                ? 'bg-orange-500/20 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.3)]'
+                                : 'bg-zinc-800/50 text-zinc-500'
                             }`}>
-                            <Flame size={18} className={isActive ? 'fill-orange-500/20' : ''} />
+                            {isActive && <div className="absolute inset-0 rounded-2xl bg-orange-500 animate-ping opacity-20" />}
+                            <Flame
+                                size={24}
+                                className={`relative z-10 ${isActive ? 'fill-orange-500/20 animate-pulse' : ''}`}
+                            />
                         </div>
-                        <h3 className="text-lg font-medium text-zinc-300">Daily Streak</h3>
+                        <div>
+                            <h3 className="text-xl font-bold text-white tracking-tight font-outfit">Daily Streak</h3>
+                            <p className="text-xs font-medium text-zinc-500 uppercase tracking-widest mt-0.5">Momentum Engine</p>
+                        </div>
                     </div>
-                    {streak.longest_streak > 0 && (
-                        <div className="flex flex-col items-end gap-1">
-                            <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
-                                Best: <span className="text-amber-400">{streak.longest_streak}</span>
+
+                    <div className="flex flex-col items-end gap-2">
+                        {streak.longest_streak > 0 && (
+                            <div className="px-3 py-1 bg-white/[0.03] border border-white/5 rounded-full backdrop-blur-sm">
+                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">
+                                    Best: <span className="text-amber-400 ml-1">{streak.longest_streak}</span>
+                                </span>
                             </div>
-                            {isActive && (
-                                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 rounded-md border border-emerald-500/20">
-                                    <div className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
-                                    <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest">Active today</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                        )}
+                        {isActive && (
+                            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active Today</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Streak Display */}
-                <div className="flex items-end gap-2 mb-2">
-                    <span className="text-4xl font-bold text-white font-[Outfit] tabular-nums">
+                {/* Main Content */}
+                <div className="mt-8 mb-6 flex items-baseline gap-3">
+                    <span className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-orange-500/50 font-outfit leading-none">
                         {streak.current_streak}
                     </span>
-                    <span className="text-lg text-zinc-500 mb-1 font-medium">
+                    <span className="text-2xl font-bold text-zinc-400 font-outfit">
                         {streak.current_streak === 1 ? 'day' : 'days'}
                     </span>
                 </div>
 
-                {/* Progress Message */}
-                <p className="text-xs text-zinc-400 font-medium">
-                    {getStreakMessage()}
-                </p>
-
-                {/* Progress bar to next milestone */}
-                {streak.current_streak > 0 && streak.current_streak < 7 && (
-                    <div className="mt-4">
-                        <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500"
-                                style={{ width: `${(streak.current_streak / 7) * 100}%` }}
-                            />
-                        </div>
+                {/* Progress & Message */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between text-xs font-medium">
+                        <span className="text-zinc-400">{getStreakMessage()}</span>
+                        {isActive && streak.current_streak < 7 && (
+                            <span className="text-orange-400">{Math.round((streak.current_streak / 7) * 100)}%</span>
+                        )}
                     </div>
-                )}
+
+                    <div className="relative w-full h-2.5 bg-zinc-900 rounded-full overflow-hidden border border-white/5">
+                        <div
+                            className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-600 via-orange-500 to-amber-400 shadow-[0_0_10px_rgba(249,115,22,0.4)] transition-all duration-1000 ease-out"
+                            style={{ width: `${Math.max((streak.current_streak / 7) * 100, 5)}%` }}
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     );
