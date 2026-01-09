@@ -371,7 +371,7 @@
   display: grid;
   grid-template-columns: 1fr 140px 180px 100px;
   align-items: center;
-  padding: 1.75rem 2rem;
+  padding: 1rem 1.5rem;
   background: var(--glass-surface);
   backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
@@ -597,9 +597,9 @@
 }
 
 .action-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;

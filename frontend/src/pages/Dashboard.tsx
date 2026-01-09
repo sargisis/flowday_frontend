@@ -92,8 +92,6 @@ export default function Dashboard() {
     const inProgressTasks = tasks.filter(t => t.status.toLowerCase() === 'in_progress').length;
     const completedTasks = tasks.filter(t => t.status.toLowerCase() === 'done').length;
 
-    // Calculate completion rate
-    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     if (!activeProjectId) {
         return (
@@ -124,7 +122,7 @@ export default function Dashboard() {
     }
 
     return (
-        <div className={`min-h-screen p-8 lg:p-12 space-y-12 transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`min-h-screen p-6 lg:p-10 space-y-8 transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
 
             {/* Mission Welcome */}
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in fade-in slide-in-from-left-5 duration-700">
@@ -269,7 +267,7 @@ export default function Dashboard() {
             </div>
 
             {/* Main Content Grid: AI Coach, Priority Pipeline & Activity Feed */}
-            <div className="lg:h-[500px] grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 animate-in slide-in-from-bottom-5 duration-700 delay-200 fill-mode-backwards">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 animate-in slide-in-from-bottom-5 duration-700 delay-200 fill-mode-backwards">
                 <AiFlowCoach tasks={tasks} />
                 <PriorityPipeline />
                 <ActivityFeed />

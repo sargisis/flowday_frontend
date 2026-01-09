@@ -231,12 +231,12 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
     };
 
     return (
-        <div className="p-8 rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-indigo-950/30 to-background shadow-xl backdrop-blur-xl relative overflow-hidden group">
+        <div className="p-6 h-[450px] flex flex-col rounded-[1.5rem] border border-white/10 bg-gradient-to-b from-indigo-950/30 to-background shadow-xl backdrop-blur-xl relative overflow-hidden group">
             {/* Background Effects */}
             <div className="absolute top-0 right-0 p-12 opacity-5 bg-indigo-500 blur-3xl rounded-full translate-x-10 translate-y-[-50%]" />
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-8 relative z-10 shrink-0">
+            <div className="flex items-center justify-between mb-6 relative z-10 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                         <Zap size={20} className="fill-indigo-500/20" />
@@ -257,7 +257,7 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
             </div>
 
             {/* Insights */}
-            <div className="space-y-4 relative z-10 flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 fade-bottom">
+            <div className="space-y-3 relative z-10 flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 fade-bottom">
                 {isThinking && !aiAdvice && (
                     <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.05] animate-pulse flex gap-4">
                         <div className="mt-1">
@@ -274,7 +274,7 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
                     return (
                         <div
                             key={insight.id}
-                            className={`p-4 rounded-xl border transition-all flex gap-4 group/item ${getBorderClass(insight.variant)}`}
+                            className={`p-3.5 rounded-xl border transition-all flex gap-4 group/item ${getBorderClass(insight.variant)}`}
                         >
                             <div className="mt-1">
                                 <Icon size={18} className={insight.iconColor} />
@@ -291,7 +291,7 @@ export default function AiFlowCoach({ tasks }: AiFlowCoachProps) {
             </div>
 
             {/* Action Button */}
-            <div className="mt-6 shrink-0 pt-4 border-t border-white/5">
+            <div className="mt-4 shrink-0 pt-4 border-t border-white/5">
                 <button
                     onClick={() => navigate('/app/v1/focus')}
                     className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-2 group/btn relative z-10"

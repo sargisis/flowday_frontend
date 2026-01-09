@@ -55,8 +55,8 @@ export default function ActivityFeed() {
     };
 
     return (
-        <div className="p-8 rounded-[1.5rem] border border-white/10 bg-zinc-900/50 shadow-xl backdrop-blur-xl h-full max-h-full flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between mb-8 shrink-0">
+        <div className="p-6 h-[450px] rounded-[1.5rem] border border-white/10 bg-zinc-900/50 shadow-xl backdrop-blur-xl flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between mb-6 shrink-0">
                 <h3 className="text-xl font-semibold text-white tracking-wide font-outfit">Activity Feed</h3>
                 <div className="flex items-center gap-2">
                     <span className="relative flex h-2 w-2">
@@ -67,7 +67,7 @@ export default function ActivityFeed() {
                 </div>
             </div>
 
-            <div className="space-y-6 flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 fade-bottom">
+            <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 fade-bottom">
                 {loading ? (
                     <div className="flex flex-col gap-4 animate-pulse">
                         {[1, 2, 3, 4].map(i => (
@@ -95,7 +95,7 @@ export default function ActivityFeed() {
                                 </div>
                                 <div className="flex-1 w-px bg-gradient-to-b from-white/10 to-transparent my-2 last:hidden" />
                             </div>
-                            <div className="pb-6">
+                            <div className="pb-4">
                                 <p className="text-sm font-medium text-zinc-300 leading-tight mb-1.5 group-hover/activity:text-white transition-colors">
                                     {activity.description}
                                 </p>

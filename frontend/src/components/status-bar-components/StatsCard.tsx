@@ -33,12 +33,12 @@ export default function StatsCard({
 
     return (
         <div className={`
-            relative p-6 rounded-[1.5rem] 
+            relative p-5 rounded-[1.5rem] 
             border ${border} 
             bg-gradient-to-br ${bg} 
             group hover:-translate-y-2 transition-all duration-500 ease-out
             overflow-hidden backdrop-blur-xl ${shadow} hover:shadow-2xl hover:shadow-indigo-500/10
-            flex flex-col justify-between h-40
+            flex flex-col justify-between h-36
         `}>
             {/* Glossy overlay effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
