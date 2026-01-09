@@ -1,30 +1,19 @@
-import { Bell, CheckCircle2, AlertTriangle, Clock, Check } from 'lucide-react';
+import { Bell, CheckCircle2, AlertTriangle, Clock, Check, Info } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import type { Task } from '../../api/tasks';
-import { useProject } from '../../context/ProjectContext';
-import { getTasksByProject } from '../../api/tasks';
-
-interface Notification {
-    id: string;
-    type: 'overdue' | 'due_soon' | 'completed';
-    task: Task;
-    message: string;
-    time: string;
-    isRead: boolean;
-}
+import { getNotifications, markNotificationRead, type Notification } from '../../api/notifications';
+import { useNavigate } from 'react-router-dom';
 
 export default function NotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const { activeProjectId } = useProject();
+    const navigate = useNavigate();
 
     useEffect(() => {
-        if (activeProjectId && isOpen) {
+        if (isOpen) {
             loadNotifications();
         }
-    }, [activeProjectId, isOpen]);
+    }, [isOpen]);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -37,63 +26,16 @@ export default function NotificationDropdown() {
     }, []);
 
     const loadNotifications = async () => {
-        if (!activeProjectId) return;
-
-        const tasks = await getTasksByProject(activeProjectId);
-        const now = new Date();
-        const notifs: Notification[] = [];
-
-        // Check for overdue tasks
-        tasks.forEach(task => {
-            if (task.due_date && task.status.toLowerCase() !== 'done') {
-                const dueDate = new Date(task.due_date);
-                const hoursDiff = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-                if (hoursDiff < 0) {
-                    // Overdue
-                    notifs.push({
-                        id: `overdue-${task.id}`,
-                        type: 'overdue',
-                        task,
-                        message: `Task is overdue`,
-                        time: formatRelativeTime(dueDate),
-                        isRead: false
-                    });
-                } else if (hoursDiff < 24) {
-                    // Due soon (within 24 hours)
-                    notifs.push({
-                        id: `due-${task.id}`,
-                        type: 'due_soon',
-                        task,
-                        message: `Due in ${Math.round(hoursDiff)} hours`,
-                        time: formatRelativeTime(dueDate),
-                        isRead: false
-                    });
-                }
-            }
-        });
-
-        // Recently completed tasks
-        const recentlyCompleted = tasks
-            .filter(t => t.status.toLowerCase() === 'done')
-            .slice(0, 3);
-
-        recentlyCompleted.forEach(task => {
-            const createdDate = task.created_at ? new Date(task.created_at) : new Date();
-            notifs.push({
-                id: `completed-${task.id}`,
-                type: 'completed',
-                task,
-                message: 'Completed',
-                time: formatRelativeTime(createdDate),
-                isRead: false
-            });
-        });
-
-        setNotifications(notifs.slice(0, 8)); // Show max 8 notifications
+        try {
+            const data = await getNotifications();
+            setNotifications(data);
+        } catch (err) {
+            console.error("Failed to load notifications", err);
+        }
     };
 
-    const formatRelativeTime = (date: Date): string => {
+    const formatRelativeTime = (dateStr: string): string => {
+        const date = new Date(dateStr);
         const now = new Date();
         const diffMs = now.getTime() - date.getTime();
         const diffMins = Math.floor(diffMs / (1000 * 60));
@@ -106,29 +48,47 @@ export default function NotificationDropdown() {
         return `${diffDays}d ago`;
     };
 
-    const markAsRead = (notificationId: string) => {
-        setReadNotifications(prev => new Set(prev).add(notificationId));
+    const handleMarkAsRead = async (notificationId: string) => {
+        try {
+            await markNotificationRead(notificationId);
+            setNotifications(prev => prev.map(n =>
+                n.id === notificationId ? { ...n, read: true } : n
+            ));
+        } catch (err) {
+            console.error("Failed to mark as read", err);
+        }
     };
 
-    const markAllAsRead = () => {
-        const allIds = notifications.map(n => n.id);
-        setReadNotifications(new Set(allIds));
+    const markAllAsRead = async () => {
+        // Optimistically mark all as read
+        const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+        const oldState = [...notifications];
+
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+
+        try {
+            await Promise.all(unreadIds.map(id => markNotificationRead(id)));
+        } catch (err) {
+            console.error("Failed to mark all as read", err);
+            setNotifications(oldState); // Revert on failure
+        }
     };
 
     const getIcon = (type: Notification['type']) => {
         switch (type) {
-            case 'overdue':
+            case 'error':
                 return <AlertTriangle size={16} className="text-red-400" />;
-            case 'due_soon':
+            case 'warning':
                 return <Clock size={16} className="text-orange-400" />;
-            case 'completed':
+            case 'success':
                 return <CheckCircle2 size={16} className="text-emerald-400" />;
+            case 'info':
+            default:
+                return <Info size={16} className="text-indigo-400" />;
         }
     };
 
-    const unreadCount = notifications.filter(n =>
-        !readNotifications.has(n.id) && (n.type === 'overdue' || n.type === 'due_soon')
-    ).length;
+    const unreadCount = notifications.filter(n => !n.read).length;
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -173,43 +133,43 @@ export default function NotificationDropdown() {
                             </div>
                         ) : (
                             <div className="divide-y divide-white/5">
-                                {notifications.map(notif => {
-                                    const isRead = readNotifications.has(notif.id);
-                                    return (
-                                        <div
-                                            key={notif.id}
-                                            className={`p-4 hover:bg-white/5 transition-colors ${isRead ? 'opacity-50' : ''}`}
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                <div className="mt-0.5">
-                                                    {getIcon(notif.type)}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-white text-sm font-medium truncate">
-                                                        {notif.task.title}
-                                                    </p>
-                                                    <p className="text-zinc-500 text-xs mt-0.5">
-                                                        {notif.message}
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs text-zinc-600 whitespace-nowrap">
-                                                        {notif.time}
-                                                    </span>
-                                                    {!isRead && (
-                                                        <button
-                                                            onClick={() => markAsRead(notif.id)}
-                                                            className="p-1 rounded hover:bg-white/10 transition-colors"
-                                                            title="Mark as read"
-                                                        >
-                                                            <Check size={14} className="text-zinc-500 hover:text-emerald-400" />
-                                                        </button>
-                                                    )}
-                                                </div>
+                                {notifications.map(notif => (
+                                    <div
+                                        key={notif.id}
+                                        className={`p-4 hover:bg-white/5 transition-colors ${notif.read ? 'opacity-50' : ''}`}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className="mt-0.5">
+                                                {getIcon(notif.type)}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-white text-sm font-medium truncate">
+                                                    {notif.title}
+                                                </p>
+                                                <p className="text-zinc-500 text-xs mt-0.5">
+                                                    {notif.message}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-zinc-600 whitespace-nowrap">
+                                                    {formatRelativeTime(notif.created_at)}
+                                                </span>
+                                                {!notif.read && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleMarkAsRead(notif.id);
+                                                        }}
+                                                        className="p-1 rounded hover:bg-white/10 transition-colors"
+                                                        title="Mark as read"
+                                                    >
+                                                        <Check size={14} className="text-zinc-500 hover:text-emerald-400" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
-                                    );
-                                })}
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -220,7 +180,7 @@ export default function NotificationDropdown() {
                             <button
                                 onClick={() => {
                                     setIsOpen(false);
-                                    window.location.href = '/app/v1/notifications';
+                                    navigate('/notifications'); // Assuming a dedicated page exists or will exist
                                 }}
                                 className="w-full text-center text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
                             >
