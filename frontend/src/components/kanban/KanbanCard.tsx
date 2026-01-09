@@ -59,14 +59,14 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
         return (
             <div
                 className={`
-            p-4 rounded-xl 
+            p-3 rounded-xl 
             bg-zinc-800 
             border border-zinc-700
             shadow-2xl cursor-grabbing
             w-full
           `}
             >
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex justify-between items-start mb-1.5">
                     <span className={`
                 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider
                 ${task.priority === 'high' ? 'bg-rose-500/10 text-rose-400' :
@@ -91,7 +91,7 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
             <div
                 ref={setNodeRef}
                 style={style}
-                className="opacity-30 bg-zinc-800 p-4 rounded-xl border border-white/10 h-[100px]"
+                className="opacity-30 bg-zinc-800 p-3 rounded-xl border border-white/10 h-[80px]"
             />
         );
     }
@@ -104,7 +104,7 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
             {...listeners}
             onClick={() => onClick?.(task)}
             className={`
-        group relative p-4 rounded-xl 
+        group relative p-3 rounded-xl 
         bg-zinc-900/40 backdrop-blur-md 
         border border-white/5 hover:border-white/10 active:border-indigo-500/50
         transition-all duration-200
@@ -113,7 +113,7 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
         ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
       `}
         >
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex justify-between items-start mb-1.5">
                 <span className={`
             px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider
             ${task.priority === 'high' ? 'bg-rose-500/10 text-rose-400' :

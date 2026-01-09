@@ -47,8 +47,8 @@ export default function PriorityPipeline() {
     }
 
     return (
-        <div className="p-8 rounded-[1.5rem] border border-white/10 bg-zinc-900/50 shadow-xl backdrop-blur-xl h-full flex flex-col">
-            <div className="flex items-center justify-between mb-8">
+        <div className="p-6 h-[450px] rounded-[1.5rem] border border-white/10 bg-zinc-900/50 shadow-xl backdrop-blur-xl flex flex-col">
+            <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold text-white tracking-wide font-outfit">Priority Pipeline</h3>
                 <button
                     onClick={() => navigate('/app/v1/tasks')}
@@ -61,7 +61,7 @@ export default function PriorityPipeline() {
             <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 fade-bottom">
                 {priorityTasks.length > 0 ? (
                     priorityTasks.map((task) => (
-                        <div key={task.id} className="group p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 flex items-center justify-between">
+                        <div key={task.id} className="group p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className={`w-1 h-10 rounded-full ${getAccentColor(task.priority)} opacity-40`} />
                                 <div>
