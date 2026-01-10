@@ -14,6 +14,7 @@ export interface ProjectMember {
         email: string;
         status?: string;
         velocity?: number;
+        avatar_url?: string;
     };
     project?: {
         id: string; // MongoDB ObjectID

@@ -11,7 +11,8 @@ import {
     Plus,
     Calendar,
     Hexagon,
-    Bell
+    Bell,
+    MessageSquare
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -94,6 +95,7 @@ export default function Sidebar() {
         { label: "Dashboard", path: "/app/v1/dashboard", icon: LayoutDashboard },
         { label: "Calendar", path: "/app/v1/calendar", icon: Calendar },
         { label: "My Tasks", path: "/app/v1/tasks", icon: CheckSquare },
+        { label: "Messages", path: "/app/v1/messages", icon: MessageSquare },
         { label: "Team", path: "/app/v1/team", icon: Users },
         { label: "Invitations", path: "/app/v1/invitations", icon: Mail },
         { label: "Settings", path: "/app/v1/settings", icon: Settings },

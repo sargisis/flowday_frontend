@@ -73,6 +73,10 @@ export default function DashboardLayout() {
                     e.preventDefault();
                     navigate('/app/v1/team');
                     setIsCommandPaletteOpen(false);
+                } else if (code === 'KeyM' || key === 'm' || key === 'µ') {
+                    e.preventDefault();
+                    navigate('/app/v1/messages');
+                    setIsCommandPaletteOpen(false);
                 } else if (code === 'KeyS' || key === 's' || key === 'ß') {
                     e.preventDefault();
                     navigate('/app/v1/settings');

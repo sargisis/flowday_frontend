@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useProject } from "../context/ProjectContext";
 import { type ProjectMember, getProjectMembers, inviteMember, removeMember, updateMemberRole } from "../api/projectMembers";
-import { getMe } from "../api/auth";
+import { getMe, getAvatarUrl } from "../api/auth";
 import { MessageSquare, Zap, MoreVertical, Plus, User as UserIcon, Trash2, Shield, X, Check, Users } from "lucide-react";
 import EmptyState from "../components/state/EmptyState";
 
@@ -24,6 +25,7 @@ const ROLES = [
 ];
 
 export default function TeamPage() {
+    const navigate = useNavigate();
     const { activeProjectId } = useProject();
     const [members, setMembers] = useState<ProjectMember[]>([]);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -129,39 +131,87 @@ export default function TeamPage() {
     const projectOwner = members.find(m => m.role === "owner");
     const isCurrentUserOwner = projectOwner && projectOwner.user_id === currentUserId;
 
+    // Calculate Team Stats
+    const stats = {
+        total: members.length,
+        online: members.filter(m => (m.user?.status || "").toLowerCase() === 'online' || (m.user?.status || "").toLowerCase() === 'deep work').length,
+        avgVelocity: members.length > 0 ? Math.round(members.reduce((acc, m) => acc + (m.user?.velocity || 0), 0) / members.length) : 0,
+        pending: 0 // Placeholder as it's not clear how pending invites are stored. 
+    };
+
     return (
-        <div className="p-8 lg:p-16 space-y-16 relative animate-in fade-in duration-1000">
-            {/* Cinematic Header */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-12">
-                <div className="space-y-6">
-                    <div className="flex items-center gap-4">
-                        <div className="h-2 w-2 rounded-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.8)] animate-pulse" />
-                        <p className="text-[11px] font-black text-indigo-400 tracking-[0.4em] uppercase font-[Outfit]">Intelligence Core</p>
+        <div className="h-full flex flex-col p-4 lg:p-6 overflow-hidden animate-in fade-in duration-700">
+            {/* Compact Header */}
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                        <Users size={24} />
                     </div>
-                    <h1 className="text-6xl lg:text-8xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-white/80 to-white/20 tracking-tighter font-[Outfit] leading-[0.85]">
-                        Neural Network
-                    </h1>
+                    <div>
+                        <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight">Team Network</h1>
+                        <p className="text-xs text-zinc-500 mt-0.5">{stats.total} nodes active in neural web</p>
+                    </div>
                 </div>
 
                 {isCurrentUserOwner && (
                     <button
                         onClick={() => setShowInvite(!showInvite)}
-                        className="bg-white/[0.03] hover:bg-indigo-500 border border-white/10 hover:border-indigo-400 text-white px-10 py-5 rounded-[2rem] text-[12px] font-black transition-all hover:-translate-y-2 shadow-2xl flex items-center gap-4 uppercase tracking-[0.2em] group"
+                        className="bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-white px-5 py-2.5 rounded-lg text-[10px] font-bold transition-all hover:-translate-y-0.5 flex items-center gap-2.5 uppercase tracking-wider group"
                     >
-                        <Plus size={20} className="text-indigo-400 group-hover:text-white transition-colors" />
-                        Add Node
+                        <Plus size={16} className="text-indigo-400" />
+                        <span>Invite Member</span>
                     </button>
                 )}
             </header>
 
+            {/* Team Stats Bar */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 shrink-0">
+                <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/10">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Users size={14} className="text-indigo-400" />
+                        <span className="text-[9px] text-zinc-500 uppercase font-bold">Total Members</span>
+                    </div>
+                    <p className="text-2xl font-bold text-white">{stats.total}</p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        <span className="text-[9px] text-zinc-500 uppercase font-bold">Online Now</span>
+                    </div>
+                    <p className="text-2xl font-bold text-emerald-400">{stats.online}</p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Zap size={14} className="text-amber-400" />
+                        <span className="text-[9px] text-zinc-500 uppercase font-bold">Avg Velocity</span>
+                    </div>
+                    <p className="text-2xl font-bold text-amber-400">{stats.avgVelocity}%</p>
+                </div>
+
+                <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                    <div className="flex items-center gap-2 mb-1">
+                        <MessageSquare size={14} className="text-blue-400" />
+                        <span className="text-[9px] text-zinc-500 uppercase font-bold">Operations</span>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-400">Stable</p>
+                </div>
+            </div>
+
             {/* Invite Form */}
             {showInvite && (
-                <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm animate-in fade-in slide-in-from-top-4">
-                    <h3 className="text-lg font-semibold text-white mb-4">Invite New Member</h3>
-                    <form onSubmit={handleInvite} className="flex gap-4">
+                <div className="mb-6 bg-white/[0.02] border border-white/10 rounded-xl p-4 animate-in fade-in slide-in-from-top-2 shrink-0">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-bold text-white uppercase tracking-wider">Invite Squad Member</h3>
+                        <button onClick={() => setShowInvite(false)} className="text-zinc-500 hover:text-white transition-colors">
+                            <X size={16} />
+                        </button>
+                    </div>
+                    <form onSubmit={handleInvite} className="flex gap-3">
                         <input
                             type="email"
-                            className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50"
+                            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-all"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="colleague@example.com"
@@ -170,147 +220,179 @@ export default function TeamPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-medium transition-all disabled:opacity-50"
+                            className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50"
                         >
-                            {loading ? "Sending..." : "Send Invite"}
+                            {loading ? "Sending..." : "Invite"}
                         </button>
                     </form>
-                    {error && <p className="text-rose-400 mt-2 text-sm">{error}</p>}
+                    {error && <p className="text-rose-400 mt-2 text-[10px] font-bold uppercase tracking-wider">{error}</p>}
                 </div>
             )}
 
-            {/* Grid Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {members.map((m) => {
-                    const isOwner = m.role === "owner";
-                    const status = m.user?.status || "Online";
-                    const velocity = m.user?.velocity || 0;
-
-                    const getStatusColor = (s: string) => {
-                        switch (s.toLowerCase()) {
-                            case 'deep work': return 'text-indigo-400';
-                            case 'online': return 'text-emerald-400';
-                            case 'away': return 'text-zinc-500';
-                            case 'in meeting': return 'text-amber-400';
-                            default: return 'text-emerald-400';
-                        }
-                    };
-
-                    const statusColor = getStatusColor(status);
-
-                    return (
-                        <div key={m.id} className="group relative bg-zinc-900/40 border border-white/5 rounded-3xl p-6 hover:bg-zinc-900/60 hover:border-white/10 transition-all duration-300">
-
-                            {/* Actions Menu (Three Dots) - Only for Owner and not for self */}
-                            {isCurrentUserOwner && !isOwner && (
-                                <div className="absolute top-4 right-4 z-10">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setActiveMenuId(activeMenuId === m.id ? null : m.id);
-                                        }}
-                                        className="p-2 hover:bg-white/10 rounded-lg text-zinc-500 hover:text-white transition-colors"
-                                    >
-                                        <MoreVertical size={20} />
-                                    </button>
-
-                                    {/* Dropdown Menu */}
-                                    {activeMenuId === m.id && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-white/10 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 origin-top-right">
-                                            <button
-                                                onClick={() => {
-                                                    setEditingMember(m);
-                                                    setActiveMenuId(null);
-                                                }}
-                                                className="w-full text-left px-4 py-3 hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2"
-                                            >
-                                                <Shield size={16} /> Change Role
-                                            </button>
-                                            <button
-                                                onClick={() => handleRemove(m.user_id, m.user?.email || "")}
-                                                className="w-full text-left px-4 py-3 hover:bg-rose-500/10 text-rose-400 hover:text-rose-500 flex items-center gap-2"
-                                            >
-                                                <Trash2 size={16} /> Remove User
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Header: Avatar + Info */}
-                            <div className="flex items-start justify-between mb-8">
-                                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center text-zinc-500 overflow-hidden shadow-inner">
-                                    <UserIcon size={32} />
-                                </div>
-                            </div>
-
-                            {/* Name & Role */}
-                            <div className="mb-6">
-                                <h3 className="text-xl font-bold text-white mb-1">
-                                    {m.user?.name || m.user?.email?.split('@')[0] || "Unknown User"}
-                                </h3>
-                                <p className="text-xs font-bold tracking-widest text-zinc-500 uppercase">
-                                    {m.role === "owner" ? "PROJECT LEAD" : m.role}
-                                </p>
-                            </div>
-
-                            {/* Status & Velocity Grid */}
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div className="bg-black/20 rounded-xl p-3 border border-white/5">
-                                    <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mb-1">STATUS</p>
-                                    <div className="flex items-center gap-2">
-                                        <span className={`h-1.5 w-1.5 rounded-full ${statusColor} bg-current`}></span>
-                                        <span className="text-sm font-medium text-zinc-200">{status}</span>
-                                    </div>
-                                </div>
-                                <div className="bg-black/20 rounded-xl p-3 border border-white/5">
-                                    <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mb-1">VELOCITY</p>
-                                    <div className="flex items-center gap-1.5">
-                                        <Zap size={14} className="text-amber-400 fill-amber-400/20" />
-                                        <span className="text-sm font-medium text-zinc-200">{velocity}%</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Message Button */}
-                            <button className="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-zinc-400 hover:text-white transition-colors flex items-center justify-center gap-2 text-sm font-medium group-hover:border-white/20">
-                                <MessageSquare size={16} />
-                                <span>Message</span>
-                            </button>
+            {/* Members Grid Container */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 pb-6">
+                    {members.length === 0 ? (
+                        <div className="col-span-full py-20">
+                            <EmptyState
+                                icon={Users}
+                                title="No members found"
+                                description="Start building your elite squadron by inviting your first member."
+                            />
                         </div>
-                    );
-                })}
+                    ) : (
+                        members.map((m) => {
+                            const isOwner = m.role === "owner";
+                            const status = m.user?.status || "Online";
+                            const velocity = m.user?.velocity || 0;
+
+                            const getStatusColor = (s: string) => {
+                                switch (s.toLowerCase()) {
+                                    case 'deep work': return 'bg-indigo-500';
+                                    case 'online': return 'bg-emerald-500';
+                                    case 'away': return 'bg-zinc-500';
+                                    case 'in meeting': return 'bg-amber-500';
+                                    default: return 'bg-emerald-500';
+                                }
+                            };
+
+                            const getStatusTextStyles = (s: string) => {
+                                switch (s.toLowerCase()) {
+                                    case 'deep work': return 'text-indigo-400';
+                                    case 'online': return 'text-emerald-400';
+                                    case 'away': return 'text-zinc-500';
+                                    case 'in meeting': return 'text-amber-400';
+                                    default: return 'text-emerald-400';
+                                }
+                            };
+
+                            const statusBg = getStatusColor(status);
+                            const statusText = getStatusTextStyles(status);
+
+                            return (
+                                <div key={m.id} className="group relative bg-white/[0.02] border border-white/5 rounded-2xl p-4 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300">
+                                    {/* Top Section: Avatar & Role */}
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="relative">
+                                            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/5 flex items-center justify-center text-zinc-500 shadow-xl group-hover:border-indigo-500/30 transition-all overflow-hidden">
+                                                {m.user?.avatar_url ? (
+                                                    <img
+                                                        src={getAvatarUrl(m.user.avatar_url) || ""}
+                                                        alt={m.user?.name || "Member"}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <UserIcon size={24} />
+                                                )}
+                                            </div>
+                                            <div className={`absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-black ${statusBg} shadow-[0_0_8px_rgba(0,0,0,0.5)]`} />
+                                        </div>
+
+                                        {isCurrentUserOwner && !isOwner && (
+                                            <div className="relative">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveMenuId(activeMenuId === m.id ? null : m.id);
+                                                    }}
+                                                    className="p-1.5 hover:bg-white/10 rounded-lg text-zinc-500 hover:text-white transition-colors"
+                                                >
+                                                    <MoreVertical size={16} />
+                                                </button>
+
+                                                {/* Dropdown Menu */}
+                                                {activeMenuId === m.id && (
+                                                    <div className="absolute right-0 mt-2 w-44 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl z-20 overflow-hidden animate-in fade-in zoom-in-95 origin-top-right">
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditingMember(m);
+                                                                setActiveMenuId(null);
+                                                            }}
+                                                            className="w-full text-left px-4 py-2.5 hover:bg-white/5 text-zinc-300 hover:text-white flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors"
+                                                        >
+                                                            <Shield size={14} /> Role
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRemove(m.user_id, m.user?.email || "")}
+                                                            className="w-full text-left px-4 py-2.5 hover:bg-rose-500/10 text-rose-400 hover:text-rose-500 flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors"
+                                                        >
+                                                            <Trash2 size={14} /> Remove
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Name & Role */}
+                                    <div className="mb-4">
+                                        <h3 className="text-base font-bold text-white mb-0.5 truncate">
+                                            {m.user?.name || m.user?.email?.split('@')[0] || "Unknown User"}
+                                        </h3>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-[9px] font-black tracking-widest text-zinc-500 uppercase">
+                                                {m.role === "owner" ? "PROJECT LEAD" : m.role}
+                                            </p>
+                                            {isOwner && <Shield size={10} className="text-indigo-400" />}
+                                        </div>
+                                    </div>
+
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-2 gap-2 mb-4">
+                                        <div className="bg-black/30 rounded-lg p-2 border border-white/5">
+                                            <p className="text-[8px] uppercase tracking-wider text-zinc-600 font-black mb-0.5">STATUS</p>
+                                            <p className={`text-[10px] font-bold truncate ${statusText}`}>{status}</p>
+                                        </div>
+                                        <div className="bg-black/30 rounded-lg p-2 border border-white/5">
+                                            <p className="text-[8px] uppercase tracking-wider text-zinc-600 font-black mb-0.5">VELOCITY</p>
+                                            <div className="flex items-center gap-1">
+                                                <Zap size={10} className="text-amber-400" />
+                                                <p className="text-[10px] font-bold text-zinc-300">{velocity}%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Message Button */}
+                                    <button
+                                        onClick={() => navigate(`/app/v1/messages/${m.user_id}`)}
+                                        className="w-full py-2 rounded-lg border border-white/5 bg-white/[0.01] hover:bg-white/[0.05] text-zinc-400 hover:text-white transition-all flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest group-hover:border-white/10"
+                                    >
+                                        <MessageSquare size={14} />
+                                        <span>Message</span>
+                                    </button>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
             </div>
 
             {/* Role Selection Modal */}
             {editingMember && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 scale-100">
-                        <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-white">Change Role</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in">
+                    <div className="bg-[#0c0c0c] border border-white/10 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95">
+                        <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Change Designation</h3>
                             <button
                                 onClick={() => setEditingMember(null)}
-                                className="text-zinc-500 hover:text-white p-1 rounded-lg hover:bg-white/10"
+                                className="text-zinc-500 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
                             >
-                                <X size={20} />
+                                <X size={18} />
                             </button>
                         </div>
-                        <div className="p-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                            <p className="px-4 py-2 text-sm text-zinc-500">
-                                Assign a new role to <span className="text-white font-bold">{editingMember.user?.name || editingMember.user?.email}</span>
-                            </p>
-                            <div className="space-y-1 mt-2">
+                        <div className="p-2 max-h-[50vh] overflow-y-auto custom-scrollbar">
+                            <div className="space-y-1">
                                 {ROLES.map(role => (
                                     <button
                                         key={role}
                                         onClick={() => handleRoleUpdate(role)}
-                                        className={`w-full text-left px-4 py-3 rounded-xl flex items-center justify-between transition-colors ${editingMember.role === role
-                                            ? "bg-indigo-600/20 text-indigo-400"
-                                            : "text-zinc-300 hover:bg-white/5 hover:text-white"
+                                        className={`w-full text-left px-4 py-2.5 rounded-lg flex items-center justify-between transition-all ${editingMember.role === role
+                                            ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
+                                            : "text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent"
                                             }`}
                                     >
-                                        <span className="font-medium">{role}</span>
-                                        {editingMember.role === role && <Check size={16} />}
+                                        <span className="text-[11px] font-bold uppercase tracking-wider">{role}</span>
+                                        {editingMember.role === role && <Check size={14} />}
                                     </button>
                                 ))}
                             </div>

@@ -8,6 +8,7 @@ import TeamPage from "../pages/TeamPage";
 import SettingsPage from "../pages/SettingsPage";
 import InvitationsPage from "../pages/InvitationsPage";
 import NotificationsPage from "../pages/NotificationsPage";
+import MessagesPage from "../pages/MessagesPage";
 import ProtectedRoute from "../components/protected-router/ProtectedRoute";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { ProjectProvider } from "../context/ProjectContext";
@@ -51,6 +52,8 @@ export const router = createBrowserRouter([
             { path: "tasks", element: <TasksPage /> },
             { path: "tasks/new", element: <CreateTaskPage /> },
             { path: "team", element: <TeamPage /> },
+            { path: "messages", element: <MessagesPage /> },
+            { path: "messages/:chatId", element: <MessagesPage /> },
             { path: "invitations", element: <InvitationsPage /> },
             { path: "notifications", element: <NotificationsPage /> },
             { path: "settings", element: <SettingsPage /> },
