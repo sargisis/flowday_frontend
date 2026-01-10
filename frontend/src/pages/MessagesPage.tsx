@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type JSX } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Search, Send, User, MoreHorizontal, Phone, Video, Info, Paperclip, Smile, CheckCheck } from "lucide-react";
+import { Search, Send, User, MoreHorizontal, Phone, Video, Info, Paperclip, Smile, CheckCheck, Check, X, FileText } from "lucide-react";
 import api from "../api/axios";
-import { getConversations, getMessages, sendMessage, type Message, type Conversation } from "../api/messages";
+import { getConversations, getMessages, sendMessage, uploadAttachment, type Message, type Conversation } from "../api/messages";
 import { getAvatarUrl, getMe } from "../api/auth";
+import { toast } from "sonner";
+
+import { RichMessageInput } from "./RichMessageInput";
 
 export default function MessagesPage() {
     const { chatId } = useParams();
@@ -15,7 +18,104 @@ export default function MessagesPage() {
     const [newMessage, setNewMessage] = useState("");
     const [loading, setLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState<any>(null);
+    const [uploading, setUploading] = useState(false);
+    const [attachment, setAttachment] = useState<{ url: string; type: string } | null>(null);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [activeEmojiCategory, setActiveEmojiCategory] = useState("smileys");
+
+    const ANIMATED_EMOJI_MAP: Record<string, string> = {
+        "😂": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Face%20with%20Tears%20of%20Joy.png",
+        "😍": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Smiling%20Face%20with%20Heart-Eyes.png",
+        "🔥": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Animals%20and%20Nature/Fire.webp",
+        "🚀": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/Travel%20and%20Places/Rocket.webp",
+        "🤩": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Star-Struck.png",
+        "🥳": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Partying%20Face.png",
+        "🤯": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Exploding%20Head.png",
+        "💀": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Skull.png",
+        "💯": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Hundred%20Points.png",
+        "😁": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Beaming%20Face%20with%20Smiling%20Eyes.png",
+        "✨": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Activities/Sparkles.png",
+        "👏": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/People/Clapping%20Hands.webp",
+        "🙌": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/People/Raising%20Hands.webp",
+        "👍": "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Telegram-Animated-Emojis/main/People/Thumbs%20Up.webp",
+    };
+
+    const emojiCategories: Record<string, { icon: string, emojis: string[] }> = {
+        premium: {
+            icon: "✨",
+            emojis: Object.keys(ANIMATED_EMOJI_MAP)
+        },
+        smileys: {
+            icon: "😀",
+            emojis: ["😀", "😃", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😋", "😛", "😜", "🤪", "🤨", "🧐", "😎", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "🙄", "😯", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👹", "👺", "🤡", "💩", "👻", "💀", "👽", "👾", "🤖"]
+        },
+        people: {
+            icon: "👋",
+            emojis: ["🤚", "✋", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪", "🦾", "🦵", "🦿", "🦶", "👂", "🦻", "👃", "🧠", "🦷", "🦴", "👀", "👁", "👅", "👄", "💋", "🩸"]
+        },
+        nature: {
+            icon: "🐶",
+            emojis: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦅", "🦉", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐞", "🐜", "🦟", "🦗", "🕷", "🕸", "🦂", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡", "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🦧", "🐘", "🦛", "🦏", "🐪", "🐫", "🦒", "🦘", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🦙", "🐐", "🦌", "🐕", "🐩", "🐈", "🐓", "🦃", "🦚", "🦜", "🦢", "🦩", "🕊", "🐇", "🦝", "🦨", "🦡", "🦦", "🦥", "🐁", "🦔", "🐾", "🐉", "🐲", "🌵", "🎄", "🌲", "🌳", "🌴", "🌱", "🌿", "☘️", "🍀", "🎍", "🎋", "🍃", "🍂", "🍁", "🍄", "🌾", "💐", "🌷", "🌹", "🥀", "🌺", "🌸", "🌼", "🌻", "🌞", "🌝", "🌛", "🌛", "🌚", "🌕", "🌖", "🌗", "🌘", "🌑", "🌒", "🌓", "🌔", "🌙", "🌎", "🌍", "🌏", "🪐", "💫", "⭐️", "🌟", "✨", "⚡️", "☄️", "💥", "🔥", "🌪", "🌈", "☀️", "🌤", "⛅️", "🌥", "☁️", "🌦", "🌧", "⛈", "🌩", "🌨", "❄️", "☃️", "⛄️", "🌬", "💨", "💧", "💦", "☔️", "☂️", "🌊"]
+        },
+        food: {
+            icon: "🍎",
+            emojis: ["🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅", "🍆", "🥦", "🥬", "🥒", "🌶", "🌽", "🥕, 🧄", "🧅", "🥔", "🍠", "🥐", "🥯", "🍞", "🥖", "🥨", "🧀", "🥚", "🍳", "🥞", "🧇", "🥓", "🥩", "🍗", "🍖", "🌭", "🍔", "🍟", "🍕", "🥪", "🥙", "🧆", "🌮", "🌯", "🥗", "🥘", "🥫", "🍝", "🍜", "🍲", "🍱", "🥟", "🦪", "🍤", "🍙", "🍚", "🎂", "🍰", "🧁", "🥧", "🍫", "🍬", "🍭", "🍮", "🍯", "🍼", "🥛", "☕️", "🍵", "🍶", "🍾", "🍷", "🍸", "🍹", "🍻", "🥂", "🥃", "🥤, 🧃", "🧉", "🧊"]
+        },
+        activities: {
+            icon: "⚽️",
+            emojis: ["⚽️", "🏀", "", "⚾️", "🥎", "", "🏐", "🏉", "🎱", "🏓", "🏸", "🥅", "🏒", "🏑", "🏏", "⛳️", "🏹", "🤿", "🥋", "🛷", "🎯", "🪀", "🎮", "🕹", "🎰", "🧩", "🧸", "♠️", "♥️", "♣️", "♦️", "🃏", "🀄️", "🎴", "🎭", "🖼", "🎨", "🧵", "🧶", "🎤", "🎧", "🎼", "🎹", "🥁", "🎷", "🎺", "🎸", "🪕"]
+        }
+    };
+
+
+    const renderMessageContent = (content: string) => {
+        if (!content) return null;
+
+        let elements: (string | JSX.Element)[] = [content];
+
+        // Iterate through maps to replace characters with images
+        Object.entries(ANIMATED_EMOJI_MAP).forEach(([emoji, url]) => {
+            const newElements: (string | JSX.Element)[] = [];
+            elements.forEach(el => {
+                if (typeof el === 'string') {
+                    // Split string by the emoji character
+                    const split = el.split(emoji);
+                    split.forEach((part, i) => {
+                        if (part) newElements.push(part);
+                        if (i < split.length - 1) {
+                            newElements.push(
+                                <img
+                                    key={`${emoji}-${i}-${Math.random()}`} // Random key to ensure uniqueness re-renders
+                                    src={url}
+                                    alt={emoji}
+                                    className="inline-block h-10 w-10 mx-0.5 align-middle animate-in zoom-in duration-300"
+                                />
+                            );
+                        }
+                    });
+                } else {
+                    newElements.push(el);
+                }
+            });
+            elements = newElements;
+        });
+
+        return elements;
+    };
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+                setShowEmojiPicker(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const activeChat = conversations.find(c => c.user_id === chatId) || targetedUser;
 
@@ -83,14 +183,43 @@ export default function MessagesPage() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const res = await uploadAttachment(file);
+            setAttachment({ url: res.attachment_url, type: res.attachment_type });
+            toast.success("File uploaded successfully");
+        } catch (err) {
+            console.error("Upload failed:", err);
+            toast.error("Failed to upload file");
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
+
+    const handleRemoveAttachment = () => {
+        setAttachment(null);
+    };
+
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !chatId) return;
+        if (!chatId) return;
+        if (!newMessage.trim() && !attachment) return;
 
         try {
-            const sent = await sendMessage(chatId, newMessage);
+            const sent = await sendMessage(
+                chatId as string,
+                newMessage,
+                attachment?.url,
+                attachment?.type
+            );
             setMessages([...messages, sent]);
             setNewMessage("");
+            setAttachment(null);
 
             // If it was a new chat, refresh conversations to show it in sidebar
             if (!conversations.find(c => c.user_id === chatId)) {
@@ -104,6 +233,7 @@ export default function MessagesPage() {
                         : c
                 ));
             }
+
         } catch (err) {
             console.error("Failed to send message:", err);
         }
@@ -247,14 +377,40 @@ export default function MessagesPage() {
                                             <div className={`max-w-[70%] ${isMe ? 'order-2' : ''}`}>
                                                 <div className={`px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-lg ${isMe ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white/10 text-zinc-200 rounded-tl-none'
                                                     }`}>
-                                                    {msg.content}
+                                                    {msg.attachment_url && (
+                                                        <div className="mb-2 max-w-full overflow-hidden rounded-lg border border-white/5 bg-black/20">
+                                                            {msg.attachment_type === 'image' ? (
+                                                                <img
+                                                                    src={`http://localhost:8080${msg.attachment_url}`}
+                                                                    alt="attachment"
+                                                                    className="max-h-60 w-full object-contain cursor-pointer transition-transform hover:scale-[1.02]"
+                                                                    onClick={() => window.open(`http://localhost:8080${msg.attachment_url}`, '_blank')}
+                                                                />
+                                                            ) : (
+                                                                <a
+                                                                    href={`http://localhost:8080${msg.attachment_url}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="flex items-center gap-2 p-3 text-indigo-400 hover:text-indigo-300 transition-colors"
+                                                                >
+                                                                    <FileText size={18} />
+                                                                    <span className="truncate max-w-[200px] text-xs font-medium">Download Attachment</span>
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    {renderMessageContent(msg.content)}
                                                 </div>
                                                 {isLastInGroup && (
-                                                    <div className={`flex items-center gap-1.5 mt-1.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                    <div className={`flex items-center gap-1 mt-1.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
                                                         <span className="text-[10px] text-zinc-600 font-medium">
                                                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
-                                                        {isMe && <CheckCheck size={12} className="text-indigo-400" />}
+                                                        {isMe && (
+                                                            msg.is_read
+                                                                ? <CheckCheck size={12} className="text-indigo-400 translate-y-[0.5px]" />
+                                                                : <Check size={12} className="text-zinc-500 translate-y-[0.5px]" />
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -266,21 +422,114 @@ export default function MessagesPage() {
 
                             {/* Message Input */}
                             <footer className="p-4 border-t border-white/5 bg-white/[0.01]">
+                                {attachment && (
+                                    <div className="mb-3 flex items-center gap-3 p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl animate-in slide-in-from-bottom-2">
+                                        <div className="h-12 w-12 rounded-lg bg-zinc-800 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
+                                            {attachment.type === 'image' ? (
+                                                <img src={`http://localhost:8080${attachment.url}`} alt="preview" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <FileText className="text-indigo-400" size={24} />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold text-white truncate">Ready to send</p>
+                                            <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{attachment.type}</p>
+                                        </div>
+                                        <button
+                                            onClick={handleRemoveAttachment}
+                                            className="p-2 text-zinc-500 hover:text-white transition-colors"
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                )}
+                                {/* Preview Box Removed */}
                                 <form onSubmit={handleSend} className="flex items-center gap-3">
-                                    <button type="button" className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors"><Paperclip size={18} /></button>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploading}
+                                        className={`p-2 text-zinc-500 hover:text-zinc-300 transition-colors ${uploading ? 'animate-pulse' : ''}`}
+                                    >
+                                        <Paperclip size={18} />
+                                    </button>
                                     <div className="flex-1 relative">
-                                        <input
-                                            type="text"
+                                        <RichMessageInput
                                             value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
-                                            placeholder="Type a message..."
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all"
+                                            onChange={setNewMessage}
+                                            onSend={() => handleSend({ preventDefault: () => { } } as any)}
+                                            loading={uploading}
+                                            animatedEmojiMap={ANIMATED_EMOJI_MAP}
                                         />
-                                        <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"><Smile size={18} /></button>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                            {showEmojiPicker && (
+                                                <div
+                                                    ref={emojiPickerRef}
+                                                    className="absolute bottom-full right-0 mb-4 bg-zinc-900/95 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200 z-50 w-72 overflow-hidden"
+                                                >
+                                                    {/* Category Tabs */}
+                                                    <div className="flex items-center gap-1 p-2 border-b border-white/5 bg-white/[0.02]">
+                                                        {Object.entries(emojiCategories).map(([id, cat]) => (
+                                                            <button
+                                                                key={id}
+                                                                type="button"
+                                                                onClick={() => setActiveEmojiCategory(id)}
+                                                                className={`flex-1 h-9 flex items-center justify-center rounded-lg transition-all ${activeEmojiCategory === id ? 'bg-indigo-500/20 text-white shadow-inner' : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'}`}
+                                                                title={id.charAt(0).toUpperCase() + id.slice(1)}
+                                                            >
+                                                                <span className="text-lg">{cat.icon}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Emoji Grid */}
+                                                    <div className="p-3 max-h-60 overflow-y-auto custom-scrollbar grid grid-cols-6 gap-1">
+                                                        {emojiCategories[activeEmojiCategory].emojis.map((emoji, idx) => {
+                                                            const isPremium = activeEmojiCategory === 'premium';
+                                                            const displayEmoji = isPremium ? ANIMATED_EMOJI_MAP[emoji] : emoji;
+
+                                                            return (
+                                                                <button
+                                                                    key={`${activeEmojiCategory}-${idx}`}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setNewMessage(prev => prev + emoji);
+                                                                    }}
+                                                                    className="h-10 w-10 flex items-center justify-center hover:bg-white/10 rounded-lg transition-all hover:scale-110 active:scale-90"
+                                                                >
+                                                                    {isPremium ? (
+                                                                        <img src={displayEmoji as string} alt={emoji} className="h-8 w-8 object-contain" />
+                                                                    ) : (
+                                                                        <span className="text-xl">{emoji}</span>
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+
+                                                    <div className="p-2 border-t border-white/5 bg-black/20 text-[10px] text-zinc-500 text-center uppercase tracking-widest font-bold">
+                                                        {activeEmojiCategory}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                className={`text-zinc-500 hover:text-zinc-300 transition-colors ${showEmojiPicker ? 'text-indigo-400' : ''}`}
+                                            >
+                                                <Smile size={18} />
+                                            </button>
+                                        </div>
                                     </div>
                                     <button
                                         type="submit"
-                                        disabled={!newMessage.trim()}
+                                        disabled={(!newMessage.trim() && !attachment) || uploading}
                                         className="p-2.5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg shadow-indigo-500/20"
                                     >
                                         <Send size={18} />
@@ -299,6 +548,6 @@ export default function MessagesPage() {
                     )}
                 </main>
             </div>
-        </div>
+        </div >
     );
 }
