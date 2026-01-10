@@ -86,7 +86,7 @@ export default function Calendar() {
                 taskDate.getFullYear() === currentDate.getFullYear();
         });
 
-        const completed = currentMonthTasks.filter(t => t.status === 'done').length;
+        const completed = currentMonthTasks.filter(t => t.status.toLowerCase() === 'done').length;
         const total = currentMonthTasks.length;
         const pending = total - completed;
         const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -95,7 +95,7 @@ export default function Calendar() {
         const today = new Date();
         const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
         const upcoming = tasks.filter(t => {
-            if (!t.due_date || t.status === 'done') return false;
+            if (!t.due_date || t.status.toLowerCase() === 'done') return false;
             const taskDate = new Date(t.due_date);
             return taskDate >= today && taskDate <= nextWeek;
         }).sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime());
@@ -170,8 +170,8 @@ export default function Calendar() {
                                     {/* Date Number */}
                                     <div className="flex justify-between items-start mb-1.5">
                                         <span className={`text-xs font-bold font-mono ${isToday
-                                                ? 'w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-[10px]'
-                                                : 'text-zinc-500 group-hover:text-zinc-300'
+                                            ? 'w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-[10px]'
+                                            : 'text-zinc-500 group-hover:text-zinc-300'
                                             }`}>
                                             {day.date.getDate()}
                                         </span>
@@ -192,13 +192,13 @@ export default function Calendar() {
                                                     openDetailsModal(task);
                                                 }}
                                                 className={`text-[9px] px-1.5 py-0.5 rounded truncate border flex items-center gap-1 transition-all hover:scale-[1.02] ${task.priority === 'high' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' :
-                                                        task.priority === 'medium' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                                                            'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                                    task.priority === 'medium' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                                                        'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                                                     }`}
                                             >
                                                 <div className={`h-1 w-1 rounded-full ${task.priority === 'high' ? 'bg-rose-500' :
-                                                        task.priority === 'medium' ? 'bg-amber-500' :
-                                                            'bg-emerald-500'
+                                                    task.priority === 'medium' ? 'bg-amber-500' :
+                                                        'bg-emerald-500'
                                                     }`} />
                                                 {task.title}
                                             </div>
@@ -285,8 +285,8 @@ export default function Calendar() {
                                             {task.title}
                                         </p>
                                         <div className={`h-1.5 w-1.5 rounded-full shrink-0 mt-1 ${task.priority === 'high' ? 'bg-rose-500' :
-                                                task.priority === 'medium' ? 'bg-amber-500' :
-                                                    'bg-emerald-500'
+                                            task.priority === 'medium' ? 'bg-amber-500' :
+                                                'bg-emerald-500'
                                             }`} />
                                     </div>
                                     <p className="text-[10px] text-zinc-500">
