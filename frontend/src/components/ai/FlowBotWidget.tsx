@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Send, Sparkles, Zap, Lock, ChevronDown, Bot } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
 import { chatWithAI, getChatHistory, getQuotaStatus, type Message } from "../../api/ai";
 import { toast } from "sonner";
@@ -7,7 +8,9 @@ import ReactMarkdown from 'react-markdown';
 
 export default function FlowBotWidget() {
     const { user } = useUser();
+    const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
+
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -75,6 +78,8 @@ export default function FlowBotWidget() {
     };
 
     const isQuotaExceeded = quota && !quota.allowed;
+
+    if (location.pathname.includes("/messages")) return null;
 
     return (
         <div className={`fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4 font-[Inter]`}>
