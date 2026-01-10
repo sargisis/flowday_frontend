@@ -78,36 +78,39 @@ export default function Calendar() {
     };
 
     return (
-        <div className="h-full flex flex-col p-8 overflow-hidden bg-black flex-1">
-            <header className="flex items-center justify-between mb-8 shrink-0">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                        <CalendarIcon size={24} />
+        <div className="h-full flex flex-col p-8 lg:p-14 overflow-hidden bg-black flex-1 animate-in fade-in duration-1000">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-14 shrink-0">
+                <div className="flex items-center gap-6">
+                    <div className="p-4 rounded-[1.5rem] bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shadow-2xl">
+                        <CalendarIcon size={32} />
                     </div>
-                    <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent font-[Outfit]">
-                            {monthName} <span className="text-zinc-700">{year}</span>
+                    <div className="space-y-5">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.8)] animate-pulse" />
+                            <p className="text-[10px] font-black text-indigo-400 tracking-[0.3em] uppercase">Temporal Grid</p>
+                        </div>
+                        <h1 className="text-5xl lg:text-6xl font-black bg-gradient-to-r from-white via-white to-zinc-500 bg-clip-text text-transparent tracking-tighter font-[Outfit]">
+                            {monthName} <span className="text-zinc-600">{year}</span>
                         </h1>
-                        <p className="text-zinc-500 text-sm font-medium uppercase tracking-[0.2em]">Schedule & Vision</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 bg-zinc-900/50 p-1.5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-2 bg-white/[0.03] p-1.5 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl">
                     <button
                         onClick={prevMonth}
-                        className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                        className="p-3 text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                     >
                         <ChevronLeft size={20} />
                     </button>
                     <button
                         onClick={goToToday}
-                        className="px-4 py-1.5 text-sm font-bold text-zinc-200 hover:text-white transition-colors"
+                        className="px-6 py-2 text-[11px] font-black text-zinc-400 hover:text-white transition-colors uppercase tracking-[0.2em]"
                     >
                         Today
                     </button>
                     <button
                         onClick={nextMonth}
-                        className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                        className="p-3 text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                     >
                         <ChevronRight size={20} />
                     </button>

@@ -130,32 +130,29 @@ export default function TeamPage() {
     const isCurrentUserOwner = projectOwner && projectOwner.user_id === currentUserId;
 
     return (
-        <div className="space-y-8 relative">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <div className="flex items-center gap-3 mb-1">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
-                        <p className="text-xs font-medium text-emerald-500 tracking-wider">SYSTEM ONLINE</p>
+        <div className="p-8 lg:p-16 space-y-16 relative animate-in fade-in duration-1000">
+            {/* Cinematic Header */}
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-12">
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="h-2 w-2 rounded-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.8)] animate-pulse" />
+                        <p className="text-[11px] font-black text-indigo-400 tracking-[0.4em] uppercase font-[Outfit]">Intelligence Core</p>
                     </div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
-                        Team Hub
+                    <h1 className="text-6xl lg:text-8xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-white/80 to-white/20 tracking-tighter font-[Outfit] leading-[0.85]">
+                        Neural Network
                     </h1>
-                    <p className="text-zinc-400 mt-2">
-                        Coordinate with {members.length} active contributors.
-                    </p>
                 </div>
 
                 {isCurrentUserOwner && (
                     <button
                         onClick={() => setShowInvite(!showInvite)}
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                        className="bg-white/[0.03] hover:bg-indigo-500 border border-white/10 hover:border-indigo-400 text-white px-10 py-5 rounded-[2rem] text-[12px] font-black transition-all hover:-translate-y-2 shadow-2xl flex items-center gap-4 uppercase tracking-[0.2em] group"
                     >
-                        <Plus size={18} />
-                        Invite Member
+                        <Plus size={20} className="text-indigo-400 group-hover:text-white transition-colors" />
+                        Add Node
                     </button>
                 )}
-            </div>
+            </header>
 
             {/* Invite Form */}
             {showInvite && (

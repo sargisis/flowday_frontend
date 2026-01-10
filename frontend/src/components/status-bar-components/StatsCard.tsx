@@ -33,40 +33,40 @@ export default function StatsCard({
 
     return (
         <div className={`
-            relative p-5 rounded-[1.5rem] 
+            relative p-4 rounded-xl 
             border ${border} 
             bg-gradient-to-br ${bg} 
-            group hover:-translate-y-2 transition-all duration-500 ease-out
-            overflow-hidden backdrop-blur-xl ${shadow} hover:shadow-2xl hover:shadow-indigo-500/10
-            flex flex-col justify-between h-36
+            group hover:-translate-y-1 transition-all duration-300 ease-out
+            overflow-hidden backdrop-blur-xl ${shadow} hover:shadow-xl
+            flex flex-col justify-between h-32
         `}>
             {/* Glossy overlay effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
             {/* Background Icon Decoration */}
-            <div className="absolute -right-6 -bottom-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 rotate-12 pointer-events-none z-0">
-                <Icon size={140} className={color} />
+            <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-300 rotate-12 pointer-events-none z-0">
+                <Icon size={100} className={color} />
             </div>
 
             {/* Top Section: Icon */}
             <div className="relative z-10 w-full flex justify-between items-start">
                 <div className={`
-                    p-2.5 rounded-xl bg-white/5 ${color} 
+                    p-2 rounded-lg bg-white/5 ${color} 
                     ring-1 ring-white/10 shadow-sm 
                     group-hover:scale-110 transition-transform duration-300
                     backdrop-blur-md
                     ${getAnimationClass()}
                 `}>
-                    <Icon size={20} />
+                    <Icon size={16} />
                 </div>
             </div>
 
             {/* Bottom Section: Value and Title */}
             <div className="relative z-10 mt-auto flex flex-col gap-1">
-                <div className="text-4xl font-bold text-white tracking-tight leading-none font-[Outfit] group-hover:translate-x-1 transition-transform duration-300">
+                <div className="text-3xl font-bold text-white tracking-tight leading-none font-[Outfit]">
                     {value}
                 </div>
-                <div className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest group-hover:text-zinc-300 transition-colors truncate pl-0.5 flex items-center gap-1">
+                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
                     {title}
                 </div>
             </div>
