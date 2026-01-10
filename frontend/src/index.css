@@ -415,33 +415,7 @@
   color: #52525b;
 }
 
-.btn-add-task {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.5rem;
-  background: #ffffff;
-  border: none;
-  border-radius: 100px;
-  color: black;
-  font-weight: 700;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15), inset 0 1px 0px rgba(255, 255, 255, 1);
-  overflow: hidden;
-}
-
-.btn-add-task:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-  background: #fafafa;
-}
-
-.btn-add-task:active {
-  transform: translateY(0) scale(0.98);
-}
+/* btn-add-task removed for premium redesign */
 
 .shortcut-key {
   background: rgba(0, 0, 0, 0.1);

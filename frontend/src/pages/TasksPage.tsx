@@ -93,20 +93,26 @@ export default function TasksPage() {
         }
     };
 
+
     return (
-        <div className="h-full flex flex-col p-8 overflow-hidden">
-            <header className="flex items-center justify-between mb-8 shrink-0">
-                <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">Tasks</h1>
-                    <p className="text-zinc-500 text-sm mt-1">Manage your project deliverables</p>
+        <div className="h-full flex flex-col p-8 lg:p-14 overflow-hidden animate-in fade-in duration-1000">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-14 shrink-0">
+                <div className="space-y-5">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.8)] animate-pulse" />
+                        <p className="text-[10px] font-black text-indigo-400 tracking-[0.3em] uppercase">Task Repository</p>
+                    </div>
+                    <h1 className="text-5xl lg:text-6xl font-black bg-gradient-to-r from-white via-white to-zinc-500 bg-clip-text text-transparent tracking-tighter font-[Outfit]">
+                        Mission Control
+                    </h1>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-6">
                     <button
                         onClick={() => openCreateModal()}
-                        className="btn-add-task"
+                        className="bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-white px-8 py-4 rounded-[2rem] text-[11px] font-black transition-all hover:-translate-y-1 shadow-2xl flex items-center gap-4 uppercase tracking-widest group"
                     >
-                        <span>Add Task</span>
-                        <span className="shortcut-key">C</span>
+                        <span>Create Task</span>
+                        <span className="px-2 py-1 bg-indigo-500/20 rounded-lg text-[9px] text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-500 group-hover:text-white transition-all">C</span>
                     </button>
                 </div>
             </header>

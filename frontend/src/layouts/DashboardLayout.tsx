@@ -105,8 +105,8 @@ export default function DashboardLayout() {
             <Sidebar />
             <div className="flex-1 flex flex-col min-w-0">
                 <TopBar />
-                <main className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth">
-                    <div className="max-w-[1600px] mx-auto space-y-8">
+                <main className="flex-1 overflow-y-auto p-0 scroll-smooth">
+                    <div className="max-w-[1800px] mx-auto">
                         <Outlet />
                     </div>
                 </main>
