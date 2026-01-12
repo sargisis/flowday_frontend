@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import {
     ArrowRight,
     Zap,
@@ -10,8 +11,33 @@ import {
     LayoutDashboard
 } from "lucide-react";
 import "../index.css"
+
+// Prefetch critical routes on hover for faster navigation
+const prefetchRoute = (path: string) => {
+    // Prefetch route module by dynamically importing it
+    // This helps React Router preload the chunk before navigation
+    if (path === '/app/v1/register') {
+        import("../pages/Register");
+    } else if (path === '/app/v1/login') {
+        import("../pages/Login");
+    } else if (path === '/app/v1/dashboard') {
+        import("../pages/Dashboard");
+    }
+};
+
 export default function LandingPage() {
     const navigate = useNavigate();
+
+    // Prefetch login and register routes after initial load
+    useEffect(() => {
+        // Prefetch critical routes after a short delay (non-blocking)
+        const timer = setTimeout(() => {
+            prefetchRoute('/app/v1/login');
+            prefetchRoute('/app/v1/register');
+        }, 2000); // Prefetch after 2 seconds
+
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <div className="landing-page-scope landing-page-wrapper dark min-h-screen selection:bg-indigo-500/30 overflow-x-hidden relative">
@@ -33,12 +59,14 @@ export default function LandingPage() {
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => navigate('/app/v1/login')}
+                            onMouseEnter={() => prefetchRoute('/app/v1/login')}
                             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-4 py-2 hover:bg-muted rounded-full"
                         >
                             Sign In
                         </button>
                         <button
                             onClick={() => navigate('/app/v1/register')}
+                            onMouseEnter={() => prefetchRoute('/app/v1/register')}
                             className="hidden sm:block px-6 py-2 bg-primary text-primary-foreground hover:opacity-90 text-sm font-semibold rounded-full transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                         >
                             Get Started
@@ -73,6 +101,7 @@ export default function LandingPage() {
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
                         <button
                             onClick={() => navigate('/app/v1/register')}
+                            onMouseEnter={() => prefetchRoute('/app/v1/register')}
                             className="group h-12 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base flex items-center gap-2 shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] transition-all hover:-translate-y-0.5 duration-300"
                         >
                             Start for Free
@@ -236,6 +265,7 @@ export default function LandingPage() {
 
                     <button
                         onClick={() => navigate('/app/v1/register')}
+                        onMouseEnter={() => prefetchRoute('/app/v1/register')}
                         className="relative z-10 px-8 py-3 bg-primary text-primary-foreground hover:opacity-90 font-semibold rounded-full transition-colors duration-200"
                     >
                         Get Started for Free
