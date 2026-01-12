@@ -1109,3 +1109,104 @@
 .scale-in {
   animation: scale-in 0.2s ease-out;
 }
+
+/* ========================================= */
+/*        MARKDOWN TYPOGRAPHY (Prose)        */
+/* ========================================= */
+.prose-premium {
+  color: #d4d4d8;
+  /* zinc-300 */
+}
+
+.prose-premium p {
+  margin-bottom: 1.25em;
+  line-height: 1.75;
+}
+
+.prose-premium h1,
+.prose-premium h2,
+.prose-premium h3,
+.prose-premium h4 {
+  color: #fff;
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+  letter-spacing: -0.025em;
+}
+
+.prose-premium h1 {
+  font-size: 1.5em;
+}
+
+.prose-premium h2 {
+  font-size: 1.25em;
+}
+
+.prose-premium h3 {
+  font-size: 1.1em;
+}
+
+.prose-premium ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin-bottom: 1.25em;
+}
+
+.prose-premium ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin-bottom: 1.25em;
+}
+
+.prose-premium li {
+  margin-bottom: 0.5em;
+  padding-left: 0.25em;
+}
+
+.prose-premium strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.prose-premium blockquote {
+  border-left: 4px solid #6366f1;
+  /* indigo-500 */
+  padding-left: 1em;
+  font-style: italic;
+  color: #a1a1aa;
+  /* zinc-400 */
+  margin: 1.5em 0;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.prose-premium code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-family: monospace;
+  font-size: 0.875em;
+  color: #e4e4e7;
+}
+
+.prose-premium pre {
+  background: #18181b;
+  padding: 1em;
+  border-radius: 0.5em;
+  overflow-x: auto;
+  margin-bottom: 1.5em;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prose-premium pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.prose-premium a {
+  color: #818cf8;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
