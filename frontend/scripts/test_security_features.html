@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Features Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            border-radius: 8px;
+        }
+
+        .test-section h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        button.secondary:hover {
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+        }
+
+        .success {
+            color: #10b981;
+            font-weight: bold;
+            padding: 10px;
+            background: #d1fae5;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .error {
+            color: #ef4444;
+            font-weight: bold;
+            padding: 10px;
+            background: #fee2e2;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .info {
+            color: #3b82f6;
+            padding: 10px;
+            background: #dbeafe;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .warning {
+            color: #f59e0b;
+            padding: 10px;
+            background: #fef3c7;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+
+        input {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            width: 250px;
+            margin: 5px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .log {
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-info {
+            background: #dbeafe;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .log-success {
+            background: #d1fae5;
+            border-left: 3px solid #10b981;
+        }
+
+        .log-error {
+            background: #fee2e2;
+            border-left: 3px solid #ef4444;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .badge-new {
+            background: #10b981;
+            color: white;
+        }
+
+        .badge-critical {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔒 Security Features Test Suite</h1>
+        <p class="subtitle">Тестирование новых функций безопасности Phase 2</p>
+
+        <!-- Login Section -->
+        <div class="test-section">
+            <h3>1️⃣ Login / Register</h3>
+            <input type="text" id="register-name" placeholder="Name" value="Test User">
+            <input type="email" id="register-email" placeholder="Email" value="test@flowday.com">
+            <input type="password" id="register-password" placeholder="Password" value="password123">
+            <br>
+            <button onclick="testRegister()">Register</button>
+            <button onclick="testLogin()">Login</button>
+            <div id="login-result"></div>
+        </div>
+
+        <!-- Password Reset Test -->
+        <div class="test-section">
+            <h3>2️⃣ Password Reset (One-Time Use) <span class="badge badge-new">NEW</span></h3>
+            <p class="info">🎯 <strong>Твоя находка!</strong> Теперь код можно использовать только 1 раз.</p>
+
+            <h4>Step 1: Request Reset</h4>
+            <input type="email" id="reset-email" placeholder="Email" value="test@flowday.com">
+            <button onclick="requestReset()">Request Reset Code</button>
+
+            <h4>Step 2: Reset Password (First Time)</h4>
+            <input type="text" id="reset-code" placeholder="6-digit code from email">
+            <input type="password" id="new-password" placeholder="New Password" value="newpassword123">
+            <button onclick="resetPassword()">Reset Password ✅</button>
+
+            <h4>Step 3: Try Reusing Code</h4>
+            <button class="secondary" onclick="testCodeReuse()">Use Same Code Again ❌</button>
+            <p class="warning">⚠️ Ожидаемо: "invalid or expired code"</p>
+
+            <div id="reset-result"></div>
+        </div>
+
+        <!-- Logout Test -->
+        <div class="test-section">
+            <h3>3️⃣ Logout Endpoint <span class="badge badge-new">NEW</span></h3>
+            <p class="info">Тестирование правильного выхода из системы.</p>
+
+            <button onclick="testLogout()">🚪 Logout</button>
+            <button class="secondary" onclick="testAfterLogout()">Try Access After Logout</button>
+
+            <div id="logout-result"></div>
+        </div>
+
+        <!-- Token Refresh Test -->
+        <div class="test-section">
+            <h3>4️⃣ Token Refresh (From Phase 1)</h3>
+            <button onclick="testTokenRefresh()">Test Auto Refresh</button>
+            <div id="refresh-result"></div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h3>📋 Test Logs</h3>
+            <button onclick="clearLogs()">Clear Logs</button>
+            <div id="logs" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api/v1';
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.insertBefore(entry, logs.firstChild);
+        }
+
+        function clearLogs() {
+            document.getElementById('logs').innerHTML = '';
+        }
+
+        async function testRegister() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            try {
+                log('Attempting registration...', 'info');
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('login-result').innerHTML =
+                        `<p class="success">✅ User registered!</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    log('Registration successful', 'success');
+                } else {
+                    document.getElementById('login-result').innerHTML =
+                        `<p class="error">❌ ${data.error}</p>`;
+                    log(`Registration failed: ${data.error}`, 'error');
+                }
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            try {
+                log('Attempting login...', 'info');
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    document.getElementById('login-result').innerHTML =
+                        `<p class="success">✅ Login successful! Token stored.</p>`;
+                    log('Login successful. Token saved to localStorage.', 'success');
+                } else {
+                    document.getElementById('login-result').innerHTML =
+                        `<p class="error">❌ ${data.error}</p>`;
+                    log(`Login failed: ${data.error}`, 'error');
+                }
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function requestReset() {
+            const email = document.getElementById('reset-email').value;
+            const resultDiv = document.getElementById('reset-result');
+
+            try {
+                log('Requesting password reset...', 'info');
+                const response = await fetch(`${API_URL}/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    resultDiv.innerHTML = `<p class="success">✅ ${data.message}</p>
+                        <p class="info">📧 Check your email for 6-digit code!</p>`;
+                    log('Reset code requested successfully', 'success');
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ ${data.error}</p>`;
+                    log(`Reset request failed: ${data.error}`, 'error');
+                }
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('reset-email').value;
+            const code = document.getElementById('reset-code').value;
+            const newPassword = document.getElementById('new-password').value;
+            const resultDiv = document.getElementById('reset-result');
+
+            try {
+                log('Attempting password reset (First time)...', 'info');
+                const response = await fetch(`${API_URL}/auth/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code, new_password: newPassword })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    resultDiv.innerHTML = `<p class="success">✅ Password reset successful!</p>
+                        <p class="success">🔒 Code has been marked as USED in database</p>`;
+                    log('✅ First reset successful. Code marked as used.', 'success');
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ ${data.error}</p>`;
+                    log(`Reset failed: ${data.error}`, 'error');
+                }
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function testCodeReuse() {
+            const email = document.getElementById('reset-email').value;
+            const code = document.getElementById('reset-code').value;
+            const newPassword = "anothernewpassword";
+            const resultDiv = document.getElementById('reset-result');
+
+            try {
+                log('🧪 Testing code reuse (should FAIL)...', 'info');
+                const response = await fetch(`${API_URL}/auth/reset-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code, new_password: newPassword })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    resultDiv.innerHTML = `<p class="error">🚨 SECURITY BUG: Code was reused!</p>`;
+                    log('❌ SECURITY ISSUE: Code reuse allowed!', 'error');
+                } else {
+                    resultDiv.innerHTML = `<p class="success">🎉 SECURITY TEST PASSED!</p>
+                        <p class="success">Code reuse blocked: "${data.error}"</p>`;
+                    log('✅ Security test passed! Code cannot be reused.', 'success');
+                }
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function testLogout() {
+            const resultDiv = document.getElementById('logout-result');
+
+            try {
+                log('Calling logout endpoint...', 'info');
+                const response = await fetch(`${API_URL}/auth/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.removeItem('token');
+                    resultDiv.innerHTML = `<p class="success">✅ ${data.message}</p>
+                        <p class="info">Token removed from localStorage</p>
+                        <p class="info">Refresh token deleted from DB</p>
+                        <p class="info">Cookie cleared</p>`;
+                    log('Logout successful', 'success');
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ ${data.error}</p>`;
+                    log(`Logout failed: ${data.error}`, 'error');
+                }
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function testAfterLogout() {
+            const resultDiv = document.getElementById('logout-result');
+
+            try {
+                log('Testing access after logout (should fail)...', 'info');
+                const response = await fetch(`${API_URL}/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token') || 'no-token'}`
+                    },
+                    credentials: 'include'
+                });
+
+                if (response.status === 401) {
+                    resultDiv.innerHTML += `<p class="success">✅ Access denied (as expected)</p>`;
+                    log('✅ Correctly blocked after logout', 'success');
+                } else {
+                    const data = await response.json();
+                    resultDiv.innerHTML += `<p class="error">❌ Still authenticated! Bug?</p>`;
+                    log('❌ User still has access after logout?', 'error');
+                }
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function testTokenRefresh() {
+            const resultDiv = document.getElementById('refresh-result');
+
+            try {
+                log('Setting expired token...', 'info');
+                localStorage.setItem('token', 'expired_token');
+
+                log('Calling refresh endpoint...', 'info');
+                const response = await fetch(`${API_URL}/auth/refresh`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    resultDiv.innerHTML = `<p class="success">✅ Token refreshed!</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    log('Token refresh successful', 'success');
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ ${data.error}</p>`;
+                    log(`Refresh failed: ${data.error}`, 'error');
+                }
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        // Auto-log on load
+        log('Test page loaded. Ready to test Phase 2 security features.', 'info');
+    </script>
+</body>
+
+</html>
