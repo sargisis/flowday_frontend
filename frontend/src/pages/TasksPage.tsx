@@ -4,6 +4,7 @@ import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 import EmptyState from "../components/state/EmptyState";
+import { KanbanBoardSkeleton } from "../components/SkeletonLoader";
 import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter } from "lucide-react";
 import useSound from "../hooks/useSound";
 
@@ -231,9 +232,7 @@ export default function TasksPage() {
 
             <div className="flex-1 overflow-hidden min-h-0 bg-transparent rounded-xl">
                 {isLoading ? (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
-                    </div>
+                    <KanbanBoardSkeleton />
                 ) : tasks.length === 0 ? (
                     <EmptyState
                         icon={CheckSquare}

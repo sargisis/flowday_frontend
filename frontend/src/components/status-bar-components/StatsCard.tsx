@@ -66,7 +66,7 @@ export default function StatsCard({
                 <div className="text-3xl font-bold text-white tracking-tight leading-none font-[Outfit]">
                     {value}
                 </div>
-                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
+                <div className="text-xs font-bold text-zinc-400 uppercase tracking-wider truncate">
                     {title}
                 </div>
             </div>

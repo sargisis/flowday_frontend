@@ -278,6 +278,8 @@ export default function TeamPage() {
                                                 {m.user?.avatar_url ? (
                                                     <img
                                                         src={getAvatarUrl(m.user.avatar_url) || ""}
+                                                        loading="lazy"
+                                                        decoding="async"
                                                         alt={m.user?.name || "Member"}
                                                         className="h-full w-full object-cover"
                                                     />

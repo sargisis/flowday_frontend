@@ -188,8 +188,10 @@ export default function SettingsPage() {
                                             {avatarPreview ? (
                                                 <img
                                                     src={getAvatarUrl(avatarPreview) || ""}
-                                                    alt="Avatar"
+                                                    alt="Avatar preview"
                                                     className="h-full w-full object-cover"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                 />
                                             ) : (
                                                 <span className="text-4xl font-bold text-zinc-700">{name[0]?.toUpperCase() || 'U'}</span>
@@ -510,7 +512,7 @@ export default function SettingsPage() {
                                 <div className="h-24 w-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-[2px] shadow-2xl shadow-indigo-500/20">
                                     <div className="h-full w-full rounded-full bg-zinc-950 flex items-center justify-center relative overflow-hidden group">
                                         {user?.avatar_url ? (
-                                            <img src={getAvatarUrl(user.avatar_url) || ""} alt="Avatar" className="h-full w-full object-cover" />
+                                            <img src={getAvatarUrl(user.avatar_url) || ""} alt="Avatar" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                         ) : (
                                             <span className="text-3xl font-bold text-white">{user?.name?.[0]?.toUpperCase() || 'U'}</span>
                                         )}
