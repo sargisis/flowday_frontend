@@ -20,7 +20,7 @@ interface TaskContextType {
     handleUpdateTask: (taskId: string, updates: Partial<Task>) => Promise<void>;
     handleDeleteTask: (taskId: string) => Promise<void>;
     handleDecomposeTask: (taskId: string) => Promise<void>;
-    handleEnrichTask: (taskId: string) => Promise<string>;
+    handleEnrichTask: (taskId: string) => Promise<{ description: string; subtasks?: Task['subtasks'] } | string>;
     refreshTrigger: number;
 }
 
@@ -117,7 +117,8 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         try {
             const res = await apiEnrichTask(taskId);
             triggerRefresh();
-            return res.description;
+            // Return full result (supports both old string-only and new object format if API changes)
+            return res;
         } catch (error) {
             console.error("Task enrichment failed", error);
             throw error;

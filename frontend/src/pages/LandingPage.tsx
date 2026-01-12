@@ -3,18 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import {
     ArrowRight,
     Zap,
-    Shield,
     Play,
     CheckCircle2,
     Brain,
     Coffee,
-    LayoutDashboard,
     Timer,
     BarChart3,
     Bot,
-    MousePointer2,
     Layers,
-    Command,
     Pause,
     RotateCcw
 } from "lucide-react";
