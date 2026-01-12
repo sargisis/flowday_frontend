@@ -9,9 +9,12 @@ interface KanbanCardProps {
     overlay?: boolean;
     onDelete?: (taskId: string) => void;
     onClick?: (task: Task) => void;
+    isSelectionMode?: boolean;
+    isSelected?: boolean;
+    onToggleSelection?: (taskId: string) => void;
 }
 
-function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
+function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelected, onToggleSelection }: KanbanCardProps) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const {
@@ -27,7 +30,7 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
             type: "Task",
             task,
         },
-        disabled: overlay,
+        disabled: overlay || isSelectionMode, // Disable drag when in selection mode
     });
 
     const style = {
@@ -44,14 +47,21 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
 
         setIsDeleting(true);
         try {
-            // ONLY use the prop-passed onDelete. TaskContext already calls the API.
-            // Calling api directly here + onDelete causes 403 on the second call.
             await onDelete?.(task.id);
         } catch (error) {
             console.error("Failed to delete task:", error);
-            alert("Failed to delete task");
         } finally {
             setIsDeleting(false);
+        }
+    };
+
+    const handleCardClick = (e: React.MouseEvent) => {
+        if (isSelectionMode) {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleSelection?.(task.id);
+        } else {
+            onClick?.(task);
         }
     };
 
@@ -100,15 +110,18 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
         <div
             ref={setNodeRef}
             style={style}
-            {...attributes}
-            {...listeners}
-            onClick={() => onClick?.(task)}
+            {...(!isSelectionMode ? attributes : {})}
+            {...(!isSelectionMode ? listeners : {})}
+            onClick={isSelectionMode ? handleCardClick : () => onClick?.(task)}
             className={`
         group relative p-3 rounded-xl 
         bg-zinc-900/40 
-        border border-white/5 
-        transition-colors duration-200
-        cursor-grab active:cursor-grabbing
+        border 
+        transition-all duration-200
+        ${isSelectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}
+        ${isSelected
+                    ? 'border-indigo-500 bg-indigo-500/10'
+                    : 'border-white/5 hover:border-white/10'}
         ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
       `}
         >
@@ -121,36 +134,46 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
         `}>
                     {task.priority}
                 </span>
-                <div className="flex items-center gap-1">
-                    <button
-                        onClick={handleDelete}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-500 hover:text-red-400 transition-opacity duration-200 z-50 cursor-pointer"
-                        title="Delete task"
-                    >
-                        <Trash2 size={14} />
-                    </button>
-                    <div
-                        className="text-zinc-600 p-1.5"
-                    >
-                        <GripVertical size={14} />
+
+                {isSelectionMode ? (
+                    <div className={`
+                        w-5 h-5 rounded border flex items-center justify-center transition-colors
+                        ${isSelected
+                            ? 'bg-indigo-500 border-indigo-500 text-white'
+                            : 'border-zinc-600 group-hover:border-zinc-500'}
+                    `}>
+                        {isSelected && <Sparkles size={12} fill="currentColor" />}
                     </div>
-                </div>
+                ) : (
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={handleDelete}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-500 hover:text-red-400 transition-opacity duration-200 z-50 cursor-pointer"
+                            title="Delete task"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                        <div className="text-zinc-600 p-1.5">
+                            <GripVertical size={14} />
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="flex items-center gap-2 mb-1">
-                <h4 className="text-sm font-medium text-zinc-200 leading-snug">
+                <h4 className="text-sm font-medium text-zinc-200 leading-snug select-none">
                     {task.title}
                 </h4>
-                {task.description && (
+                {task.description && !isSelectionMode && (
                     <div className="p-1 bg-indigo-500/10 rounded-md" title="AI Plan available">
                         <Sparkles size={10} className="text-indigo-400" />
                     </div>
                 )}
             </div>
 
-            {task.description && (
-                <p className="text-xs text-zinc-500 line-clamp-2">
+            {task.description && !isSelectionMode && (
+                <p className="text-xs text-zinc-500 line-clamp-2 select-none">
                     {task.description}
                 </p>
             )}

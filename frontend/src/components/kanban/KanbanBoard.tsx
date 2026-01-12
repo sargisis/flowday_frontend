@@ -13,7 +13,7 @@ import {
     defaultDropAnimationSideEffects,
     type DropAnimation,
 } from "@dnd-kit/core";
-import { sortableKeyboardCoordinates} from "@dnd-kit/sortable";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import type { Task } from "../../api/tasks";
 import KanbanColumn from "./KanbanColumn";
 import KanbanCard from "./KanbanCard";
@@ -23,6 +23,9 @@ interface KanbanBoardProps {
     onTaskUpdate: (taskId: string, newStatus: string) => void;
     onTaskDelete?: (taskId: string) => void;
     onTaskClick?: (task: Task) => void;
+    isSelectionMode?: boolean;
+    selectedTaskIds?: Set<string>;
+    onToggleTaskSelection?: (taskId: string) => void;
 }
 
 const dropAnimation: DropAnimation = {
@@ -35,7 +38,15 @@ const dropAnimation: DropAnimation = {
     }),
 };
 
-export default function KanbanBoard({ tasks: initialTasks, onTaskUpdate, onTaskDelete, onTaskClick }: KanbanBoardProps) {
+export default function KanbanBoard({
+    tasks: initialTasks,
+    onTaskUpdate,
+    onTaskDelete,
+    onTaskClick,
+    isSelectionMode,
+    selectedTaskIds,
+    onToggleTaskSelection
+}: KanbanBoardProps) {
     // Local state for optimistic updates (smooth dragging)
     const [tasks, setTasks] = useState<Task[]>(initialTasks);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -147,18 +158,54 @@ export default function KanbanBoard({ tasks: initialTasks, onTaskUpdate, onTaskD
                 <div className="grid grid-cols-2 grid-rows-2 gap-6 w-full h-full mx-auto pb-4">
                     {/* Row 1 */}
                     <div className="min-h-0">
-                        <KanbanColumn id="Todo" title="To Do" tasks={todoTasks} onDelete={onTaskDelete} onTaskClick={onTaskClick} />
+                        <KanbanColumn
+                            id="Todo"
+                            title="To Do"
+                            tasks={todoTasks}
+                            onDelete={onTaskDelete}
+                            onTaskClick={onTaskClick}
+                            isSelectionMode={isSelectionMode}
+                            selectedTaskIds={selectedTaskIds}
+                            onToggleTaskSelection={onToggleTaskSelection}
+                        />
                     </div>
                     <div className="min-h-0">
-                        <KanbanColumn id="In_Progress" title="In Progress" tasks={inProgressTasks} onDelete={onTaskDelete} onTaskClick={onTaskClick} />
+                        <KanbanColumn
+                            id="In_Progress"
+                            title="In Progress"
+                            tasks={inProgressTasks}
+                            onDelete={onTaskDelete}
+                            onTaskClick={onTaskClick}
+                            isSelectionMode={isSelectionMode}
+                            selectedTaskIds={selectedTaskIds}
+                            onToggleTaskSelection={onToggleTaskSelection}
+                        />
                     </div>
 
                     {/* Row 2 */}
                     <div className="min-h-0">
-                        <KanbanColumn id="Blocked" title="Blocked" tasks={blockedTasks} onDelete={onTaskDelete} onTaskClick={onTaskClick} />
+                        <KanbanColumn
+                            id="Blocked"
+                            title="Blocked"
+                            tasks={blockedTasks}
+                            onDelete={onTaskDelete}
+                            onTaskClick={onTaskClick}
+                            isSelectionMode={isSelectionMode}
+                            selectedTaskIds={selectedTaskIds}
+                            onToggleTaskSelection={onToggleTaskSelection}
+                        />
                     </div>
                     <div className="min-h-0">
-                        <KanbanColumn id="Done" title="Done" tasks={doneTasks} onDelete={onTaskDelete} onTaskClick={onTaskClick} />
+                        <KanbanColumn
+                            id="Done"
+                            title="Done"
+                            tasks={doneTasks}
+                            onDelete={onTaskDelete}
+                            onTaskClick={onTaskClick}
+                            isSelectionMode={isSelectionMode}
+                            selectedTaskIds={selectedTaskIds}
+                            onToggleTaskSelection={onToggleTaskSelection}
+                        />
                     </div>
                 </div>
             </div>
