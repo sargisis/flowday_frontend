@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Calendar, CheckCircle2, Clock, Trash2, Sparkles, Edit3, Eye } from "lucide-react";
+import { X, Calendar, CheckCircle2, Clock, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Task } from "../../api/tasks";
 import { useTasks } from "../../context/TaskContext";
@@ -18,6 +18,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const { handleEnrichTask } = useTasks();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
+    const [subtasks, setSubtasks] = useState<{ id: string; title: string; completed: boolean }[]>([]);
     const [status, setStatus] = useState("");
     const [priority, setPriority] = useState("");
     const [dueDate, setDueDate] = useState("");
@@ -29,6 +30,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         if (task && isOpen) {
             setTitle(task.title || "");
             setDescription(task.description || "");
+            setSubtasks(task.subtasks || []);
             setStatus(task.status || "Todo");
             setPriority(task.priority || "medium");
             setDueDate(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : "");
@@ -43,6 +45,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
             await onUpdate(task.id, {
                 title,
                 description,
+                subtasks,
                 status,
                 priority,
                 due_date: dueDate ? new Date(dueDate).toISOString() : undefined
@@ -73,15 +76,36 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         if (!task) return;
         setIsEnriching(true);
         try {
-            const newDescription = await handleEnrichTask(task.id);
-            setDescription(newDescription);
-            toast.success("Magic Plan generated!");
+            const result = await handleEnrichTask(task.id);
+            if (typeof result === 'object' && 'description' in result) {
+                setDescription(result.description);
+                if (result.subtasks) {
+                    setSubtasks(result.subtasks);
+                }
+                toast.success("Magic Plan generated!");
+            } else if (typeof result === 'string') {
+                // Fallback
+                setDescription(result);
+                toast.success("Description generated!");
+            }
         } catch (error) {
             console.error("AI Enrichment failed", error);
             toast.error("AI Enrichment failed. Check backend logs.");
         } finally {
             setIsEnriching(false);
         }
+    };
+
+    const toggleSubtask = (index: number) => {
+        const newSubtasks = [...subtasks];
+        newSubtasks[index].completed = !newSubtasks[index].completed;
+        setSubtasks(newSubtasks);
+    };
+
+    const calculateProgress = () => {
+        if (subtasks.length === 0) return 0;
+        const completed = subtasks.filter(s => s.completed).length;
+        return Math.round((completed / subtasks.length) * 100);
     };
 
     return (
@@ -127,6 +151,39 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                     className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 transition-all text-lg font-medium"
                                 />
                             </div>
+
+                            {/* Subtasks / Magic Checklist Section */}
+                            {subtasks.length > 0 && (
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                                            Magic Checklist
+                                        </label>
+                                        <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">
+                                            {calculateProgress()}% Done
+                                        </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {subtasks.map((subtask, index) => (
+                                            <div
+                                                key={subtask.id || index}
+                                                onClick={() => toggleSubtask(index)}
+                                                className={`group flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${subtask.completed
+                                                    ? "bg-emerald-500/5 border-emerald-500/20"
+                                                    : "bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04]"
+                                                    }`}
+                                            >
+                                                <div className={`mt-0.5 transition-colors ${subtask.completed ? "text-emerald-400" : "text-zinc-500 group-hover:text-zinc-400"}`}>
+                                                    {subtask.completed ? <CheckSquare size={16} /> : <Square size={16} />}
+                                                </div>
+                                                <span className={`text-sm font-medium transition-all ${subtask.completed ? "text-zinc-500 line-through decoration-emerald-500/30" : "text-zinc-300"}`}>
+                                                    {subtask.title}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             <div>
                                 <div className="flex justify-between items-center mb-2">

@@ -7,6 +7,7 @@ export interface Task {
     priority: string;
     project_id: string; // MongoDB ObjectID
     description?: string;
+    subtasks?: { id: string; title: string; completed: boolean }[];
     due_date?: string;
     created_at?: string;
 }
@@ -52,7 +53,7 @@ export const decomposeTask = async (id: string): Promise<{ message: string, subt
     return res.data;
 };
 
-export const enrichTask = async (id: string): Promise<{ message: string, description: string }> => {
+export const enrichTask = async (id: string): Promise<{ message: string, description: string, subtasks: Task['subtasks'] }> => {
     const res = await api.post(`/tasks/${id}/enrich`);
     return res.data;
 };

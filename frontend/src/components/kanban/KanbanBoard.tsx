@@ -13,7 +13,7 @@ import {
     defaultDropAnimationSideEffects,
     type DropAnimation,
 } from "@dnd-kit/core";
-import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
+import { sortableKeyboardCoordinates} from "@dnd-kit/sortable";
 import type { Task } from "../../api/tasks";
 import KanbanColumn from "./KanbanColumn";
 import KanbanCard from "./KanbanCard";
