@@ -105,10 +105,9 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
             onClick={() => onClick?.(task)}
             className={`
         group relative p-3 rounded-xl 
-        bg-zinc-900/40 backdrop-blur-md 
-        border border-white/5 hover:border-white/10 active:border-indigo-500/50
-        transition-all duration-200
-        hover:shadow-lg hover:shadow-black/20
+        bg-zinc-900/40 
+        border border-white/5 
+        transition-colors duration-200
         cursor-grab active:cursor-grabbing
         ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
       `}
@@ -126,7 +125,7 @@ function KanbanCard({ task, overlay, onDelete, onClick }: KanbanCardProps) {
                     <button
                         onClick={handleDelete}
                         onPointerDown={(e) => e.stopPropagation()}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-500/20 text-zinc-500 hover:text-red-400 transition-all duration-200 z-50 cursor-pointer"
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-500 hover:text-red-400 transition-opacity duration-200 z-50 cursor-pointer"
                         title="Delete task"
                     >
                         <Trash2 size={14} />

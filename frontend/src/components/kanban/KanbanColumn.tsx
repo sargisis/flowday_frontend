@@ -39,7 +39,7 @@ export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick }
         <div
             ref={setNodeRef}
             style={style}
-            className={`flex flex-col bg-zinc-900/40 backdrop-blur-xl border-2 rounded-2xl p-4 h-full transition-all duration-200 ${isOver ? "border-indigo-500/50 bg-indigo-500/5 shadow-[0_0_20px_rgba(99,102,241,0.1)]" : "border-white/5"
+            className={`flex flex-col bg-zinc-900/40 border-2 rounded-2xl p-4 h-full transition-colors duration-200 ${isOver ? "border-indigo-500/50 bg-indigo-500/5" : "border-white/5"
                 }`}
         >
             {/* Column Header */}
