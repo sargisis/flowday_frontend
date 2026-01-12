@@ -8,6 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080
 const api = axios.create({
     baseURL: API_BASE_URL,
     timeout: 30000, // 30 seconds timeout
+    withCredentials: true, // Enable cookies for refresh tokens
     headers: {
         "Content-Type": "application/json",
     },
@@ -39,14 +40,14 @@ api.interceptors.response.use(
         if (!error.response) {
             // Network error or timeout
             toast.error("Нет соединения с сервером. Проверьте интернет-соединение.");
-            
+
             // Retry logic for network errors (max 1 retry)
             if (originalRequest && !originalRequest._retry && originalRequest.url) {
                 originalRequest._retry = true;
-                
+
                 // Wait before retry
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                
+
                 try {
                     return await api.request({
                         method: originalRequest.method || 'GET',
@@ -58,7 +59,7 @@ api.interceptors.response.use(
                     return Promise.reject(retryError);
                 }
             }
-            
+
             return Promise.reject(error);
         }
 
@@ -68,16 +69,54 @@ api.interceptors.response.use(
         // Handle different HTTP status codes
         switch (status) {
             case 401:
-                // Unauthorized - handle token expiration
+                // Unauthorized - handle token expiration with automatic refresh
                 const isLoginRequest = originalRequest?.url?.includes("/auth/login");
+                const isRefreshRequest = originalRequest?.url?.includes("/auth/refresh");
                 const isLoginPage = window.location.pathname.includes("/login");
                 const isRegisterPage = window.location.pathname.includes("/register");
 
-                if (!isLoginRequest && !isLoginPage && !isRegisterPage) {
-                    localStorage.removeItem("token");
-                    toast.error("Сессия истекла. Пожалуйста, войдите снова.");
-                    window.location.href = "/app/v1/login";
+                // Don't attempt refresh on login/register pages or if already refreshing
+                if (isLoginRequest || isRefreshRequest || isLoginPage || isRegisterPage) {
+                    break;
                 }
+
+                // Try to refresh the token
+                if (originalRequest && !originalRequest._retry) {
+                    originalRequest._retry = true;
+
+                    try {
+                        // Import refreshAccessToken dynamically to avoid circular dependency
+                        const { refreshAccessToken } = await import("./auth");
+                        const newToken = await refreshAccessToken();
+
+                        // Update token in localStorage
+                        localStorage.setItem("token", newToken);
+
+                        // Update the Authorization header for the retry
+                        if (originalRequest.headers) {
+                            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                        }
+
+                        // Retry the original request
+                        return api.request({
+                            method: originalRequest.method || 'GET',
+                            url: originalRequest.url || '',
+                            data: originalRequest.data,
+                            headers: originalRequest.headers,
+                        });
+                    } catch (refreshError) {
+                        // Refresh failed - user needs to log in again
+                        localStorage.removeItem("token");
+                        toast.error("Сессия истекла. Пожалуйста, войдите снова.");
+                        window.location.href = "/app/v1/login";
+                        return Promise.reject(refreshError);
+                    }
+                }
+
+                // If we get here, refresh already failed
+                localStorage.removeItem("token");
+                toast.error("Сессия истекла. Пожалуйста, войдите снова.");
+                window.location.href = "/app/v1/login";
                 break;
 
             case 403:
@@ -105,9 +144,9 @@ api.interceptors.response.use(
                 if (originalRequest && !originalRequest._retry && status !== 500 && originalRequest.url) {
                     originalRequest._retry = true;
                     const retryDelay = Math.min(1000 * Math.pow(2, 1), 10000); // Max 10 seconds
-                    
+
                     await new Promise(resolve => setTimeout(resolve, retryDelay));
-                    
+
                     try {
                         return await api.request({
                             method: originalRequest.method || 'GET',

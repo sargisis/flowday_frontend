@@ -74,3 +74,10 @@ export const getFileUrl = (path?: string) => {
   const fullPath = path.startsWith('/') ? path : `/${path}`;
   return `${FILE_BASE_URL}${fullPath}`;
 };
+
+// Refresh access token using the refresh token stored in HTTP-Only cookie
+export const refreshAccessToken = async () => {
+  const res = await api.post("/auth/refresh");
+  return res.data.token;
+};
+
