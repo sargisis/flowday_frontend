@@ -92,8 +92,12 @@ export default function FocusMode() {
     };
 
     if (loading) return (
-        <div className="fixed inset-0 bg-black flex items-center justify-center text-zinc-500 animate-pulse">
-            Loading Focus Mode...
+        <div className="fixed inset-0 bg-black flex items-center justify-center">
+            <div className="text-center space-y-4 animate-pulse">
+                <div className="h-12 w-64 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 rounded-lg mx-auto bg-[length:200%_100%] animate-shimmer"></div>
+                <div className="h-32 w-32 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 rounded-full mx-auto bg-[length:200%_100%] animate-shimmer"></div>
+                <div className="h-6 w-48 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 rounded mx-auto bg-[length:200%_100%] animate-shimmer"></div>
+            </div>
         </div>
     );
 
@@ -171,8 +175,8 @@ export default function FocusMode() {
                                     key={type}
                                     onClick={() => handleSoundChange(type)}
                                     className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${soundType === type
-                                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
-                                            : 'text-zinc-500 hover:text-white hover:bg-white/5'
+                                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                                        : 'text-zinc-500 hover:text-white hover:bg-white/5'
                                         }`}
                                 >
                                     {type.replace('_', ' ')}
@@ -192,8 +196,8 @@ export default function FocusMode() {
                         <button
                             onClick={toggleAudio}
                             className={`w-14 h-14 rounded-full flex items-center justify-center border transition-all duration-300 ${audioActive
-                                    ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.2)]'
-                                    : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white hover:bg-white/10'
+                                ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.2)]'
+                                : 'bg-white/5 border-white/10 text-zinc-500 hover:text-white hover:bg-white/10'
                                 }`}
                             title="Focus Sound"
                         >

@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { CheckCircle2, Zap, Plus, Folder, History } from "lucide-react";
 import api from "../../api/axios";
 import { formatDistanceToNow, isToday } from "date-fns";
+import { ActivityItemSkeleton } from "../skeletons/ActivityItemSkeleton";
+
 
 interface Activity {
     id: string;
@@ -128,15 +130,9 @@ export default function ActivityFeed() {
 
             <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 fade-bottom">
                 {loading ? (
-                    <div className="flex flex-col gap-4 animate-pulse">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="flex gap-4">
-                                <div className="w-8 h-8 rounded-lg bg-white/5" />
-                                <div className="flex-1 space-y-2">
-                                    <div className="h-3 bg-white/5 rounded w-3/4" />
-                                    <div className="h-2 bg-white/5 rounded w-1/4" />
-                                </div>
-                            </div>
+                    <div className="space-y-0">
+                        {[1, 2, 3, 4, 5, 6].map(i => (
+                            <ActivityItemSkeleton key={i} />
                         ))}
                     </div>
                 ) : (filteredActivities.length === 0) ? (
