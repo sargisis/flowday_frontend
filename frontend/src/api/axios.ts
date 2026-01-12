@@ -39,7 +39,7 @@ api.interceptors.response.use(
         // Handle network errors
         if (!error.response) {
             // Network error or timeout
-            toast.error("Нет соединения с сервером. Проверьте интернет-соединение.");
+            toast.error("No connection to server. Please check your internet connection.");
 
             // Retry logic for network errors (max 1 retry)
             if (originalRequest && !originalRequest._retry && originalRequest.url) {
@@ -107,7 +107,7 @@ api.interceptors.response.use(
                     } catch (refreshError) {
                         // Refresh failed - user needs to log in again
                         localStorage.removeItem("token");
-                        toast.error("Сессия истекла. Пожалуйста, войдите снова.");
+                        toast.error("Session expired. Please log in again.");
                         window.location.href = "/app/v1/login";
                         return Promise.reject(refreshError);
                     }
@@ -115,26 +115,26 @@ api.interceptors.response.use(
 
                 // If we get here, refresh already failed
                 localStorage.removeItem("token");
-                toast.error("Сессия истекла. Пожалуйста, войдите снова.");
+                toast.error("Session expired. Please log in again.");
                 window.location.href = "/app/v1/login";
                 break;
 
             case 403:
                 // Forbidden
-                toast.error(data?.error || "У вас нет доступа к этому ресурсу.");
+                toast.error(data?.error || "You don't have access to this resource.");
                 break;
 
             case 404:
                 // Not found
                 if (!originalRequest?.url?.includes("/me")) {
                     // Don't show toast for silent 404s (like checking if user exists)
-                    toast.error(data?.error || "Ресурс не найден.");
+                    toast.error(data?.error || "Resource not found.");
                 }
                 break;
 
             case 429:
                 // Too many requests - rate limiting
-                toast.error("Слишком много запросов. Пожалуйста, подождите немного.");
+                toast.error("Too many requests. Please wait a moment.");
                 break;
 
             case 500:
@@ -158,7 +158,7 @@ api.interceptors.response.use(
                         return Promise.reject(retryError);
                     }
                 }
-                toast.error(data?.error || "Ошибка на сервере. Попробуйте позже.");
+                toast.error(data?.error || "Server error. Please try again later.");
                 break;
 
             case 422:
@@ -167,14 +167,14 @@ api.interceptors.response.use(
                 if (Array.isArray(validationErrors)) {
                     validationErrors.forEach((err: string) => toast.error(err));
                 } else {
-                    toast.error(validationErrors || "Ошибка валидации данных.");
+                    toast.error(validationErrors || "Validation error.");
                 }
                 break;
 
             default:
                 // Other errors
                 if (status) {
-                    const errorMessage = data?.error || data?.message || "Произошла ошибка. Попробуйте еще раз.";
+                    const errorMessage = data?.error || data?.message || "An error occurred. Please try again.";
                     // Only show toast if not already handled
                     if (status >= 400 && status < 500 && !originalRequest?.url?.includes("/auth/login")) {
                         toast.error(errorMessage);

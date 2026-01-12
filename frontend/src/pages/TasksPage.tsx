@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
-import { type Task, getTasksByProject } from "../api/tasks";
+import { type Task, getTasksByProject, bulkDeleteTasks } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 import EmptyState from "../components/state/EmptyState";
 import { KanbanBoardSkeleton } from "../components/SkeletonLoader";
-import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter } from "lucide-react";
+import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter, Trash2 } from "lucide-react";
 import useSound from "../hooks/useSound";
 
 export default function TasksPage() {
@@ -14,6 +14,10 @@ export default function TasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState<'all' | 'high' | 'due-soon'>('all');
+
+    // Selection state
+    const [isSelectionMode, setIsSelectionMode] = useState(false);
+    const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
     // Use a premium "glass" sounding chime
     const playSuccess = useSound("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3", 0.6);
@@ -61,6 +65,61 @@ export default function TasksPage() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [openCreateModal]);
+
+    // Keyboard shortcuts for selection mode
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore if typing in input/textarea
+            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+                return;
+            }
+
+            // Ctrl/Cmd + A: Select all tasks
+            if ((e.ctrlKey || e.metaKey) && e.key === 'a' && isSelectionMode) {
+                e.preventDefault();
+                const allIds = new Set(tasks.map(t => t.id));
+                setSelectedTaskIds(allIds);
+            }
+
+            // Delete/Backspace: Delete selected tasks
+            if ((e.key === 'Delete' || e.key === 'Backspace') && isSelectionMode && selectedTaskIds.size > 0) {
+                e.preventDefault();
+
+                if (!confirm(`Delete ${selectedTaskIds.size} selected tasks?`)) return;
+
+                setIsLoading(true);
+                bulkDeleteTasks(Array.from(selectedTaskIds))
+                    .then(() => {
+                        if (activeProjectId) {
+                            return getTasksByProject(activeProjectId);
+                        }
+                    })
+                    .then((data) => {
+                        if (data) {
+                            setTasks(data);
+                        }
+                        setIsSelectionMode(false);
+                        setSelectedTaskIds(new Set());
+                    })
+                    .catch((error) => {
+                        console.error("Failed to bulk delete", error);
+                    })
+                    .finally(() => {
+                        setIsLoading(false);
+                    });
+            }
+
+            // Escape: Cancel selection mode
+            if (e.key === 'Escape' && isSelectionMode) {
+                e.preventDefault();
+                setIsSelectionMode(false);
+                setSelectedTaskIds(new Set());
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isSelectionMode, selectedTaskIds, tasks]);
 
     // Calculate stats
     const stats = useMemo(() => {
@@ -110,6 +169,39 @@ export default function TasksPage() {
         );
     }
 
+    // Selection handling functions
+
+    const toggleTaskSelection = (taskId: string) => {
+        const newSet = new Set(selectedTaskIds);
+        if (newSet.has(taskId)) {
+            newSet.delete(taskId);
+        } else {
+            newSet.add(taskId);
+        }
+        setSelectedTaskIds(newSet);
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedTaskIds.size === 0) return;
+        if (!confirm(`Delete ${selectedTaskIds.size} selected tasks?`)) return;
+
+        setIsLoading(true);
+        try {
+            await bulkDeleteTasks(Array.from(selectedTaskIds));
+            // Trigger refresh
+            if (activeProjectId) {
+                const data = await getTasksByProject(activeProjectId);
+                setTasks(data);
+            }
+            setIsSelectionMode(false);
+            setSelectedTaskIds(new Set());
+        } catch (error) {
+            console.error("Failed to bulk delete", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const onTaskUpdateOptimistic = async (id: string, status: string) => {
         // Play sound if completing task
         if (status.toLowerCase() === 'done') {
@@ -144,13 +236,50 @@ export default function TasksPage() {
                     </div>
                 </div>
 
-                <button
-                    onClick={() => openCreateModal()}
-                    className="bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-white px-5 py-2.5 rounded-lg text-[10px] font-bold transition-all hover:-translate-y-0.5 flex items-center gap-2.5 uppercase tracking-wider group"
-                >
-                    <span>Create Task</span>
-                    <span className="px-1.5 py-0.5 bg-indigo-500/20 rounded text-[9px] text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-500 group-hover:text-white transition-all">C</span>
-                </button>
+                <div className="flex items-center gap-2">
+                    {isSelectionMode ? (
+                        <>
+                            <span className="text-xs font-bold text-zinc-400 mr-2 uppercase tracking-wider">
+                                {selectedTaskIds.size} Selected
+                            </span>
+                            {selectedTaskIds.size > 0 && (
+                                <button
+                                    onClick={handleBulkDelete}
+                                    className="bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 px-4 py-2 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-2 uppercase tracking-wider"
+                                >
+                                    <Trash2 size={14} />
+                                    Delete Selected
+                                </button>
+                            )}
+                            <button
+                                onClick={() => {
+                                    setIsSelectionMode(false);
+                                    setSelectedTaskIds(new Set());
+                                }}
+                                className="bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-zinc-300 px-4 py-2 rounded-lg text-[10px] font-bold transition-colors uppercase tracking-wider"
+                            >
+                                Cancel
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={() => setIsSelectionMode(true)}
+                                className="bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-zinc-400 px-4 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-2 uppercase tracking-wider group hover:text-white"
+                            >
+                                <CheckSquare size={14} />
+                                Select
+                            </button>
+                            <button
+                                onClick={() => openCreateModal()}
+                                className="bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-white px-5 py-2.5 rounded-lg text-[10px] font-bold transition-all hover:-translate-y-0.5 flex items-center gap-2.5 uppercase tracking-wider group"
+                            >
+                                <span>Create Task</span>
+                                <span className="px-1.5 py-0.5 bg-indigo-500/20 rounded text-[9px] text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-500 group-hover:text-white transition-all">C</span>
+                            </button>
+                        </>
+                    )}
+                </div>
             </header>
 
             {/* Quick Stats Bar */}
@@ -250,6 +379,9 @@ export default function TasksPage() {
                         onTaskUpdate={onTaskUpdateOptimistic}
                         onTaskDelete={handleDeleteTask}
                         onTaskClick={openDetailsModal}
+                        isSelectionMode={isSelectionMode}
+                        selectedTaskIds={selectedTaskIds}
+                        onToggleTaskSelection={toggleTaskSelection}
                     />
                 )}
             </div>

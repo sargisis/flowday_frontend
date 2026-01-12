@@ -43,6 +43,11 @@ export const deleteTask = async (id: string) => {
     return res.data;
 };
 
+export const bulkDeleteTasks = async (ids: string[]) => {
+    const res = await api.post("/tasks/bulk-delete", { task_ids: ids });
+    return res.data;
+};
+
 export const getTasksByRange = async (from: string, to: string): Promise<Task[]> => {
     const res = await api.get(`/tasks/by-range?from=${from}&to=${to}`);
     return res.data || [];

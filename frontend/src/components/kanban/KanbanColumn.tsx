@@ -10,9 +10,12 @@ interface KanbanColumnProps {
     tasks: Task[];
     onDelete?: (taskId: string) => void;
     onTaskClick?: (task: Task) => void;
+    isSelectionMode?: boolean;
+    selectedTaskIds?: Set<string>;
+    onToggleTaskSelection?: (taskId: string) => void;
 }
 
-export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick }: KanbanColumnProps) {
+export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode, selectedTaskIds, onToggleTaskSelection }: KanbanColumnProps) {
     const {
         setNodeRef,
         attributes,
@@ -57,7 +60,15 @@ export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick }
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 space-y-3 min-h-0">
                 <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
                     {tasks.map((task) => (
-                        <KanbanCard key={task.id} task={task} onDelete={onDelete} onClick={onTaskClick} />
+                        <KanbanCard
+                            key={task.id}
+                            task={task}
+                            onDelete={onDelete}
+                            onClick={onTaskClick}
+                            isSelectionMode={isSelectionMode}
+                            isSelected={selectedTaskIds?.has(task.id)}
+                            onToggleSelection={onToggleTaskSelection}
+                        />
                     ))}
                     {tasks.length === 0 && (
                         <div className="h-24 rounded-xl border-2 border-dashed border-zinc-800/50 flex items-center justify-center text-zinc-700 text-sm italic">
