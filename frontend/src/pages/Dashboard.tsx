@@ -132,29 +132,31 @@ export default function Dashboard() {
                             src={getAvatarUrl(user.avatar_url) || ""}
                             alt="Avatar"
                             className="h-9 w-9 rounded-lg object-cover ring-2 ring-white/10"
+                            loading="lazy"
+                            decoding="async"
                         />
                     )}
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="text-2xl font-bold text-white tracking-tight">Welcome back, {user?.name?.split(' ')[0] || 'Member'}</h1>
                             <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
-                                <Zap size={10} className="text-indigo-400 fill-indigo-400" />
-                                <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-wider">Level {user?.level || 1}</span>
+                                <Zap size={12} className="text-indigo-400 fill-indigo-400" />
+                                <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Level {user?.level || 1}</span>
                             </div>
                         </div>
-                        <p className="text-zinc-500 text-xs mt-0.5">Initialize your daily mission. The coach is analyzing your throughput.</p>
+                        <p className="text-zinc-400 text-sm mt-0.5">Initialize your daily mission. The coach is analyzing your throughput.</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-3 px-4 py-2 rounded-lg border border-white/5 bg-white/[0.02]">
                     <div className="text-right">
-                        <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">Global XP</p>
-                        <p className="text-base font-bold text-white">{user?.xp || 0} <span className="text-[10px] text-zinc-500">pts</span></p>
+                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Global XP</p>
+                        <p className="text-lg font-bold text-white">{user?.xp || 0} <span className="text-xs text-zinc-500">pts</span></p>
                     </div>
                     <div className="h-6 w-px bg-white/10" />
                     <div className="text-right">
-                        <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">Efficiency</p>
-                        <p className="text-base font-bold text-indigo-400">{(totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0)}%</p>
+                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Efficiency</p>
+                        <p className="text-lg font-bold text-indigo-400">{(totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0)}%</p>
                     </div>
                 </div>
             </header>
@@ -182,11 +184,11 @@ export default function Dashboard() {
                             <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
                                 <Trophy size={16} />
                             </div>
-                            <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.15em]">Level System</h3>
+                            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Level System</h3>
                         </div>
                         <button
                             onClick={() => navigate('/app/v1/focus/history')}
-                            className="text-[9px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-[0.15em]"
+                            className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-wider"
                         >
                             History
                         </button>
@@ -202,11 +204,11 @@ export default function Dashboard() {
                     {/* XP Info */}
                     <div className="space-y-2 relative z-10">
                         <div className="flex justify-between items-center">
-                            <span className="text-[9px] text-zinc-500 uppercase tracking-[0.12em] font-bold">Total XP</span>
-                            <span className="text-[10px] text-indigo-400 font-bold">{user?.xp || 0} pts</span>
+                            <span className="text-xs text-zinc-400 uppercase tracking-wider font-bold">Total XP</span>
+                            <span className="text-sm text-indigo-400 font-bold">{user?.xp || 0} pts</span>
                         </div>
 
-                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                             <div
                                 className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-all duration-1000 ease-out"
                                 style={{ width: `${(user?.xp || 0) % 100}%` }}
@@ -214,8 +216,10 @@ export default function Dashboard() {
                         </div>
 
                         <div className="flex justify-between items-center">
-                            <span className="text-[9px] text-zinc-600 uppercase tracking-[0.12em] font-bold">Next Level</span>
-                            <span className="text-[10px] text-blue-400 font-bold">{((user?.xp || 0) % 100)}%</span>
+                            <span className="text-xs text-zinc-500 uppercase tracking-wider font-bold">
+                                {100 - ((user?.xp || 0) % 100)} XP to next level
+                            </span>
+                            <span className="text-sm text-blue-400 font-bold">{((user?.xp || 0) % 100)}%</span>
                         </div>
                     </div>
                 </div>
@@ -234,15 +238,26 @@ export default function Dashboard() {
                     </div>
 
                     <div className="h-28 flex items-end gap-2 px-1 relative z-10">
-                        {focusData.map((data, i) => (
-                            <div key={i} className="flex-1 flex flex-col justify-end group/bar h-full">
-                                <div
-                                    className="w-full bg-purple-500/10 rounded-t-sm group-hover/bar:bg-purple-500/40 transition-all duration-300"
-                                    style={{ height: `${data.percent || 5}%` }}
-                                />
-                                <span className="text-[9px] text-zinc-500 text-center mt-2 uppercase">{data.day}</span>
-                            </div>
-                        ))}
+                        {focusData.map((data, i) => {
+                            const height = Math.max(data.percent || 8, 8); // Минимум 8% для видимости
+                            return (
+                                <div key={i} className="flex-1 flex flex-col justify-end group/bar h-full relative">
+                                    {/* Tooltip on hover */}
+                                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover/bar:opacity-100 transition-all duration-200 pointer-events-none z-20">
+                                        <div className="bg-zinc-800/95 border border-white/10 rounded-lg px-2 py-1 shadow-xl backdrop-blur-sm whitespace-nowrap">
+                                            <span className="text-xs font-semibold text-white">{data.percent}%</span>
+                                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-zinc-800/95 border-r border-b border-white/10 rotate-45" />
+                                        </div>
+                                    </div>
+                                    <div
+                                        className="w-full bg-gradient-to-t from-purple-600/30 to-purple-500/20 rounded-t-sm group-hover/bar:from-purple-500/50 group-hover/bar:to-purple-400/40 border-t border-x border-purple-500/20 group-hover/bar:border-purple-400/40 transition-all duration-300 cursor-pointer"
+                                        style={{ height: `${height}%` }}
+                                        title={`${data.percent}% completion on ${data.day}`}
+                                    />
+                                    <span className="text-xs text-zinc-500 text-center mt-2 uppercase font-medium">{data.day}</span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

@@ -31,8 +31,8 @@ export default function StreakCounter({ refreshTrigger = 0 }: StreakCounterProps
 
         fetchStreak();
 
-        // Polling for streak updates every 10 seconds (more responsive)
-        const interval = setInterval(fetchStreak, 10000);
+        // Polling for streak updates every 60 seconds (optimized from 10s - streak doesn't need real-time updates)
+        const interval = setInterval(fetchStreak, 60000);
         return () => clearInterval(interval);
     }, [refreshTrigger]);
 
@@ -79,7 +79,7 @@ export default function StreakCounter({ refreshTrigger = 0 }: StreakCounterProps
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-white tracking-tight">Daily Streak</h3>
-                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.15em]">Momentum Engine</p>
+                            <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Momentum Engine</p>
                         </div>
                     </div>
 
@@ -87,15 +87,15 @@ export default function StreakCounter({ refreshTrigger = 0 }: StreakCounterProps
                     <div className="flex flex-col items-end gap-1.5">
                         {streak.longest_streak > 0 && (
                             <div className="px-2.5 py-1 bg-amber-900/30 border border-amber-800/30 rounded-lg">
-                                <span className="text-[9px] font-bold text-amber-600 uppercase tracking-wider">
+                                <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">
                                     Best: <span className="text-amber-500">{streak.longest_streak}</span>
                                 </span>
                             </div>
                         )}
                         {isActive && (
                             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Active Today</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Active Today</span>
                             </div>
                         )}
                     </div>
@@ -114,7 +114,7 @@ export default function StreakCounter({ refreshTrigger = 0 }: StreakCounterProps
                 {/* Progress Message & Bar */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-medium text-zinc-400">{getStreakMessage()}</span>
+                        <span className="text-xs font-medium text-zinc-400">{getStreakMessage()}</span>
                         {isActive && streak.current_streak < 7 && (
                             <span className="text-sm font-bold text-orange-500">
                                 {Math.round((streak.current_streak / 7) * 100)}%

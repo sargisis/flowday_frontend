@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getNotifications, markNotificationRead, type Notification } from "../api/notifications";
 import { getInsights, type Insight } from "../api/ai";
 import EmptyState from "../components/state/EmptyState";
+import { NotificationsSkeleton } from "../components/SkeletonLoader";
 import { Bell, Check, Clock, AlertTriangle, CheckCircle2, ShieldAlert, Zap, Target, Sparkles, Brain } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -128,14 +129,7 @@ export default function NotificationsPage() {
 
             <div className="space-y-4 pb-24">
                 {isLoading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="relative">
-                            <div className="h-12 w-12 rounded-full border-t-2 border-r-2 border-indigo-500 animate-spin" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Zap size={16} className="text-indigo-500 animate-pulse" />
-                            </div>
-                        </div>
-                    </div>
+                    <NotificationsSkeleton count={6} />
                 ) : activeTab === 'notifications' ? (
                     notifications.length === 0 ? (
                         <div className="py-12">

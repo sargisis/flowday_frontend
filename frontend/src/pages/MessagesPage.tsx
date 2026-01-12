@@ -3,9 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Search, Send, User, MoreHorizontal, Phone, Video, Info, Paperclip, Smile, CheckCheck, Check, X, FileText } from "lucide-react";
 import api from "../api/axios";
 import { getConversations, getMessages, sendMessage, uploadAttachment, type Message, type Conversation } from "../api/messages";
-import { getAvatarUrl, getMe } from "../api/auth";
+import { getAvatarUrl, getMe, getFileUrl } from "../api/auth";
 import { toast } from "sonner";
-
+import { MessagesSkeleton } from "../components/MessagesSkeleton";
 import { RichMessageInput } from "./RichMessageInput";
 
 export default function MessagesPage() {
@@ -240,11 +240,7 @@ export default function MessagesPage() {
     };
 
     if (loading) {
-        return (
-            <div className="h-full flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
-            </div>
-        );
+        return <MessagesSkeleton />;
     }
 
     return (
@@ -279,7 +275,7 @@ export default function MessagesPage() {
                                         <div className="relative shrink-0">
                                             <div className="h-10 w-10 rounded-lg bg-zinc-800 border border-white/5 flex items-center justify-center overflow-hidden">
                                                 {conv.user_avatar ? (
-                                                    <img src={getAvatarUrl(conv.user_avatar) || ""} alt="" className="h-full w-full object-cover" />
+                                                    <img src={getAvatarUrl(conv.user_avatar) || ""} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                                 ) : (
                                                     <User size={20} className="text-zinc-500" />
                                                 )}
@@ -318,7 +314,7 @@ export default function MessagesPage() {
                                     >
                                         <div className="h-8 w-8 rounded-lg bg-zinc-800 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                                             {member.user?.avatar_url ? (
-                                                <img src={getAvatarUrl(member.user.avatar_url) || ""} alt="" className="h-full w-full object-cover" />
+                                                <img src={getAvatarUrl(member.user.avatar_url) || ""} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                             ) : (
                                                 <User size={16} className="text-zinc-500" />
                                             )}
@@ -347,7 +343,7 @@ export default function MessagesPage() {
                                     <div className="relative">
                                         <div className="h-10 w-10 rounded-lg bg-zinc-800 border border-white/5 flex items-center justify-center overflow-hidden">
                                             {activeChat.user_avatar ? (
-                                                <img src={getAvatarUrl(activeChat.user_avatar) || ""} alt="" className="h-full w-full object-cover" />
+                                                <img src={getAvatarUrl(activeChat.user_avatar) || ""} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                             ) : (
                                                 <User size={20} className="text-zinc-500" />
                                             )}
@@ -381,14 +377,16 @@ export default function MessagesPage() {
                                                         <div className="mb-2 max-w-full overflow-hidden rounded-lg border border-white/5 bg-black/20">
                                                             {msg.attachment_type === 'image' ? (
                                                                 <img
-                                                                    src={`http://localhost:8080${msg.attachment_url}`}
+                                                                    src={getFileUrl(msg.attachment_url) || ''}
                                                                     alt="attachment"
                                                                     className="max-h-60 w-full object-contain cursor-pointer transition-transform hover:scale-[1.02]"
-                                                                    onClick={() => window.open(`http://localhost:8080${msg.attachment_url}`, '_blank')}
+                                                                    onClick={() => window.open(getFileUrl(msg.attachment_url) || '', '_blank')}
+                                                                    loading="lazy"
+                                                                    decoding="async"
                                                                 />
                                                             ) : (
                                                                 <a
-                                                                    href={`http://localhost:8080${msg.attachment_url}`}
+                                                                    href={getFileUrl(msg.attachment_url) || ''}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     className="flex items-center gap-2 p-3 text-indigo-400 hover:text-indigo-300 transition-colors"
@@ -426,7 +424,7 @@ export default function MessagesPage() {
                                     <div className="mb-3 flex items-center gap-3 p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl animate-in slide-in-from-bottom-2">
                                         <div className="h-12 w-12 rounded-lg bg-zinc-800 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                                             {attachment.type === 'image' ? (
-                                                <img src={`http://localhost:8080${attachment.url}`} alt="preview" className="h-full w-full object-cover" />
+                                                <img src={getFileUrl(attachment.url) || ''} alt="preview" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                             ) : (
                                                 <FileText className="text-indigo-400" size={24} />
                                             )}

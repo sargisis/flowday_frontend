@@ -80,6 +80,8 @@ export default function TopBar() {
                                 src={getAvatarUrl(user.avatar_url) || ""}
                                 alt="Avatar"
                                 className="h-full w-full object-cover"
+                                loading="lazy"
+                                decoding="async"
                             />
                         ) : (
                             <UserIcon size={20} />

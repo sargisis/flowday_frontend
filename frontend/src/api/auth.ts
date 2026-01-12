@@ -55,10 +55,22 @@ export const confirmEmailChange = async (newEmail: string, code: string) => {
   return res.data;
 };
 
+// Get file upload base URL from environment variables
+// Fallback to localhost for development if not set
+const FILE_BASE_URL = import.meta.env.VITE_FILE_UPLOAD_BASE_URL || "http://localhost:8080";
+
 export const getAvatarUrl = (path?: string) => {
   if (!path) return null;
   if (path.startsWith('http') || path.startsWith('data:')) return path;
   // Ensure path starts with / if it's relative
   const fullPath = path.startsWith('/') ? path : `/${path}`;
-  return `http://localhost:8080${fullPath}`;
+  return `${FILE_BASE_URL}${fullPath}`;
+};
+
+// Export file base URL helper for use in other components
+export const getFileUrl = (path?: string) => {
+  if (!path) return null;
+  if (path.startsWith('http') || path.startsWith('data:')) return path;
+  const fullPath = path.startsWith('/') ? path : `/${path}`;
+  return `${FILE_BASE_URL}${fullPath}`;
 };

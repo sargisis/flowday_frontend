@@ -29,8 +29,8 @@ export default function ActivityFeed() {
         };
         fetchActivities();
 
-        // Polling for new activities every 10 seconds for more real-time feel
-        const interval = setInterval(fetchActivities, 10000);
+        // Polling for new activities every 30 seconds (optimized from 10s to reduce server load)
+        const interval = setInterval(fetchActivities, 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -63,7 +63,7 @@ export default function ActivityFeed() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Real-time</span>
+                    <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Real-time</span>
                 </div>
             </div>
 
@@ -84,7 +84,7 @@ export default function ActivityFeed() {
                     <div className="h-full flex flex-col items-center justify-center text-zinc-500 opacity-50 text-center px-4">
                         <History size={32} className="mb-4 text-zinc-800" />
                         <p className="text-sm font-medium tracking-tight">No activity logged yet.</p>
-                        <p className="text-[10px] uppercase tracking-widest mt-1 text-zinc-600 font-bold">Start your flow</p>
+                        <p className="text-xs uppercase tracking-wider mt-1 text-zinc-600 font-bold">Start your flow</p>
                     </div>
                 ) : (
                     activities.map((activity) => (
@@ -99,8 +99,8 @@ export default function ActivityFeed() {
                                 <p className="text-sm font-medium text-zinc-300 leading-tight mb-1.5 group-hover/activity:text-white transition-colors">
                                     {activity.description}
                                 </p>
-                                <div className="flex items-center gap-2 text-[9px] text-zinc-500 font-bold uppercase tracking-[0.1em]">
-                                    <div className="w-1 h-1 rounded-full bg-zinc-700" />
+                                <div className="flex items-center gap-2 text-xs text-zinc-500 font-bold uppercase tracking-wider">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
                                     {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
                                 </div>
                             </div>
