@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
     DndContext,
     DragOverlay,
-    rectIntersection,
+    closestCorners,
     KeyboardSensor,
     PointerSensor,
     useSensor,
@@ -13,7 +13,7 @@ import {
     defaultDropAnimationSideEffects,
     type DropAnimation,
 } from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
 import type { Task } from "../../api/tasks";
 import KanbanColumn from "./KanbanColumn";
 import KanbanCard from "./KanbanCard";
@@ -29,19 +29,26 @@ const dropAnimation: DropAnimation = {
     sideEffects: defaultDropAnimationSideEffects({
         styles: {
             active: {
-                opacity: '1',
+                opacity: '0.5',
             },
         },
     }),
 };
 
-export default function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, onTaskClick }: KanbanBoardProps) {
+export default function KanbanBoard({ tasks: initialTasks, onTaskUpdate, onTaskDelete, onTaskClick }: KanbanBoardProps) {
+    // Local state for optimistic updates (smooth dragging)
+    const [tasks, setTasks] = useState<Task[]>(initialTasks);
     const [activeId, setActiveId] = useState<string | null>(null);
+
+    // Sync local state when props change (e.g. from backend refresh)
+    useEffect(() => {
+        setTasks(initialTasks);
+    }, [initialTasks]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
-                distance: 5, // Prevent accidental drags
+                distance: 5,
             },
         }),
         useSensor(KeyboardSensor, {
@@ -53,50 +60,51 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, onTaskC
         setActiveId(event.active.id as string);
     };
 
+    // We only rely on handleDragEnd for the status change to avoid state loops
     const handleDragOver = (_: DragOverEvent) => {
-        // We only rely on handleDragEnd for the simple status change
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
+        setActiveId(null);
 
-        if (!over) {
-            setActiveId(null);
-            return;
-        }
+        if (!over) return;
 
-        const taskId = active.id as string;
+        const activeId = active.id as string;
         const overId = over.id as string;
 
-        // Determine the new status based on where it was dropped
-        let newStatus = overId;
-
-        // 1. If dropped directly on a Column
-        // 2. If dropped on task, get its status
-        const droppedOnTask = tasks.find(t => t.id === overId);
-        if (droppedOnTask) {
-            newStatus = droppedOnTask.status;
+        // Find the final column ID
+        let finalStatus = overId;
+        // Check if dropped on a task
+        const overTask = tasks.find(t => t.id === overId);
+        if (overTask) {
+            finalStatus = overTask.status;
         }
 
-        // Fix for mapped statuses
-        const s = newStatus.toLowerCase();
+        // Normalize
+        const s = finalStatus.toLowerCase();
+        let normalizedStatus = finalStatus;
 
         if (['review'].includes(s)) {
-            newStatus = 'In_Progress';
+            normalizedStatus = 'In_Progress';
         } else if (s === 'todo') {
-            newStatus = 'Todo';
+            normalizedStatus = 'Todo';
         } else if (s === 'done') {
-            newStatus = 'Done';
+            normalizedStatus = 'Done';
         } else if (s === 'blocked') {
-            newStatus = 'Blocked';
+            normalizedStatus = 'Blocked';
         } else if (s === 'in_progress') {
-            newStatus = 'In_Progress';
+            normalizedStatus = 'In_Progress';
         }
 
-        if (active.id !== over.id) {
-            onTaskUpdate(taskId, newStatus);
-        }
-        setActiveId(null);
+        // Commit the change to backend
+        // We find the original task from 'initialTasks' to see if it actually changed
+        // Or we just trust the drag result.
+        // It helps to always call update if we dropped in a valid zone, to ensure persistence.
+        onTaskUpdate(activeId, normalizedStatus);
+
+        // Re-sync local state to be safe (in case backend fails or returns slightly diff data)
+        // Actually, preventing flicker: we leave local state as is, and let the useEffect above sync it when next props come in.
     };
 
     // Filter tasks for columns (Case-insensitive)
@@ -116,10 +124,23 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, onTaskC
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={rectIntersection}
+            collisionDetection={closestCorners}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
+            autoScroll={{
+                threshold: {
+                    x: 0,
+                    y: 0.25, // Start scrolling within top/bottom 25% area
+                },
+                acceleration: 60, // Much stronger acceleration (was 20)
+                interval: 4,      // Slightly faster updates (was 5)
+            }}
+            measuring={{
+                droppable: {
+                    strategy: 0,
+                },
+            }}
         >
             <div className="h-full w-full overflow-hidden p-2">
                 {/* 2x2 Grid Layout */}
@@ -144,7 +165,7 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onTaskDelete, onTaskC
 
             <DragOverlay dropAnimation={dropAnimation}>
                 {activeId && activeTask ? (
-                    <div className="cursor-grabbing w-[300px] shadow-2xl">
+                    <div className="cursor-grabbing w-[300px] shadow-2xl relative z-50">
                         <KanbanCard task={activeTask} overlay={true} />
                     </div>
                 ) : null}

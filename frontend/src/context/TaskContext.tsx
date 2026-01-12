@@ -2,18 +2,26 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import { type Task, createTask as apiCreateTask, updateTask as apiUpdateTask, deleteTask as apiDeleteTask, decomposeTask as apiDecomposeTask, enrichTask as apiEnrichTask } from "../api/tasks";
 import { useProject } from "./ProjectContext";
 import { useUser } from "./UserContext";
-import CreateTaskModal from "../components/create-task-components/CreateTaskModal";
-import TaskDetailsModal from "../components/task-components/TaskDetailsModal";
 
 interface TaskContextType {
+    // State
+    isCreateModalOpen: boolean;
+    initialDate: string | undefined; // Added
+    selectedTask: Task | null;
+
+    // Actions
     openCreateModal: (initialDate?: string) => void;
+    closeCreateModal: () => void;
     openDetailsModal: (task: Task) => void;
+    closeDetailsModal: () => void;
+
+    // CRUD Handlers
     handleCreateTask: (title: string, priority: string, dueDate?: string) => Promise<void>;
     handleUpdateTask: (taskId: string, updates: Partial<Task>) => Promise<void>;
     handleDeleteTask: (taskId: string) => Promise<void>;
     handleDecomposeTask: (taskId: string) => Promise<void>;
-    handleEnrichTask: (taskId: string) => Promise<string>; // Returns the new description
-    refreshTrigger: number; // Increment this to trigger re-fetches in pages
+    handleEnrichTask: (taskId: string) => Promise<string>;
+    refreshTrigger: number;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -33,8 +41,17 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         setIsCreateModalOpen(true);
     }, []);
 
+    const closeCreateModal = useCallback(() => {
+        setIsCreateModalOpen(false);
+        setInitialDate(undefined);
+    }, []);
+
     const openDetailsModal = useCallback((task: Task) => {
         setSelectedTask(task);
+    }, []);
+
+    const closeDetailsModal = useCallback(() => {
+        setSelectedTask(null);
     }, []);
 
     const handleCreateTask = async (title: string, priority: string, dueDate?: string) => {
@@ -109,8 +126,13 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <TaskContext.Provider value={{
+            isCreateModalOpen,
+            initialDate,
+            selectedTask,
             openCreateModal,
+            closeCreateModal,
             openDetailsModal,
+            closeDetailsModal,
             handleCreateTask,
             handleUpdateTask,
             handleDeleteTask,
@@ -119,23 +141,6 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
             refreshTrigger
         }}>
             {children}
-
-            <CreateTaskModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
-                onCreate={handleCreateTask}
-                initialDate={initialDate}
-            />
-
-            {selectedTask && (
-                <TaskDetailsModal
-                    isOpen={!!selectedTask}
-                    task={selectedTask}
-                    onClose={() => setSelectedTask(null)}
-                    onUpdate={handleUpdateTask}
-                    onDelete={handleDeleteTask}
-                />
-            )}
         </TaskContext.Provider>
     );
 }

@@ -142,7 +142,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                     </button>
                                 </div>
 
-                                <div className="min-h-[160px] bg-black/20 border border-white/5 rounded-2xl overflow-hidden focus-within:border-indigo-500/30 transition-all">
+                                <div className="min-h-[160px] bg-black/20 border border-white/5 rounded-2xl overflow-hidden focus-within:border-indigo-500/30 transition-colors">
                                     {isPreview ? (
                                         <div className="p-4 text-sm text-zinc-300 leading-relaxed prose-premium max-w-none overflow-y-auto max-h-[300px]">
                                             <ReactMarkdown>{description || "*No description yet. Use 'Magic Plan' to generate one!*"}</ReactMarkdown>
@@ -153,7 +153,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                             onChange={(e) => setDescription(e.target.value)}
                                             rows={6}
                                             placeholder="Add more details about this task..."
-                                            className="w-full bg-transparent p-4 text-zinc-300 placeholder-zinc-700 focus:outline-none transition-all resize-none text-sm leading-relaxed"
+                                            className="w-full bg-transparent p-4 text-zinc-300 placeholder-zinc-700 focus:outline-none transition-colors resize-none text-sm leading-relaxed"
                                         />
                                     )}
                                 </div>

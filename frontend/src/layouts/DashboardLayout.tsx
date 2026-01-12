@@ -10,10 +10,22 @@ import { useTasks } from "../context/TaskContext";
 import { useUser } from "../context/UserContext";
 import confetti from "canvas-confetti";
 import FlowBotWidget from "../components/ai/FlowBotWidget";
+import CreateTaskModal from "../components/create-task-components/CreateTaskModal";
+import TaskDetailsModal from "../components/task-components/TaskDetailsModal";
 
 export default function DashboardLayout() {
     const navigate = useNavigate();
-    const { openCreateModal } = useTasks();
+    const {
+        openCreateModal,
+        isCreateModalOpen,
+        closeCreateModal,
+        handleCreateTask,
+        initialDate,
+        selectedTask,
+        closeDetailsModal,
+        handleUpdateTask,
+        handleDeleteTask
+    } = useTasks();
     const { user } = useUser();
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const prevLevelRef = useRef<number | undefined>(undefined);
@@ -125,6 +137,24 @@ export default function DashboardLayout() {
                 onClose={() => setIsCommandPaletteOpen(false)}
             />
             <FlowBotWidget />
+
+            {/* Context Modals - Rendered here to prevent circular dependency issues */}
+            <CreateTaskModal
+                isOpen={isCreateModalOpen}
+                onClose={closeCreateModal}
+                onCreate={handleCreateTask}
+                initialDate={initialDate}
+            />
+
+            {selectedTask && (
+                <TaskDetailsModal
+                    isOpen={!!selectedTask}
+                    task={selectedTask}
+                    onClose={closeDetailsModal}
+                    onUpdate={handleUpdateTask}
+                    onDelete={handleDeleteTask}
+                />
+            )}
         </div>
     );
 }
