@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { X, Calendar, CheckCircle2, Clock, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square } from "lucide-react";
+import { X, Calendar, CheckCircle2, Clock, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Task } from "../../api/tasks";
+import { duplicateTask } from "../../api/tasks";
 import { useTasks } from "../../context/TaskContext";
 
 interface TaskDetailsModalProps {
@@ -102,6 +103,20 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         setSubtasks(newSubtasks);
     };
 
+    const handleDuplicate = async () => {
+        if (!task) return;
+        try {
+            await duplicateTask(task);
+            onClose();
+            toast.success("Task duplicated!");
+            // Trigger refresh via context
+            window.dispatchEvent(new CustomEvent('task-updated'));
+        } catch (error) {
+            console.error("Failed to duplicate task", error);
+            toast.error("Failed to duplicate task");
+        }
+    };
+
     const calculateProgress = () => {
         if (subtasks.length === 0) return 0;
         const completed = subtasks.filter(s => s.completed).length;
@@ -123,6 +138,13 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                         <h2 className="text-xl font-bold text-white font-[Outfit]">Task Details</h2>
                     </div>
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleDuplicate}
+                            className="p-2 text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition-all"
+                            title="Duplicate Task"
+                        >
+                            <Copy size={20} />
+                        </button>
                         <button
                             onClick={handleDelete}
                             className="p-2 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
