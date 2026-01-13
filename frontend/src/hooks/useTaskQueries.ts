@@ -47,7 +47,7 @@ export function useUpdateTask() {
 
             return { previousTasks };
         },
-        onError: (err, variables, context) => {
+        onError: (_err, _variables, context) => {
             // Rollback on error
             if (context?.previousTasks) {
                 context.previousTasks.forEach(([queryKey, data]) => {
@@ -82,7 +82,7 @@ export function useDeleteTask() {
 
             return { previousTasks };
         },
-        onError: (err, variables, context) => {
+        onError: (_err, _variables, context) => {
             if (context?.previousTasks) {
                 context.previousTasks.forEach(([queryKey, data]) => {
                     queryClient.setQueryData(queryKey, data);
@@ -115,7 +115,7 @@ export function useBulkDeleteTasks() {
 
             return { previousTasks };
         },
-        onError: (err, variables, context) => {
+        onError: (_err, _variables, context) => {
             if (context?.previousTasks) {
                 context.previousTasks.forEach(([queryKey, data]) => {
                     queryClient.setQueryData(queryKey, data);

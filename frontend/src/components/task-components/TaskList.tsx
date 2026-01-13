@@ -1,4 +1,4 @@
-import type { Task } from "../api/tasks";
+import type { Task } from "../../api/tasks";
 
 export default function TaskList({ tasks }: { tasks: Task[] }) {
     if (!tasks.length) return <p style={{ color: "var(--text-muted)", fontStyle: "italic" }}>No tasks found for this project.</p>;

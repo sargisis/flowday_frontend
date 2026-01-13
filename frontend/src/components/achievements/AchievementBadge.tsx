@@ -1,6 +1,3 @@
-import { useEffect, useState } from 'react';
-import api from '../../api/axios';
-
 interface Achievement {
     achievement: {
         id: string;
