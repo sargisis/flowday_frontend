@@ -44,6 +44,12 @@
 - **Описание:** Текущее окружение (development, staging, production)
 - **По умолчанию:** `development`
 
+### `VITE_SENTRY_DSN`
+- **Описание:** Sentry DSN для отслеживания ошибок (опционально)
+- **Формат:** `https://xxx@xxx.ingest.sentry.io/xxx`
+- **Получение:** Создайте проект на [sentry.io](https://sentry.io) и скопируйте DSN
+- **По умолчанию:** Не установлен (error tracking отключен)
+
 ## Важные замечания
 
 ⚠️ **ВНИМАНИЕ:**
