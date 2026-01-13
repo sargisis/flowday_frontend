@@ -1,5 +1,4 @@
 .DS_Store
-/Flowday
 .vscode
 STARTUP_READINESS_ASSESSMENT.md
 АНАЛИЗ_ДИЗАЙНА_ДАШБОРДА.md
@@ -14,3 +13,6 @@ STARTUP_READINESS_ASSESSMENT.md
 TODAYS_ACHIEVEMENTS.md
 ПОЛНЫЙ_АНАЛИЗ_ПРОЕКТА.md
 .cursor
+ВЫПОЛНЕНО_КРИТИЧЕСКИЕ_УЛУЧШЕНИЯ.md
+СЛЕДУЮЩИЕ_ШАГИ.md
+PWA_НАСТРОЙКА_ВЫПОЛНЕНО.md

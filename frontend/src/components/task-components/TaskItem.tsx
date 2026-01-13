@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { type Task, updateTask, deleteTask } from "../api/tasks";
+import { type Task, updateTask, deleteTask } from "../../api/tasks"
 import { useNavigate } from "react-router-dom";
 import { Maximize2 } from "lucide-react";
-import StatusSelector from "./StatusSelector";
+import StatusSelector from "../status-bar-components/StatusSelector";
 
 interface TaskItemProps {
     task: Task;
