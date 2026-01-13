@@ -48,6 +48,17 @@ export const bulkDeleteTasks = async (ids: string[]) => {
     return res.data;
 };
 
+export const duplicateTask = async (task: Task) => {
+    const res = await api.post("/tasks", {
+        title: `${task.title} (Copy)`,
+        priority: task.priority,
+        project_id: task.project_id,
+        description: task.description,
+        due_date: task.due_date,
+    });
+    return res.data;
+};
+
 export const getTasksByRange = async (from: string, to: string): Promise<Task[]> => {
     const res = await api.get(`/tasks/by-range?from=${from}&to=${to}`);
     return res.data || [];

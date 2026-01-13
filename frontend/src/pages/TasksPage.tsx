@@ -54,17 +54,36 @@ export default function TasksPage() {
         }
     }, [refreshTrigger, activeProjectId]);
 
-    // Keyboard shortcut 'c' to open modal
+    // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key.toLowerCase() === 'c' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+            // Ignore if typing in input/textarea
+            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+                return;
+            }
+
+            // C - Create new task
+            if (e.key.toLowerCase() === 'c') {
                 e.preventDefault();
                 openCreateModal();
+            }
+
+            // S - Toggle selection mode
+            if (e.key.toLowerCase() === 's' && !isSelectionMode) {
+                e.preventDefault();
+                setIsSelectionMode(true);
+            }
+
+            // / - Focus search (future - will add search bar)
+            if (e.key === '/' && !isSelectionMode) {
+                e.preventDefault();
+                // TODO: Focus search input when implemented
+                console.log('Search hotkey pressed - implement global search');
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [openCreateModal]);
+    }, [openCreateModal, isSelectionMode]);
 
     // Keyboard shortcuts for selection mode
     useEffect(() => {
