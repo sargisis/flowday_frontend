@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { register } from "../api/auth";
 import { toast } from "sonner";
 import { z } from "zod";
+import { trackRegistration } from "../utils/analytics";
 import { User, Mail, Lock, ArrowRight, ShieldCheck, Hexagon } from "lucide-react";
 
 const registerSchema = z.object({
@@ -38,6 +39,7 @@ export default function Register() {
 
         try {
             await register(name, email, password);
+            trackRegistration('email');
             toast.success("Account verified. Welcome to the elite.");
             navigate("/app/v1/login");
         } catch (error: any) {

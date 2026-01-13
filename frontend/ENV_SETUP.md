@@ -50,6 +50,17 @@
 - **Получение:** Создайте проект на [sentry.io](https://sentry.io) и скопируйте DSN
 - **По умолчанию:** Не установлен (error tracking отключен)
 
+### `VITE_GA4_MEASUREMENT_ID`
+- **Описание:** Google Analytics 4 Measurement ID для аналитики (опционально)
+- **Формат:** `G-XXXXXXXXXX`
+- **Получение:** 
+  1. Перейдите на [Google Analytics](https://analytics.google.com)
+  2. Создайте свойство (Property)
+  3. Создайте поток данных (Data Stream) для веб-платформы
+  4. Скопируйте Measurement ID (формат: `G-XXXXXXXXXX`)
+- **Подробная инструкция:** См. `HOW_TO_GET_GA4_ID.md`
+- **По умолчанию:** Не установлен (аналитика отключена)
+
 ## Важные замечания
 
 ⚠️ **ВНИМАНИЕ:**
