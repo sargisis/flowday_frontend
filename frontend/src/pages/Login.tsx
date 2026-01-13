@@ -5,6 +5,7 @@ import { Mail, Lock, ArrowRight, Hexagon } from "lucide-react";
 
 import { toast } from "sonner";
 import { z } from "zod";
+import { trackLogin } from "../utils/analytics";
 
 const loginSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -39,6 +40,7 @@ export default function Login() {
         try {
             const data = await login(email, password);
             localStorage.setItem("token", data.token);
+            trackLogin('email');
             const from = location.state?.from?.pathname || "/app/v1/dashboard";
             navigate(from);
             toast.success("Welcome back to your Flow State!");
