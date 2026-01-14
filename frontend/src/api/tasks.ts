@@ -1,5 +1,14 @@
 import api from "./axios";
 
+export interface Attachment {
+    id: string;
+    url: string;
+    type: "image" | "file";
+    filename: string;
+    size: number;
+    uploaded_at: string;
+}
+
 export interface Task {
     id: string; // MongoDB ObjectID
     title: string;
@@ -10,6 +19,7 @@ export interface Task {
     subtasks?: { id: string; title: string; completed: boolean }[];
     due_date?: string;
     created_at?: string;
+    attachments?: Attachment[];
 }
 
 export const getTasksByProject = async (projectId: string): Promise<Task[]> => {
@@ -90,4 +100,25 @@ export interface AnalysisContext {
 export const getAIHealthAdvice = async (context: AnalysisContext): Promise<{ advice: string }> => {
     const res = await api.post("/ai/health-advice", context);
     return res.data;
+};
+
+// Task Attachments
+export const uploadTaskAttachment = async (taskId: string, file: File): Promise<Attachment> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await api.post(`/tasks/${taskId}/attachments`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+    return res.data;
+};
+
+export const getTaskAttachments = async (taskId: string): Promise<Attachment[]> => {
+    const res = await api.get(`/tasks/${taskId}/attachments`);
+    return res.data || [];
+};
+
+export const deleteTaskAttachment = async (taskId: string, attachmentId: string): Promise<void> => {
+    await api.delete(`/tasks/${taskId}/attachments/${attachmentId}`);
 };
