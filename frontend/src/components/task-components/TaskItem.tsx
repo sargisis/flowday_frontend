@@ -3,6 +3,7 @@ import { type Task, updateTask, deleteTask } from "../../api/tasks"
 import { useNavigate } from "react-router-dom";
 import { Maximize2 } from "lucide-react";
 import StatusSelector from "../status-bar-components/StatusSelector";
+import { toast } from "sonner";
 
 interface TaskItemProps {
     task: Task;
@@ -24,8 +25,9 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
             try {
                 await deleteTask(task.id);
                 onUpdate();
+                toast.success("Task deleted successfully");
             } catch {
-                alert("Failed to delete task");
+                toast.error("Failed to delete task");
             }
         }
     };
@@ -67,7 +69,7 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
                         } catch {
                             // 4. Rollback on failure
                             setOptimisticStatus(previousStatus);
-                            alert("Failed to update status");
+                            toast.error("Failed to update status");
                         }
                     }}
                 />
