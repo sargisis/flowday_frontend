@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import type { ReactNode } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface Props {
     children: ReactNode;
@@ -76,7 +75,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
 // Error Fallback Component
 function ErrorFallback({ error, onReset }: { error: Error | null; onReset: () => void }) {
-    const navigate = useNavigate();
+    // ✅ FIX: Use window.location instead of useNavigate() since ErrorBoundary is outside Router context
+    const handleGoHome = () => {
+        window.location.href = "/app/v1/dashboard";
+    };
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center p-6 bg-zinc-950 relative overflow-hidden">
@@ -125,7 +127,7 @@ function ErrorFallback({ error, onReset }: { error: Error | null; onReset: () =>
                             Попробовать снова
                         </button>
                         <button
-                            onClick={() => navigate("/app/v1/dashboard")}
+                            onClick={handleGoHome}
                             className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 border border-zinc-700"
                         >
                             <Home size={18} />

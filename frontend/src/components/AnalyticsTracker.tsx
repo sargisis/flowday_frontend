@@ -4,7 +4,7 @@ import { trackPageView } from '../utils/analytics'
 
 /**
  * Component to track page views on route changes
- * Add this inside RouterProvider to track all navigation
+ * Must be used inside Router context (e.g., in DashboardLayout)
  */
 export function AnalyticsTracker() {
   const location = useLocation()

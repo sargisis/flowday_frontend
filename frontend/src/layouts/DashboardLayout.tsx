@@ -6,6 +6,7 @@ import TacticalOverlay from "../components/TacticalOverlay";
 import FloatingTimerWidget from "../components/FloatingTimerWidget";
 import NotificationPermissionBanner from "../components/notification/NotificationPermissionBanner";
 import CommandPalette from "../components/command-palette/CommandPalette";
+import { AnalyticsTracker } from "../components/AnalyticsTracker";
 import { useTasks } from "../context/TaskContext";
 import { useUser } from "../context/UserContext";
 import confetti from "canvas-confetti";
@@ -117,6 +118,8 @@ export default function DashboardLayout() {
 
     return (
         <div className="flex h-screen bg-black text-white overflow-hidden">
+            {/* ✅ FIX: AnalyticsTracker inside Router context */}
+            <AnalyticsTracker />
             <TacticalOverlay />
             <Sidebar />
             <div className="flex-1 flex flex-col min-w-0">
