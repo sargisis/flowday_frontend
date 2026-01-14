@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { X, Calendar, CheckCircle2, Clock, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import type { Task } from "../../api/tasks";
-import { duplicateTask } from "../../api/tasks";
+import type { Task, Attachment } from "../../api/tasks";
+import { duplicateTask, uploadTaskAttachment, getTaskAttachments, deleteTaskAttachment } from "../../api/tasks";
 import { useTasks } from "../../context/TaskContext";
 import TaskComments from "./TaskComments";
 
@@ -27,6 +27,9 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const [isSaving, setIsSaving] = useState(false);
     const [isEnriching, setIsEnriching] = useState(false);
     const [isPreview, setIsPreview] = useState(false);
+    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (task && isOpen) {
@@ -36,8 +39,56 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
             setStatus(task.status || "Todo");
             setPriority(task.priority || "medium");
             setDueDate(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : "");
+            // Load attachments
+            loadAttachments();
         }
     }, [task, isOpen]);
+
+    const loadAttachments = async () => {
+        if (!task) return;
+        try {
+            const atts = await getTaskAttachments(task.id);
+            setAttachments(atts);
+        } catch (error) {
+            console.error("Failed to load attachments", error);
+        }
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !task) return;
+
+        setIsUploading(true);
+        try {
+            const attachment = await uploadTaskAttachment(task.id, file);
+            setAttachments([...attachments, attachment]);
+            toast.success("File uploaded successfully");
+        } catch (error) {
+            console.error("Failed to upload file", error);
+            toast.error("Failed to upload file");
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
+
+    const handleDeleteAttachment = async (attachmentId: string) => {
+        if (!task || !confirm("Are you sure you want to delete this attachment?")) return;
+        try {
+            await deleteTaskAttachment(task.id, attachmentId);
+            setAttachments(attachments.filter(att => att.id !== attachmentId));
+            toast.success("Attachment deleted");
+        } catch (error) {
+            console.error("Failed to delete attachment", error);
+            toast.error("Failed to delete attachment");
+        }
+    };
+
+    const formatFileSize = (bytes: number): string => {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    };
 
     if (!isOpen || !task) return null;
 
@@ -108,9 +159,9 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         if (!task) return;
         try {
             await duplicateTask(task);
-            onClose();
             toast.success("Task duplicated!");
-            // Trigger refresh via context
+            onClose();
+            // Trigger refresh - the refreshTrigger will cause components to reload
             window.dispatchEvent(new CustomEvent('task-updated'));
         } catch (error) {
             console.error("Failed to duplicate task", error);
@@ -125,64 +176,60 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
-            <div className="w-full max-w-2xl bg-zinc-900 border border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="w-full max-w-3xl bg-zinc-900/95 border border-zinc-800/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-white/5">
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${status === 'Done' ? 'bg-emerald-500/10 text-emerald-400' :
-                            status === 'In_Progress' ? 'bg-indigo-500/10 text-indigo-400' :
-                                'bg-zinc-500/10 text-zinc-400'
-                            }`}>
-                            {status === 'Done' ? <CheckCircle2 size={18} /> : <Clock size={18} />}
-                        </div>
-                        <h2 className="text-xl font-bold text-white font-[Outfit]">Task Details</h2>
-                    </div>
-                    <div className="flex items-center gap-2">
+                <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-800/50 bg-zinc-900/50">
+                    <h2 className="text-xl font-semibold text-white">Task Details</h2>
+                    <div className="flex items-center gap-1">
                         <button
                             onClick={handleDuplicate}
-                            className="p-2 text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition-all"
+                            className="p-2 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                             title="Duplicate Task"
                         >
-                            <Copy size={20} />
+                            <Copy size={18} />
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="p-2 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
+                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                             title="Delete Task"
                         >
-                            <Trash2 size={20} />
+                            <Trash2 size={18} />
                         </button>
-                        <button onClick={onClose} className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-xl transition-all">
-                            <X size={20} />
+                        <button 
+                            onClick={onClose} 
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                        >
+                            <X size={18} />
                         </button>
                     </div>
                 </div>
 
-                <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="p-6 max-h-[70vh] overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Main Content */}
-                        <div className="md:col-span-2 space-y-6">
+                        <div className="md:col-span-2 space-y-5">
                             <div>
-                                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                                <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wide">
                                     Title
                                 </label>
                                 <input
                                     type="text"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 transition-all text-lg font-medium"
+                                    className="w-full bg-zinc-800/80 border border-zinc-700/50 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-base font-medium transition-all"
+                                    placeholder="Enter task title..."
                                 />
                             </div>
 
                             {/* Subtasks / Magic Checklist Section */}
                             {subtasks.length > 0 && (
-                                <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+                                <div className="bg-zinc-800/30 rounded-xl p-4 border border-zinc-700/50">
                                     <div className="flex items-center justify-between mb-3">
-                                        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                                            Magic Checklist
+                                        <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wide">
+                                            Checklist
                                         </label>
-                                        <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full">
+                                        <span className="text-xs font-medium text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full">
                                             {calculateProgress()}% Done
                                         </span>
                                     </div>
@@ -191,15 +238,16 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                             <div
                                                 key={subtask.id || index}
                                                 onClick={() => toggleSubtask(index)}
-                                                className={`group flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${subtask.completed
-                                                    ? "bg-emerald-500/5 border-emerald-500/20"
-                                                    : "bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04]"
-                                                    }`}
+                                                className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                                                    subtask.completed
+                                                        ? "bg-green-500/10 border-green-500/30"
+                                                        : "bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-800/70 hover:border-zinc-600/50"
+                                                }`}
                                             >
-                                                <div className={`mt-0.5 transition-colors ${subtask.completed ? "text-emerald-400" : "text-zinc-500 group-hover:text-zinc-400"}`}>
+                                                <div className={`mt-0.5 transition-colors ${subtask.completed ? "text-green-400" : "text-zinc-500"}`}>
                                                     {subtask.completed ? <CheckSquare size={16} /> : <Square size={16} />}
                                                 </div>
-                                                <span className={`text-sm font-medium transition-all ${subtask.completed ? "text-zinc-500 line-through decoration-emerald-500/30" : "text-zinc-300"}`}>
+                                                <span className={`text-sm flex-1 ${subtask.completed ? "text-zinc-500 line-through" : "text-zinc-200"}`}>
                                                     {subtask.title}
                                                 </span>
                                             </div>
@@ -210,22 +258,22 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
 
                             <div>
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                                    <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wide">
                                         Description
                                     </label>
                                     <button
                                         onClick={() => setIsPreview(!isPreview)}
-                                        className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 transition-colors bg-indigo-500/10 px-2 py-1 rounded-md"
+                                        className="text-xs text-zinc-400 hover:text-blue-400 flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-blue-500/10 transition-colors"
                                     >
-                                        {isPreview ? <Edit3 size={10} /> : <Eye size={10} />}
+                                        {isPreview ? <Edit3 size={12} /> : <Eye size={12} />}
                                         {isPreview ? "Edit" : "Preview"}
                                     </button>
                                 </div>
 
-                                <div className="min-h-[160px] bg-black/20 border border-white/5 rounded-2xl overflow-hidden focus-within:border-indigo-500/30 transition-colors">
+                                <div className="min-h-[140px] bg-zinc-800/50 border border-zinc-700/50 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500/50 transition-all">
                                     {isPreview ? (
-                                        <div className="p-4 text-sm text-zinc-300 leading-relaxed prose-premium max-w-none overflow-y-auto max-h-[300px]">
-                                            <ReactMarkdown>{description || "*No description yet. Use 'Magic Plan' to generate one!*"}</ReactMarkdown>
+                                        <div className="p-4 text-sm text-zinc-200 leading-relaxed overflow-y-auto max-h-[300px] prose prose-invert prose-sm max-w-none">
+                                            <ReactMarkdown>{description || "*No description yet.*"}</ReactMarkdown>
                                         </div>
                                     ) : (
                                         <textarea
@@ -233,47 +281,129 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                             onChange={(e) => setDescription(e.target.value)}
                                             rows={6}
                                             placeholder="Add more details about this task..."
-                                            className="w-full bg-transparent p-4 text-zinc-300 placeholder-zinc-700 focus:outline-none transition-colors resize-none text-sm leading-relaxed"
+                                            className="w-full bg-transparent p-4 text-zinc-200 placeholder-zinc-600 focus:outline-none resize-none text-sm leading-relaxed"
                                         />
                                     )}
                                 </div>
                             </div>
 
+                            {/* Attachments Section */}
+                            <div className="border-t border-zinc-800/50 pt-5">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <Paperclip size={16} className="text-zinc-400" />
+                                        <h3 className="text-sm font-semibold text-white uppercase tracking-wide">Attachments</h3>
+                                        {attachments.length > 0 && (
+                                            <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">
+                                                {attachments.length}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploading}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg border border-blue-500/20 hover:border-blue-500/30 disabled:opacity-50 transition-all"
+                                    >
+                                        {isUploading ? (
+                                            <>
+                                                <div className="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
+                                                Uploading...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload size={12} />
+                                                Upload
+                                            </>
+                                        )}
+                                    </button>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        onChange={handleFileUpload}
+                                        className="hidden"
+                                        accept="image/*,.pdf,.doc,.docx,.txt,.zip"
+                                    />
+                                </div>
+
+                                {attachments.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {attachments.map((attachment) => (
+                                            <div
+                                                key={attachment.id}
+                                                className="group flex items-center gap-3 p-3 bg-zinc-800/50 border border-zinc-700/50 rounded-lg hover:bg-zinc-800/70 hover:border-zinc-600/50 transition-all"
+                                            >
+                                                <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg ${attachment.type === "image" ? 'bg-blue-500/20 text-blue-400' : 'bg-zinc-700/50 text-zinc-400'}`}>
+                                                    {attachment.type === "image" ? (
+                                                        <ImageIcon size={16} />
+                                                    ) : (
+                                                        <File size={16} />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <a
+                                                        href={attachment.url.startsWith('http') ? attachment.url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'}${attachment.url}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="block text-sm font-medium text-zinc-200 hover:text-blue-400 truncate transition-colors"
+                                                    >
+                                                        {attachment.filename}
+                                                    </a>
+                                                    <div className="flex items-center gap-1.5 mt-1">
+                                                        <span className="text-xs text-zinc-500">{formatFileSize(attachment.size)}</span>
+                                                        <span className="text-zinc-600">·</span>
+                                                        <span className="text-xs text-zinc-500">{new Date(attachment.uploaded_at).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleDeleteAttachment(attachment.id)}
+                                                    className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                    title="Delete attachment"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8 text-zinc-500 text-sm bg-zinc-800/30 rounded-lg border border-dashed border-zinc-700/50">
+                                        No attachments yet
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Comments Section */}
-                            <div className="border-t border-white/5 pt-6">
+                            <div className="border-t border-zinc-800/50 pt-5">
                                 <TaskComments taskId={task.id} />
                             </div>
 
-                            {/* AI Plan Section (Refined) */}
-                            <div className="p-1 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-transparent border border-white/10 relative overflow-hidden group/ai shadow-2xl shadow-indigo-500/5">
-                                <div className="absolute inset-0 bg-indigo-500/5 backdrop-blur-3xl" />
-                                <div className="relative p-5 flex flex-col md:flex-row items-center justify-between gap-5 bg-zinc-900/40 rounded-[22px]">
+                            {/* AI Plan Section */}
+                            <div className="p-5 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-transparent border border-purple-500/20 rounded-xl">
+                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1.5">
-                                            <div className="p-1.5 bg-indigo-500/20 rounded-lg">
-                                                <Sparkles size={16} className="text-indigo-400" />
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="p-1.5 bg-purple-500/20 rounded-lg">
+                                                <Sparkles size={16} className="text-purple-400" />
                                             </div>
-                                            <h4 className="text-sm font-bold text-white uppercase tracking-wider font-[Outfit]">AI Power-Up</h4>
+                                            <h4 className="text-sm font-semibold text-white">AI Plan Generator</h4>
                                         </div>
-                                        <p className="text-xs text-zinc-400 leading-relaxed max-w-[280px]">
-                                            Generate an intelligent execution plan with advanced AI in seconds.
+                                        <p className="text-xs text-zinc-400 leading-relaxed">
+                                            Generate an intelligent execution plan with AI in seconds.
                                         </p>
                                     </div>
                                     <button
                                         onClick={handleEnrich}
                                         disabled={isEnriching}
-                                        className="relative overflow-hidden whitespace-nowrap px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-xl shadow-indigo-500/20 flex items-center gap-2 group/btn"
+                                        className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-lg shadow-purple-500/20 transition-all"
                                     >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover/btn:animate-shimmer" />
                                         {isEnriching ? (
-                                            <span className="flex items-center gap-2">
+                                            <>
                                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                Strategizing...
-                                            </span>
+                                                Generating...
+                                            </>
                                         ) : (
                                             <>
-                                                <Sparkles size={16} className="group-hover/btn:rotate-12 transition-transform" />
-                                                Magic Plan
+                                                <Sparkles size={14} />
+                                                Generate Plan
                                             </>
                                         )}
                                     </button>
@@ -282,15 +412,16 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                         </div>
 
                         {/* Sidebar info */}
-                        <div className="space-y-6 bg-black/20 rounded-2xl p-6 border border-white/5 h-fit">
-                            <div>
-                                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                        <div className="space-y-4">
+                            {/* Status Card */}
+                            <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
+                                <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
                                     Status
                                 </label>
                                 <select
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value)}
-                                    className="w-full bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+                                    className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-md px-3 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 cursor-pointer transition-all appearance-none"
                                 >
                                     <option value="Todo">To Do</option>
                                     <option value="In_Progress">In Progress</option>
@@ -299,22 +430,26 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                            {/* Priority Card */}
+                            <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
+                                <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
                                     Priority
                                 </label>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex gap-1.5">
                                     {['low', 'medium', 'high'].map((p) => (
                                         <button
                                             key={p}
                                             type="button"
                                             onClick={() => setPriority(p)}
-                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all flex-1 min-w-[60px] ${priority === p
-                                                ? p === 'high' ? 'bg-rose-500/20 border-rose-500/50 text-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.2)]'
-                                                    : p === 'medium' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
-                                                        : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                                                : 'bg-zinc-800 border-white/5 text-zinc-500 hover:text-zinc-400'
-                                                }`}
+                                            className={`flex-1 px-2.5 py-2 rounded-md text-[11px] font-bold uppercase tracking-wide transition-all ${
+                                                priority === p
+                                                    ? p === 'high' 
+                                                        ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
+                                                        : p === 'medium' 
+                                                            ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                                                            : 'bg-green-500 text-white shadow-md shadow-green-500/20'
+                                                    : 'bg-zinc-700/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
+                                            }`}
                                         >
                                             {p}
                                         </button>
@@ -322,24 +457,25 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                            {/* Due Date Card */}
+                            <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
+                                <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
                                     Due Date
                                 </label>
                                 <div className="space-y-2">
                                     <div className="relative">
-                                        <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                                        <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
                                         <input
                                             type="date"
                                             value={dueDate}
                                             onChange={(e) => setDueDate(e.target.value)}
-                                            className="w-full bg-zinc-800 border border-white/10 rounded-lg pl-9 pr-2 py-2 text-[13px] text-white focus:outline-none [color-scheme:dark] appearance-none"
+                                            className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-md pl-9 pr-2.5 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 [color-scheme:dark] transition-all"
                                         />
                                     </div>
                                     {dueDate && (
                                         <button
                                             onClick={() => setDueDate("")}
-                                            className="w-full py-1.5 text-[10px] font-bold text-zinc-500 hover:text-zinc-300 bg-white/5 rounded-lg border border-white/5 transition-all"
+                                            className="w-full py-2 text-xs font-medium text-zinc-500 hover:text-zinc-400 bg-zinc-700/40 hover:bg-zinc-700/60 rounded-md border border-zinc-600/40 hover:border-zinc-600/60 transition-all"
                                         >
                                             Remove Deadline
                                         </button>
@@ -351,17 +487,17 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 bg-black/40 border-t border-white/5 flex justify-end gap-3">
+                <div className="px-6 py-4 bg-zinc-900/50 border-t border-zinc-800/50 flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 rounded-xl text-zinc-400 hover:bg-white/5 transition-all text-sm font-medium"
+                        className="px-5 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 text-sm font-medium transition-colors"
                     >
-                        Discard
+                        Cancel
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="px-8 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-sm transition-all shadow-lg shadow-indigo-500/20"
+                        className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-50 text-white text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all"
                     >
                         {isSaving ? "Saving..." : "Save Changes"}
                     </button>

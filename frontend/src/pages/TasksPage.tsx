@@ -54,6 +54,19 @@ export default function TasksPage() {
         }
     }, [refreshTrigger, activeProjectId]);
 
+    // Listen for task-updated events (e.g., from duplicate)
+    useEffect(() => {
+        const handleTaskUpdated = async () => {
+            if (activeProjectId) {
+                const data = await getTasksByProject(activeProjectId);
+                setTasks(data);
+            }
+        };
+
+        window.addEventListener('task-updated', handleTaskUpdated);
+        return () => window.removeEventListener('task-updated', handleTaskUpdated);
+    }, [activeProjectId]);
+
     // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
