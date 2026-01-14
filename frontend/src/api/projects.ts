@@ -8,7 +8,12 @@ export interface Project {
 
 export const getProjects = async (): Promise<Project[]> => {
     const res = await api.get("/projects");
-    return res.data || [];
+    // Backend returns paginated response: { data: [...], meta: {...} }
+    if (res.data && res.data.data && Array.isArray(res.data.data)) {
+        return res.data.data;
+    }
+    // Fallback for non-paginated response or error
+    return Array.isArray(res.data) ? res.data : [];
 };
 
 export const createProject = async (name: string): Promise<Project> => {

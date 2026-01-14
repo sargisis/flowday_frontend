@@ -13,7 +13,12 @@ export interface Notification {
 
 export const getNotifications = async (): Promise<Notification[]> => {
     const res = await api.get("/notifications");
-    return res.data || [];
+    // Backend returns paginated response: { data: [...], meta: {...} }
+    if (res.data && res.data.data && Array.isArray(res.data.data)) {
+        return res.data.data;
+    }
+    // Fallback for non-paginated response or error
+    return Array.isArray(res.data) ? res.data : [];
 };
 
 export const markNotificationRead = async (id: string): Promise<void> => {
