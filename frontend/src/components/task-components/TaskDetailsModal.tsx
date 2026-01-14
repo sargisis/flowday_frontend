@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import type { Task } from "../../api/tasks";
 import { duplicateTask } from "../../api/tasks";
 import { useTasks } from "../../context/TaskContext";
+import TaskComments from "./TaskComments";
 
 interface TaskDetailsModalProps {
     task: Task | null;
@@ -236,6 +237,11 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                         />
                                     )}
                                 </div>
+                            </div>
+
+                            {/* Comments Section */}
+                            <div className="border-t border-white/5 pt-6">
+                                <TaskComments taskId={task.id} />
                             </div>
 
                             {/* AI Plan Section (Refined) */}
