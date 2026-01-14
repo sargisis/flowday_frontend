@@ -425,6 +425,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                 >
                                     <option value="Todo">To Do</option>
                                     <option value="In_Progress">In Progress</option>
+                                    <option value="Review">Review</option>
                                     <option value="Blocked">Blocked</option>
                                     <option value="Done">Done</option>
                                 </select>

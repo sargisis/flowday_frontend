@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useProject } from "../context/ProjectContext";
 import { Check, X, Inbox } from "lucide-react";
 import EmptyState from "../components/state/EmptyState";
+import { toast } from "sonner";
 
 export default function InvitationsPage() {
     const [invitations, setInvitations] = useState<ProjectMember[]>([]);
@@ -32,9 +33,10 @@ export default function InvitationsPage() {
         try {
             await acceptInvitation(projectId);
             setActiveProjectId(projectId);
+            toast.success("Invitation accepted successfully");
             navigate("/app/v1/team");
         } catch (err: any) {
-            alert(err.response?.data?.error || "Failed to accept invitation");
+            toast.error(err.response?.data?.error || "Failed to accept invitation");
         }
     };
 
@@ -43,9 +45,10 @@ export default function InvitationsPage() {
 
         try {
             await rejectInvitation(projectId);
+            toast.success("Invitation rejected");
             loadInvitations();
         } catch (err: any) {
-            alert(err.response?.data?.error || "Failed to reject invitation");
+            toast.error(err.response?.data?.error || "Failed to reject invitation");
         }
     };
 

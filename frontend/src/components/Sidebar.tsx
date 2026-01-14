@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { createProject } from "../api/projects";
 import { useProject } from "../context/ProjectContext";
+import { toast } from "sonner";
 import {
     LayoutDashboard,
     CheckSquare,
@@ -86,8 +87,9 @@ export default function Sidebar() {
             await refreshProjects();
             setNewProjectName("");
             setIsCreating(false);
+            toast.success("Project created successfully");
         } catch (error) {
-            alert("Failed to create project");
+            toast.error("Failed to create project");
         }
     };
 

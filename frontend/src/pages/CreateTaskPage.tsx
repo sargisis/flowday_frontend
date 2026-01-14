@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTask } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
+import { toast } from "sonner";
 
 export default function CreateTaskPage() {
     const navigate = useNavigate();
@@ -26,8 +27,9 @@ export default function CreateTaskPage() {
             });
 
             navigate("/app/v1/tasks");
+            toast.success("Task created successfully");
         } catch (error) {
-            alert("Failed to create task");
+            toast.error("Failed to create task");
         } finally {
             setIsLoading(false);
         }

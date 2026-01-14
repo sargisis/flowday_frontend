@@ -5,6 +5,7 @@ import { type ProjectMember, getProjectMembers, inviteMember, removeMember, upda
 import { getMe, getAvatarUrl } from "../api/auth";
 import { MessageSquare, Zap, MoreVertical, Plus, User as UserIcon, Trash2, Shield, X, Check, Users } from "lucide-react";
 import EmptyState from "../components/state/EmptyState";
+import { toast } from "sonner";
 
 const ROLES = [
     "Project Lead",
@@ -82,11 +83,13 @@ export default function TeamPage() {
         try {
             await inviteMember(activeProjectId, email);
             setEmail("");
-            alert("Invitation sent successfully!");
+            toast.success("Invitation sent successfully!");
             setShowInvite(false);
             loadData();
         } catch (err: any) {
-            setError(err.response?.data?.error || "Failed to send invitation");
+            const errorMsg = err.response?.data?.error || "Failed to send invitation";
+            setError(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -98,9 +101,10 @@ export default function TeamPage() {
 
         try {
             await removeMember(activeProjectId, userId);
+            toast.success("Member removed successfully");
             loadData();
         } catch (err: any) {
-            alert(err.response?.data?.error || "Failed to remove member");
+            toast.error(err.response?.data?.error || "Failed to remove member");
         }
     };
 
@@ -110,9 +114,10 @@ export default function TeamPage() {
         try {
             await updateMemberRole(activeProjectId, editingMember.user_id, newRole);
             setEditingMember(null);
+            toast.success("Role updated successfully");
             loadData();
         } catch (err: any) {
-            alert(err.response?.data?.error || "Failed to update role");
+            toast.error(err.response?.data?.error || "Failed to update role");
         }
     };
 

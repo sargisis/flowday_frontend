@@ -34,19 +34,23 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-200">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-white font-[Outfit]">New Task</h2>
-                    <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
-                        <X size={20} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="w-full max-w-md bg-zinc-900/95 border border-zinc-800/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
+                {/* Header */}
+                <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-800/50 bg-zinc-900/50">
+                    <h2 className="text-xl font-semibold text-white">New Task</h2>
+                    <button 
+                        onClick={onClose} 
+                        className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                    >
+                        <X size={18} />
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="space-y-4">
+                    <div className="p-6 space-y-5">
                         <div>
-                            <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
+                            <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wide">
                                 Task Title
                             </label>
                             <input
@@ -55,12 +59,12 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="What needs to be done?"
-                                className="w-full bg-zinc-800/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                                className="w-full bg-zinc-800/80 border border-zinc-700/50 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-base font-medium transition-all"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
+                            <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wide">
                                 Priority
                             </label>
                             <div className="flex gap-2">
@@ -69,14 +73,15 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
                                         key={p}
                                         type="button"
                                         onClick={() => setPriority(p)}
-                                        className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize border transition-all ${priority === p
-                                            ? p === 'high'
-                                                ? 'bg-rose-500/20 border-rose-500/50 text-rose-400'
-                                                : p === 'medium'
-                                                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
-                                                    : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                                            : 'bg-zinc-800/50 border-white/5 text-zinc-400 hover:bg-zinc-800'
-                                            }`}
+                                        className={`flex-1 px-2.5 py-2 rounded-md text-[11px] font-bold uppercase tracking-wide transition-all ${
+                                            priority === p
+                                                ? p === 'high' 
+                                                    ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
+                                                    : p === 'medium' 
+                                                        ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                                                        : 'bg-green-500 text-white shadow-md shadow-green-500/20'
+                                                : 'bg-zinc-700/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
+                                        }`}
                                     >
                                         {p}
                                     </button>
@@ -85,38 +90,33 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
                         </div>
 
                         <div>
-                            <label className="block text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2 flex justify-between items-center">
+                            <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wide">
                                 Due Date
-                                <span className="text-[10px] lowercase py-0.5 px-2 bg-white/5 rounded-full border border-white/5 font-normal">Optional</span>
                             </label>
                             <div className="relative">
-                                <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
                                 <input
                                     type="date"
                                     value={dueDate}
                                     onChange={(e) => setDueDate(e.target.value)}
-                                    className="w-full bg-zinc-800/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all [color-scheme:dark]"
+                                    className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-md pl-9 pr-2.5 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 [color-scheme:dark] transition-all"
                                 />
-                                {!dueDate && (
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 font-medium pointer-events-none italic">
-
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-8 flex justify-end gap-3">
+                    {/* Footer */}
+                    <div className="px-6 py-4 bg-zinc-900/50 border-t border-zinc-800/50 flex justify-end gap-3">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 rounded-xl text-zinc-400 hover:bg-white/5 transition-colors font-medium text-sm"
+                            className="px-5 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 text-sm font-medium transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all shadow-lg shadow-indigo-500/20"
+                            className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all"
                         >
                             Create Task
                         </button>

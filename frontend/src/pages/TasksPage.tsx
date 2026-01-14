@@ -91,7 +91,7 @@ export default function TasksPage() {
             if (e.key === '/' && !isSelectionMode) {
                 e.preventDefault();
                 // TODO: Focus search input when implemented
-                console.log('Search hotkey pressed - implement global search');
+                // Search hotkey pressed - implement global search
             }
         };
         window.addEventListener('keydown', handleKeyDown);
