@@ -24,9 +24,12 @@ export default function ActivityFeed() {
         const fetchActivities = async () => {
             try {
                 const res = await api.get('/activity');
-                setActivities(res.data);
+                // Backend returns paginated response: { data: [...], meta: {...} }
+                const activitiesData = res.data?.data || res.data || [];
+                setActivities(Array.isArray(activitiesData) ? activitiesData : []);
             } catch (err) {
                 console.error("Failed to fetch activity feed", err);
+                setActivities([]);
             } finally {
                 setLoading(false);
             }

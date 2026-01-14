@@ -17,9 +17,11 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     const refreshProjects = async () => {
         try {
             const data = await getProjects();
-            setProjects(data || []);
-            if (data && data.length > 0 && activeProjectId === null) {
-                setActiveProjectId(data[0].id);
+            // Ensure data is always an array
+            const projectsList = Array.isArray(data) ? data : [];
+            setProjects(projectsList);
+            if (projectsList.length > 0 && activeProjectId === null) {
+                setActiveProjectId(projectsList[0].id);
             }
         } catch (e) {
             console.error("Failed to fetch projects", e);

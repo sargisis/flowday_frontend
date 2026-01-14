@@ -14,7 +14,12 @@ export interface Task {
 
 export const getTasksByProject = async (projectId: string): Promise<Task[]> => {
     const res = await api.get(`/tasks?project_id=${projectId}`);
-    return res.data || [];
+    // Backend returns paginated response: { data: [...], meta: {...} }
+    if (res.data && res.data.data && Array.isArray(res.data.data)) {
+        return res.data.data;
+    }
+    // Fallback for non-paginated response or error
+    return Array.isArray(res.data) ? res.data : [];
 };
 
 export const getAllTasks = async (): Promise<Task[]> => {
