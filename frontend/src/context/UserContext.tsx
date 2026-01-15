@@ -15,6 +15,13 @@ export interface User {
     level?: number;
     plan?: 'free' | 'pro';
     ai_quota_used?: number;
+    email_notifications?: boolean;
+    slack_webhook_url?: string;
+    slack_team_id?: string;
+    slack_team_name?: string;
+    slack_user_id?: string;
+    slack_channel_id?: string;
+    slack_connected?: boolean;
 }
 
 interface UserContextType {

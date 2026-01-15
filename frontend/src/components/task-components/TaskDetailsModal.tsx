@@ -175,30 +175,30 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         return Math.round((completed / subtasks.length) * 100);
     };
 
-    return (
+        return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="w-full max-w-3xl bg-zinc-900/95 border border-zinc-800/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
+            <div className="w-full max-w-3xl bg-white dark:bg-zinc-900/95 border border-zinc-200 dark:border-zinc-800/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
                 {/* Header */}
-                <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-800/50 bg-zinc-900/50">
-                    <h2 className="text-xl font-semibold text-white">Task Details</h2>
+                <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-200 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-900/50">
+                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Task Details</h2>
                     <div className="flex items-center gap-1">
                         <button
                             onClick={handleDuplicate}
-                            className="p-2 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                             title="Duplicate Task"
                         >
                             <Copy size={18} />
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                             title="Delete Task"
                         >
                             <Trash2 size={18} />
                         </button>
                         <button 
                             onClick={onClose} 
-                            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                         >
                             <X size={18} />
                         </button>
@@ -210,23 +210,23 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                         {/* Main Content */}
                         <div className="md:col-span-2 space-y-5">
                             <div>
-                                <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wide">
+                                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide">
                                     Title
                                 </label>
                                 <input
                                     type="text"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full bg-zinc-800/80 border border-zinc-700/50 rounded-lg px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-base font-medium transition-all"
+                                    className="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-300 dark:border-zinc-700/50 rounded-lg px-4 py-3 text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-base font-medium transition-all"
                                     placeholder="Enter task title..."
                                 />
                             </div>
 
                             {/* Subtasks / Magic Checklist Section */}
                             {subtasks.length > 0 && (
-                                <div className="bg-zinc-800/30 rounded-xl p-4 border border-zinc-700/50">
+                                <div className="bg-zinc-50 dark:bg-zinc-800/30 rounded-xl p-4 border border-zinc-200 dark:border-zinc-700/50">
                                     <div className="flex items-center justify-between mb-3">
-                                        <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wide">
+                                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                                             Checklist
                                         </label>
                                         <span className="text-xs font-medium text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full">
@@ -241,13 +241,13 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                                 className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                                                     subtask.completed
                                                         ? "bg-green-500/10 border-green-500/30"
-                                                        : "bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-800/70 hover:border-zinc-600/50"
+                                                        : "bg-white dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:border-zinc-400 dark:hover:border-zinc-600/50"
                                                 }`}
                                             >
-                                                <div className={`mt-0.5 transition-colors ${subtask.completed ? "text-green-400" : "text-zinc-500"}`}>
+                                                <div className={`mt-0.5 transition-colors ${subtask.completed ? "text-green-600 dark:text-green-400" : "text-zinc-500 dark:text-zinc-500"}`}>
                                                     {subtask.completed ? <CheckSquare size={16} /> : <Square size={16} />}
                                                 </div>
-                                                <span className={`text-sm flex-1 ${subtask.completed ? "text-zinc-500 line-through" : "text-zinc-200"}`}>
+                                                <span className={`text-sm flex-1 ${subtask.completed ? "text-zinc-500 dark:text-zinc-500 line-through" : "text-zinc-900 dark:text-zinc-200"}`}>
                                                     {subtask.title}
                                                 </span>
                                             </div>
@@ -258,21 +258,21 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
 
                             <div>
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wide">
+                                    <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
                                         Description
                                     </label>
                                     <button
                                         onClick={() => setIsPreview(!isPreview)}
-                                        className="text-xs text-zinc-400 hover:text-blue-400 flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-blue-500/10 transition-colors"
+                                        className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-blue-500/10 transition-colors"
                                     >
                                         {isPreview ? <Edit3 size={12} /> : <Eye size={12} />}
                                         {isPreview ? "Edit" : "Preview"}
                                     </button>
                                 </div>
 
-                                <div className="min-h-[140px] bg-zinc-800/50 border border-zinc-700/50 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500/50 transition-all">
+                                <div className="min-h-[140px] bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700/50 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500/50 transition-all">
                                     {isPreview ? (
-                                        <div className="p-4 text-sm text-zinc-200 leading-relaxed overflow-y-auto max-h-[300px] prose prose-invert prose-sm max-w-none">
+                                        <div className="p-4 text-sm text-zinc-900 dark:text-zinc-200 leading-relaxed overflow-y-auto max-h-[300px] prose dark:prose-invert prose-sm max-w-none">
                                             <ReactMarkdown>{description || "*No description yet.*"}</ReactMarkdown>
                                         </div>
                                     ) : (
@@ -281,20 +281,20 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                             onChange={(e) => setDescription(e.target.value)}
                                             rows={6}
                                             placeholder="Add more details about this task..."
-                                            className="w-full bg-transparent p-4 text-zinc-200 placeholder-zinc-600 focus:outline-none resize-none text-sm leading-relaxed"
+                                            className="w-full bg-transparent p-4 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-600 focus:outline-none resize-none text-sm leading-relaxed"
                                         />
                                     )}
                                 </div>
                             </div>
 
                             {/* Attachments Section */}
-                            <div className="border-t border-zinc-800/50 pt-5">
+                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
-                                        <Paperclip size={16} className="text-zinc-400" />
-                                        <h3 className="text-sm font-semibold text-white uppercase tracking-wide">Attachments</h3>
+                                        <Paperclip size={16} className="text-zinc-600 dark:text-zinc-400" />
+                                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Attachments</h3>
                                         {attachments.length > 0 && (
-                                            <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">
+                                            <span className="text-xs text-zinc-600 dark:text-zinc-500 bg-zinc-200 dark:bg-zinc-800 px-2 py-0.5 rounded-full">
                                                 {attachments.length}
                                             </span>
                                         )}
@@ -330,9 +330,9 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                         {attachments.map((attachment) => (
                                             <div
                                                 key={attachment.id}
-                                                className="group flex items-center gap-3 p-3 bg-zinc-800/50 border border-zinc-700/50 rounded-lg hover:bg-zinc-800/70 hover:border-zinc-600/50 transition-all"
+                                                className="group flex items-center gap-3 p-3 bg-white dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700/50 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/70 hover:border-zinc-400 dark:hover:border-zinc-600/50 transition-all"
                                             >
-                                                <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg ${attachment.type === "image" ? 'bg-blue-500/20 text-blue-400' : 'bg-zinc-700/50 text-zinc-400'}`}>
+                                                <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg ${attachment.type === "image" ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-zinc-200 dark:bg-zinc-700/50 text-zinc-600 dark:text-zinc-400'}`}>
                                                     {attachment.type === "image" ? (
                                                         <ImageIcon size={16} />
                                                     ) : (
@@ -344,19 +344,19 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                                         href={attachment.url.startsWith('http') ? attachment.url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'}${attachment.url}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="block text-sm font-medium text-zinc-200 hover:text-blue-400 truncate transition-colors"
+                                                        className="block text-sm font-medium text-zinc-900 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 truncate transition-colors"
                                                     >
                                                         {attachment.filename}
                                                     </a>
                                                     <div className="flex items-center gap-1.5 mt-1">
-                                                        <span className="text-xs text-zinc-500">{formatFileSize(attachment.size)}</span>
-                                                        <span className="text-zinc-600">·</span>
-                                                        <span className="text-xs text-zinc-500">{new Date(attachment.uploaded_at).toLocaleDateString()}</span>
+                                                        <span className="text-xs text-zinc-500 dark:text-zinc-500">{formatFileSize(attachment.size)}</span>
+                                                        <span className="text-zinc-400 dark:text-zinc-600">·</span>
+                                                        <span className="text-xs text-zinc-500 dark:text-zinc-500">{new Date(attachment.uploaded_at).toLocaleDateString()}</span>
                                                     </div>
                                                 </div>
                                                 <button
                                                     onClick={() => handleDeleteAttachment(attachment.id)}
-                                                    className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                    className="p-1.5 text-zinc-500 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                                                     title="Delete attachment"
                                                 >
                                                     <Trash2 size={14} />
@@ -365,7 +365,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-8 text-zinc-500 text-sm bg-zinc-800/30 rounded-lg border border-dashed border-zinc-700/50">
+                                    <div className="text-center py-8 text-zinc-500 dark:text-zinc-500 text-sm bg-zinc-50 dark:bg-zinc-800/30 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700/50">
                                         No attachments yet
                                     </div>
                                 )}

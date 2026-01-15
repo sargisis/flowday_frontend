@@ -117,7 +117,7 @@ export default function DashboardLayout() {
     }, [navigate, openCreateModal]);
 
     return (
-        <div className="flex h-screen bg-black text-white overflow-hidden">
+        <div className="flex h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white overflow-hidden transition-colors">
             {/* ✅ FIX: AnalyticsTracker inside Router context */}
             <AnalyticsTracker />
             <TacticalOverlay />
