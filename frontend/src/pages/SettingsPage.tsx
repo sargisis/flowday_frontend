@@ -684,69 +684,236 @@ export default function SettingsPage() {
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">Subscription & Billing</h3>
-                                    <p className="text-zinc-600 dark:text-zinc-400 text-xs">Manage your plan and payment methods</p>
+                                    <p className="text-zinc-600 dark:text-zinc-400 text-xs">Choose your Flowday Pro plan</p>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Free Tier Card */}
-                                <div className="p-5 rounded-lg border border-zinc-300/30 dark:border-zinc-700/50 bg-zinc-50 dark:bg-zinc-800/30 space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h4 className="text-base font-bold text-zinc-900 dark:text-white">Standard</h4>
-                                            <p className="text-zinc-600 dark:text-zinc-400 text-xs">For individual focus</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* Annual Plan */}
+                                <div className="relative rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-950/50 to-blue-950/50 backdrop-blur-sm overflow-hidden group hover:border-purple-500/50 transition-all">
+                                    {/* Compact Header */}
+                                    <div className="relative h-20 bg-gradient-to-r from-purple-600/60 to-blue-600/60 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <h4 className="text-lg font-bold text-white tracking-wide">FLOWDAY PRO</h4>
+                                            <p className="text-[10px] text-white/70 mt-0.5">Focus. Create. Achieve.</p>
                                         </div>
-                                        <span className="px-2 py-1 rounded-md bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[10px] font-bold uppercase tracking-wide border border-zinc-300 dark:border-zinc-600">Current Plan</span>
                                     </div>
-                                    <div className="text-2xl font-bold text-zinc-900 dark:text-white">$0 <span className="text-sm text-zinc-600 dark:text-zinc-400 font-normal">/ month</span></div>
-                                    <ul className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-400">
-                                        <li className="flex items-center gap-2"><Check size={12} className="text-green-400" /> 3 Active Projects</li>
-                                        <li className="flex items-center gap-2"><Check size={12} className="text-green-400" /> Basic AI Coach</li>
-                                        <li className="flex items-center gap-2"><Check size={12} className="text-green-400" /> Kanban Board</li>
-                                    </ul>
-                                </div>
 
-                                {/* PRO Tier Card */}
-                                <div className="p-5 rounded-lg border-2 border-blue-500/50 bg-blue-500/10 space-y-3 relative overflow-hidden group">
-                                    <div className="absolute -top-8 -right-8 w-24 h-24 bg-blue-500/10 blur-2xl group-hover:bg-blue-500/20 transition-all duration-500" />
-                                    <div className="flex justify-between items-start relative z-10">
+                                    <div className="p-4 space-y-3 relative z-10 bg-zinc-900/40">
                                         <div>
-                                            <h4 className="text-base font-bold text-white flex items-center gap-2">
-                                                Flowday PRO
-                                                <Zap size={14} className="text-blue-400 fill-blue-400" />
-                                            </h4>
-                                            <p className="text-blue-300/60 text-xs">For power users</p>
+                                            <h5 className="text-sm font-semibold text-white mb-1">Annual</h5>
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className="text-2xl font-bold text-white">$5</span>
+                                                <span className="text-xs text-white/50">/month</span>
+                                            </div>
+                                            <p className="text-[10px] text-white/40 mt-0.5">$57 billed annually</p>
                                         </div>
-                                        <span className="px-2 py-1 rounded-md bg-blue-500 text-white text-[10px] font-bold uppercase tracking-wide shadow-md shadow-blue-500/20">Best Value</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-white relative z-10">$9.99 <span className="text-sm text-blue-300/60 font-normal">/ month</span></div>
-                                    <ul className="space-y-1.5 text-xs text-blue-300/70 relative z-10">
-                                        <li className="flex items-center gap-2"><Zap size={12} className="text-amber-400" /> Unlimited Projects</li>
-                                        <li className="flex items-center gap-2"><Zap size={12} className="text-amber-400" /> AI Task Decomposition</li>
-                                        <li className="flex items-center gap-2"><Zap size={12} className="text-amber-400" /> Premium Soundscapes</li>
-                                        <li className="flex items-center gap-2"><Zap size={12} className="text-amber-400" /> Global Task Search</li>
-                                    </ul>
-                                    <button className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-lg transition-all shadow-md shadow-blue-500/20 mt-2 relative z-10">
-                                        Upgrade to PRO
-                                    </button>
-                                </div>
-                            </div>
-                        </section>
 
-                        <section className="p-5 rounded-lg border border-zinc-300/30 dark:border-zinc-700/50 bg-zinc-50 dark:bg-zinc-800/30 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-zinc-200/50 dark:bg-zinc-700/50 text-zinc-600 dark:text-zinc-400">
-                                    <Mail size={16} />
+                                        <div className="space-y-1.5 text-[11px] text-white/70 max-h-64 overflow-y-auto">
+                                            <ul className="space-y-1">
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>Unlimited Projects & Tasks</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>AI Decomposition & Enrichment</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>AI Coach (unlimited)</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>Premium Focus Engine</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>Advanced Analytics</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>Slack & Email Notifications</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>Unlimited Attachments</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>Unlimited Team Members</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>Priority Support (24h)</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-purple-400 mt-0.5">•</span>
+                                                    <span>Early Access Features</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <button 
+                                            disabled
+                                            className="w-full py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-semibold rounded-lg opacity-50 cursor-not-allowed"
+                                        >
+                                            Join
+                                        </button>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">Need something custom?</h4>
-                                    <p className="text-xs text-zinc-600 dark:text-zinc-400">Contact us for team licenses and custom enterprise builds</p>
+
+                                {/* Quarterly Plan */}
+                                <div className="relative rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-950/50 to-cyan-950/50 backdrop-blur-sm overflow-hidden group hover:border-blue-500/50 transition-all">
+                                    {/* Compact Header */}
+                                    <div className="relative h-20 bg-gradient-to-r from-blue-600/60 to-cyan-600/60 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <h4 className="text-lg font-bold text-white tracking-wide">FLOWDAY PRO</h4>
+                                            <p className="text-[10px] text-white/70 mt-0.5">Focus. Create. Achieve.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 space-y-3 relative z-10 bg-zinc-900/40">
+                                        <div>
+                                            <h5 className="text-sm font-semibold text-white mb-1">Quarterly</h5>
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className="text-2xl font-bold text-white">$7</span>
+                                                <span className="text-xs text-white/50">/month</span>
+                                            </div>
+                                            <p className="text-[10px] text-white/40 mt-0.5">$75 billed quarterly</p>
+                                        </div>
+
+                                        <div className="space-y-1.5 text-[11px] text-white/70 max-h-64 overflow-y-auto">
+                                            <ul className="space-y-1">
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>Unlimited Projects & Tasks</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>AI Decomposition & Enrichment</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>AI Coach (higher quota)</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>Premium Focus Engine</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>Advanced Analytics</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>Slack & Email Notifications</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>Attachments (up to 50MB)</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>Team (up to 15 members)</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>Priority Support (48h)</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-blue-400 mt-0.5">•</span>
+                                                    <span>Data Export & Reports</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <button 
+                                            disabled
+                                            className="w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs font-semibold rounded-lg opacity-50 cursor-not-allowed"
+                                        >
+                                            Join
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Monthly Plan */}
+                                <div className="relative rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/50 to-purple-950/50 backdrop-blur-sm overflow-hidden group hover:border-indigo-500/50 transition-all">
+                                    {/* Compact Header */}
+                                    <div className="relative h-20 bg-gradient-to-r from-indigo-600/60 to-purple-600/60 flex items-center justify-center">
+                                        <div className="text-center">
+                                            <h4 className="text-lg font-bold text-white tracking-wide">FLOWDAY PRO</h4>
+                                            <p className="text-[10px] text-white/70 mt-0.5">Focus. Create. Achieve.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 space-y-3 relative z-10 bg-zinc-900/40">
+                                        <div>
+                                            <h5 className="text-sm font-semibold text-white mb-1">Monthly</h5>
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className="text-2xl font-bold text-white">$9</span>
+                                                <span className="text-xs text-white/50">/month</span>
+                                            </div>
+                                            <p className="text-[10px] text-white/40 mt-0.5">Billed monthly</p>
+                                        </div>
+
+                                        <div className="space-y-1.5 text-[11px] text-white/70 max-h-64 overflow-y-auto">
+                                            <ul className="space-y-1">
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-indigo-400 mt-0.5">•</span>
+                                                    <span>Unlimited Projects & Tasks</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-indigo-400 mt-0.5">•</span>
+                                                    <span>AI Decomposition & Enrichment</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-indigo-400 mt-0.5">•</span>
+                                                    <span>AI Coach (limited quota)</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-indigo-400 mt-0.5">•</span>
+                                                    <span>Premium Focus Engine</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-indigo-400 mt-0.5">•</span>
+                                                    <span>Focus Session History</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-indigo-400 mt-0.5">•</span>
+                                                    <span>Slack & Email Notifications</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-indigo-400 mt-0.5">•</span>
+                                                    <span>Attachments (up to 10MB)</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-indigo-400 mt-0.5">•</span>
+                                                    <span>Team (up to 5 members)</span>
+                                                </li>
+                                                <li className="flex items-start gap-1.5">
+                                                    <span className="text-indigo-400 mt-0.5">•</span>
+                                                    <span>Standard Support</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <button 
+                                            disabled
+                                            className="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-semibold rounded-lg opacity-50 cursor-not-allowed"
+                                        >
+                                            Join
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <button className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1 group">
-                                Support Channel
-                                <ExternalLink size={12} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                            </button>
+                            
+                            {/* Comparison Note */}
+                            <div className="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                                <p className="text-xs text-blue-300/80 text-center">
+                                    <strong className="text-blue-200">💡 Tip:</strong> Longer commitments unlock more features and better support. Annual plan includes early access to new features and priority support.
+                                </p>
+                            </div>
                         </section>
                     </div>
                 )}
