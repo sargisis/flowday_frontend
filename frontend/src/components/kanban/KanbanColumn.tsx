@@ -1,5 +1,5 @@
-import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import type { Task } from "../../api/tasks";
 import KanbanCard from "./KanbanCard";
 import { useMemo } from "react";
@@ -16,37 +16,26 @@ interface KanbanColumnProps {
 }
 
 export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode, selectedTaskIds, onToggleTaskSelection }: KanbanColumnProps) {
-    const {
-        setNodeRef,
-        attributes,
-        listeners,
-        transform,
-        transition,
-        isOver,
-    } = useSortable({
+    // Use useDroppable to make the column a drop zone for tasks
+    const { setNodeRef, isOver } = useDroppable({
         id,
         data: {
             type: "Column",
+            columnId: id,
             tasks,
         },
     });
-
-    const style = {
-        transform: CSS.Translate.toString(transform),
-        transition,
-    };
 
     const taskIds = useMemo(() => tasks.map((task) => task.id), [tasks]);
 
     return (
         <div
             ref={setNodeRef}
-            style={style}
             className={`flex flex-col bg-zinc-900/40 border-2 rounded-2xl p-4 h-full transition-colors duration-200 ${isOver ? "border-indigo-500/50 bg-indigo-500/5" : "border-white/5"
                 }`}
         >
             {/* Column Header */}
-            <div {...attributes} {...listeners} className="flex items-center justify-between mb-4 cursor-grab active:cursor-grabbing shrink-0">
+            <div className="flex items-center justify-between mb-4 shrink-0">
                 <div>
                     <h3 className={`text-sm font-bold uppercase tracking-wider transition-colors ${isOver ? "text-indigo-400" : "text-zinc-400"
                         }`}>
@@ -70,12 +59,13 @@ export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, 
                             onToggleSelection={onToggleTaskSelection}
                         />
                     ))}
-                    {tasks.length === 0 && (
-                        <div className="h-24 rounded-xl border-2 border-dashed border-zinc-800/50 flex items-center justify-center text-zinc-700 text-sm italic">
-                            Drop tasks here
-                        </div>
-                    )}
                 </SortableContext>
+                {/* Empty state - outside SortableContext so it doesn't interfere with drops */}
+                {tasks.length === 0 && (
+                    <div className="h-24 rounded-xl border-2 border-dashed border-zinc-800/50 flex items-center justify-center text-zinc-700 text-sm italic pointer-events-none">
+                        Drop tasks here
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -263,15 +263,15 @@ export default function TasksPage() {
                         <LayoutList size={24} />
                     </div>
                     <div>
-                        <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight">Tasks</h1>
-                        <p className="text-xs text-zinc-500 mt-0.5">{stats.total} tasks • {stats.completionRate}% complete</p>
+                        <h1 className="text-2xl lg:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Tasks</h1>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-500 mt-0.5">{stats.total} tasks • {stats.completionRate}% complete</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                     {isSelectionMode ? (
                         <>
-                            <span className="text-xs font-bold text-zinc-400 mr-2 uppercase tracking-wider">
+                            <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 mr-2 uppercase tracking-wider">
                                 {selectedTaskIds.size} Selected
                             </span>
                             {selectedTaskIds.size > 0 && (
@@ -288,7 +288,7 @@ export default function TasksPage() {
                                     setIsSelectionMode(false);
                                     setSelectedTaskIds(new Set());
                                 }}
-                                className="bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-zinc-300 px-4 py-2 rounded-lg text-[10px] font-bold transition-colors uppercase tracking-wider"
+                                className="bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 border border-zinc-300 dark:border-white/10 text-zinc-700 dark:text-zinc-300 px-4 py-2 rounded-lg text-[10px] font-bold transition-colors uppercase tracking-wider"
                             >
                                 Cancel
                             </button>
@@ -297,14 +297,14 @@ export default function TasksPage() {
                         <>
                             <button
                                 onClick={() => setIsSelectionMode(true)}
-                                className="bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-zinc-400 px-4 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-2 uppercase tracking-wider group hover:text-white"
+                                className="bg-zinc-100 dark:bg-white/[0.03] hover:bg-zinc-200 dark:hover:bg-white/[0.08] border border-zinc-300 dark:border-white/10 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-2 uppercase tracking-wider group hover:text-zinc-900 dark:hover:text-white"
                             >
                                 <CheckSquare size={14} />
                                 Select
                             </button>
                             <button
                                 onClick={() => openCreateModal()}
-                                className="bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-white px-5 py-2.5 rounded-lg text-[10px] font-bold transition-all hover:-translate-y-0.5 flex items-center gap-2.5 uppercase tracking-wider group"
+                                className="bg-blue-600 dark:bg-white/[0.03] hover:bg-blue-500 dark:hover:bg-white/[0.08] border border-blue-500 dark:border-white/10 text-white dark:text-white px-5 py-2.5 rounded-lg text-[10px] font-bold transition-all hover:-translate-y-0.5 flex items-center gap-2.5 uppercase tracking-wider group"
                             >
                                 <span>Create Task</span>
                                 <span className="px-1.5 py-0.5 bg-indigo-500/20 rounded text-[9px] text-indigo-400 border border-indigo-500/30 group-hover:bg-indigo-500 group-hover:text-white transition-all">C</span>
@@ -319,7 +319,7 @@ export default function TasksPage() {
                 <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
                     <div className="flex items-center gap-2 mb-1">
                         <LayoutList size={14} className="text-blue-400" />
-                        <span className="text-[9px] text-zinc-500 uppercase font-bold">To Do</span>
+                        <span className="text-[9px] text-zinc-600 dark:text-zinc-500 uppercase font-bold">To Do</span>
                     </div>
                     <p className="text-2xl font-bold text-blue-400">{stats.todo}</p>
                 </div>
@@ -327,7 +327,7 @@ export default function TasksPage() {
                 <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
                     <div className="flex items-center gap-2 mb-1">
                         <Activity size={14} className="text-amber-400" />
-                        <span className="text-[9px] text-zinc-500 uppercase font-bold">In Progress</span>
+                        <span className="text-[9px] text-zinc-600 dark:text-zinc-500 uppercase font-bold">In Progress</span>
                     </div>
                     <p className="text-2xl font-bold text-amber-400">{stats.inProgress}</p>
                 </div>
@@ -335,7 +335,7 @@ export default function TasksPage() {
                 <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
                     <div className="flex items-center gap-2 mb-1">
                         <CheckCircle2 size={14} className="text-emerald-400" />
-                        <span className="text-[9px] text-zinc-500 uppercase font-bold">Done</span>
+                        <span className="text-[9px] text-zinc-600 dark:text-zinc-500 uppercase font-bold">Done</span>
                     </div>
                     <p className="text-2xl font-bold text-emerald-400">{stats.done}</p>
                 </div>
@@ -343,7 +343,7 @@ export default function TasksPage() {
                 <div className="p-3 rounded-lg bg-rose-500/5 border border-rose-500/10">
                     <div className="flex items-center gap-2 mb-1">
                         <AlertCircle size={14} className="text-rose-400" />
-                        <span className="text-[9px] text-zinc-500 uppercase font-bold">Blocked</span>
+                        <span className="text-[9px] text-zinc-600 dark:text-zinc-500 uppercase font-bold">Blocked</span>
                     </div>
                     <p className="text-2xl font-bold text-rose-400">{stats.blocked}</p>
                 </div>
@@ -351,7 +351,7 @@ export default function TasksPage() {
 
             {/* Filter Bar */}
             <div className="flex items-center gap-2 mb-4 shrink-0">
-                <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-500">
                     <Filter size={14} />
                     <span className="font-bold uppercase tracking-wider">Filter:</span>
                 </div>
@@ -360,7 +360,7 @@ export default function TasksPage() {
                         onClick={() => setActiveFilter('all')}
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${activeFilter === 'all'
                             ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                            : 'bg-white/[0.03] text-zinc-500 border border-white/5 hover:border-white/10'
+                            : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
                             }`}
                     >
                         All
@@ -369,7 +369,7 @@ export default function TasksPage() {
                         onClick={() => setActiveFilter('high')}
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${activeFilter === 'high'
                             ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                            : 'bg-white/[0.03] text-zinc-500 border border-white/5 hover:border-white/10'
+                            : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
                             }`}
                     >
                         High Priority
@@ -378,7 +378,7 @@ export default function TasksPage() {
                         onClick={() => setActiveFilter('due-soon')}
                         className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${activeFilter === 'due-soon'
                             ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'bg-white/[0.03] text-zinc-500 border border-white/5 hover:border-white/10'
+                            : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
                             }`}
                     >
                         Due Soon
@@ -403,7 +403,7 @@ export default function TasksPage() {
                             label: "Create Task",
                             onClick: () => openCreateModal()
                         }}
-                        className="h-full bg-black/10 backdrop-blur-sm border-white/5"
+                        className="h-full bg-zinc-50 dark:bg-black/10 backdrop-blur-sm border-zinc-300 dark:border-white/5"
                     />
                 ) : (
                     <KanbanBoard

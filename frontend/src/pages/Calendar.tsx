@@ -104,7 +104,7 @@ export default function Calendar() {
     }, [tasks, currentDate]);
 
     return (
-        <div className="h-full flex p-4 lg:p-6 gap-4 overflow-hidden bg-black animate-in fade-in duration-700">
+        <div className="h-full flex p-4 lg:p-6 gap-4 overflow-hidden bg-white dark:bg-black animate-in fade-in duration-700">
             {/* Main Calendar Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Compact Header */}
@@ -114,7 +114,7 @@ export default function Calendar() {
                             <CalendarIcon size={24} />
                         </div>
                         <div>
-                            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight">
+                            <h1 className="text-2xl lg:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
                                 {monthName} <span className="text-zinc-500">{year}</span>
                             </h1>
                             <p className="text-xs text-zinc-500 mt-0.5">{stats.total} tasks this month</p>
@@ -124,19 +124,19 @@ export default function Calendar() {
                     <div className="flex items-center gap-2 bg-white/[0.03] p-1 rounded-lg border border-white/10">
                         <button
                             onClick={prevMonth}
-                            className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                            className="p-2 text-zinc-600 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/5 rounded-lg transition-all"
                         >
                             <ChevronLeft size={18} />
                         </button>
                         <button
                             onClick={goToToday}
-                            className="px-4 py-1.5 text-[10px] font-bold text-zinc-400 hover:text-white transition-colors uppercase tracking-wider"
+                            className="px-4 py-1.5 text-[10px] font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors uppercase tracking-wider"
                         >
                             Today
                         </button>
                         <button
                             onClick={nextMonth}
-                            className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                            className="p-2 text-zinc-600 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/5 rounded-lg transition-all"
                         >
                             <ChevronRight size={18} />
                         </button>
@@ -228,7 +228,7 @@ export default function Calendar() {
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-4">
                     <div className="flex items-center gap-2">
                         <TrendingUp size={16} className="text-indigo-400" />
-                        <h3 className="text-sm font-bold text-white">Month Stats</h3>
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Month Stats</h3>
                     </div>
 
                     <div className="space-y-3">
@@ -267,7 +267,7 @@ export default function Calendar() {
                 <div className="flex-1 p-4 rounded-xl bg-white/[0.02] border border-white/5 overflow-hidden flex flex-col">
                     <div className="flex items-center gap-2 mb-4">
                         <Zap size={16} className="text-amber-400" />
-                        <h3 className="text-sm font-bold text-white">Next 7 Days</h3>
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Next 7 Days</h3>
                     </div>
 
                     <div className="flex-1 overflow-y-auto space-y-2">
@@ -281,7 +281,7 @@ export default function Calendar() {
                                     className="p-2 rounded-lg bg-white/[0.02] border border-white/5 hover:border-white/10 cursor-pointer transition-all group"
                                 >
                                     <div className="flex items-start justify-between gap-2 mb-1">
-                                        <p className="text-xs text-white font-medium truncate group-hover:text-indigo-400 transition-colors">
+                                        <p className="text-xs text-zinc-900 dark:text-white font-medium truncate group-hover:text-blue-600 dark:group-hover:text-indigo-400 transition-colors">
                                             {task.title}
                                         </p>
                                         <div className={`h-1.5 w-1.5 rounded-full shrink-0 mt-1 ${task.priority === 'high' ? 'bg-rose-500' :

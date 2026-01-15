@@ -81,3 +81,42 @@ export const refreshAccessToken = async () => {
   return res.data.token;
 };
 
+export const updateNotificationSettings = async (data: { 
+  email_notifications?: boolean; 
+  slack_webhook_url?: string;
+}) => {
+  const res = await api.patch("/users/notifications", data);
+  return res.data;
+};
+
+export const testSlackWebhook = async (webhookURL?: string) => {
+  const res = await api.post("/users/notifications/test-slack", webhookURL ? { webhook_url: webhookURL } : {});
+  return res.data;
+};
+
+// Slack OAuth Integration
+export const initiateSlackOAuth = async () => {
+  const res = await api.get("/slack/oauth/initiate");
+  return res.data;
+};
+
+export const disconnectSlack = async () => {
+  const res = await api.post("/slack/disconnect");
+  return res.data;
+};
+
+export const getSlackChannels = async () => {
+  const res = await api.get("/slack/channels");
+  return res.data;
+};
+
+export const updateSlackChannel = async (channelId: string) => {
+  const res = await api.patch("/slack/channel", { channel_id: channelId });
+  return res.data;
+};
+
+export const testSlackOAuth = async () => {
+  const res = await api.post("/slack/test");
+  return res.data;
+};
+

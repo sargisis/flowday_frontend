@@ -245,18 +245,18 @@ export default function MessagesPage() {
 
     return (
         <div className="h-full flex p-4 lg:p-6 overflow-hidden animate-in fade-in duration-700">
-            <div className="flex-1 flex bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
+            <div className="flex-1 flex bg-zinc-50 dark:bg-white/[0.02] border border-zinc-300 dark:border-white/5 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-sm">
 
                 {/* Conversations Sidebar */}
-                <aside className={`w-full md:w-80 border-r border-white/5 flex flex-col ${chatId ? 'hidden md:flex' : 'flex'}`}>
-                    <div className="p-4 border-b border-white/5">
-                        <h2 className="text-xl font-bold text-white mb-4">Messages</h2>
+                <aside className={`w-full md:w-80 border-r border-zinc-300 dark:border-white/5 flex flex-col ${chatId ? 'hidden md:flex' : 'flex'}`}>
+                    <div className="p-4 border-b border-zinc-300 dark:border-white/5">
+                        <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-4">Messages</h2>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
                             <input
                                 type="text"
                                 placeholder="Search everything..."
-                                className="w-full bg-black/20 border border-white/5 rounded-lg py-2 pl-10 pr-4 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/30"
+                                className="w-full bg-white dark:bg-black/20 border border-zinc-300 dark:border-white/5 rounded-lg py-2 pl-10 pr-4 text-xs text-zinc-900 dark:text-white placeholder:text-zinc-500 dark:placeholder:text-zinc-600 focus:outline-none focus:border-blue-500/30 dark:focus:border-indigo-500/30"
                             />
                         </div>
                     </div>
@@ -270,10 +270,10 @@ export default function MessagesPage() {
                                     <button
                                         key={conv.user_id}
                                         onClick={() => navigate(`/app/v1/messages/${conv.user_id}`)}
-                                        className={`w-full flex items-center gap-3 p-4 hover:bg-white/[0.03] transition-colors border-b border-zinc-900/50 ${chatId === conv.user_id ? 'bg-indigo-500/5' : ''}`}
+                                        className={`w-full flex items-center gap-3 p-4 hover:bg-zinc-100 dark:hover:bg-white/[0.03] transition-colors border-b border-zinc-200 dark:border-zinc-900/50 ${chatId === conv.user_id ? 'bg-blue-50 dark:bg-indigo-500/5' : ''}`}
                                     >
                                         <div className="relative shrink-0">
-                                            <div className="h-10 w-10 rounded-lg bg-zinc-800 border border-white/5 flex items-center justify-center overflow-hidden">
+                                            <div className="h-10 w-10 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-white/5 flex items-center justify-center overflow-hidden">
                                                 {conv.user_avatar ? (
                                                     <img src={getAvatarUrl(conv.user_avatar) || ""} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                                 ) : (
@@ -286,7 +286,7 @@ export default function MessagesPage() {
                                         </div>
                                         <div className="flex-1 text-left min-w-0">
                                             <div className="flex justify-between items-center mb-0.5">
-                                                <h4 className="text-sm font-bold text-white truncate">{conv.user_name}</h4>
+                                                <h4 className="text-sm font-bold text-zinc-900 dark:text-white truncate">{conv.user_name}</h4>
                                                 <span className="text-[10px] text-zinc-600 whitespace-nowrap">{conv.last_message_time}</span>
                                             </div>
                                             <p className="text-xs text-zinc-500 truncate">{conv.last_message || "Start a conversation"}</p>
@@ -302,7 +302,7 @@ export default function MessagesPage() {
                         )}
 
                         {/* All Team Members Section (for new chats) */}
-                        <div className="mt-4 border-t border-white/5">
+                        <div className="mt-4 border-t border-zinc-300 dark:border-white/5">
                             <h3 className="px-4 py-3 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Connect with Team</h3>
                             {teamMembers
                                 .filter(m => m.user_id !== currentUser?.id && !conversations.find(c => c.user_id === m.user_id))
@@ -312,7 +312,7 @@ export default function MessagesPage() {
                                         onClick={() => navigate(`/app/v1/messages/${member.user_id}`)}
                                         className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors ${chatId === member.user_id ? 'bg-indigo-500/5' : ''}`}
                                     >
-                                        <div className="h-8 w-8 rounded-lg bg-zinc-800 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
+                                        <div className="h-8 w-8 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                                             {member.user?.avatar_url ? (
                                                 <img src={getAvatarUrl(member.user.avatar_url) || ""} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                             ) : (
@@ -320,7 +320,7 @@ export default function MessagesPage() {
                                             )}
                                         </div>
                                         <div className="flex-1 text-left min-w-0">
-                                            <h4 className="text-xs font-bold text-white truncate">{member.user?.name || member.email}</h4>
+                                            <h4 className="text-xs font-bold text-zinc-900 dark:text-white truncate">{member.user?.name || member.email}</h4>
                                             <p className="text-[10px] text-zinc-600 truncate">{member.role}</p>
                                         </div>
                                     </button>
@@ -331,17 +331,17 @@ export default function MessagesPage() {
                 </aside>
 
                 {/* Chat Area */}
-                <main className={`flex-1 flex flex-col bg-black/20 ${!chatId ? 'hidden md:flex' : 'flex'}`}>
+                <main className={`flex-1 flex flex-col bg-zinc-50 dark:bg-black/20 ${!chatId ? 'hidden md:flex' : 'flex'}`}>
                     {chatId && activeChat ? (
                         <>
                             {/* Chat Header */}
-                            <header className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+                            <header className="p-4 border-b border-zinc-300 dark:border-white/5 flex items-center justify-between bg-zinc-50 dark:bg-white/[0.01]">
                                 <div className="flex items-center gap-3">
-                                    <button onClick={() => navigate('/app/v1/messages')} className="md:hidden text-zinc-500 hover:text-white mr-2">
+                                    <button onClick={() => navigate('/app/v1/messages')} className="md:hidden text-zinc-600 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white mr-2">
                                         <MoreHorizontal size={20} className="rotate-90" />
                                     </button>
                                     <div className="relative">
-                                        <div className="h-10 w-10 rounded-lg bg-zinc-800 border border-white/5 flex items-center justify-center overflow-hidden">
+                                        <div className="h-10 w-10 rounded-lg bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-white/5 flex items-center justify-center overflow-hidden">
                                             {activeChat.user_avatar ? (
                                                 <img src={getAvatarUrl(activeChat.user_avatar) || ""} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                             ) : (
@@ -351,13 +351,13 @@ export default function MessagesPage() {
                                         <div className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-black ${activeChat.status.toLowerCase() === 'online' ? 'bg-emerald-500' : 'bg-zinc-500'}`} />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-bold text-white leading-tight">{activeChat.user_name}</h3>
+                                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white leading-tight">{activeChat.user_name}</h3>
                                         <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">{activeChat.status}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <button className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><Phone size={18} /></button>
-                                    <button className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><Video size={18} /></button>
+                                    <button className="p-2 text-zinc-600 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/5 rounded-lg transition-colors"><Phone size={18} /></button>
+                                    <button className="p-2 text-zinc-600 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/5 rounded-lg transition-colors"><Video size={18} /></button>
                                     <button className="p-2 text-zinc-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><Info size={18} /></button>
                                 </div>
                             </header>

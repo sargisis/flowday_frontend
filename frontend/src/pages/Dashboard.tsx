@@ -91,24 +91,24 @@ export default function Dashboard() {
                     )}
                     <div>
                         <div className="flex items-center gap-2">
-                            <h1 className="text-2xl font-bold text-white tracking-tight">Welcome back, {user?.name?.split(' ')[0] || 'Member'}</h1>
+                            <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">Welcome back, {user?.name?.split(' ')[0] || 'Member'}</h1>
                             <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
                                 <Zap size={12} className="text-indigo-400 fill-indigo-400" />
                                 <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Level {user?.level || 1}</span>
                             </div>
                         </div>
-                        <p className="text-zinc-400 text-sm mt-0.5">Initialize your daily mission. The coach is analyzing your throughput.</p>
+                        <p className="text-zinc-600 dark:text-zinc-400 text-sm mt-0.5">Initialize your daily mission. The coach is analyzing your throughput.</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 px-4 py-2 rounded-lg border border-white/5 bg-white/[0.02]">
+                <div className="flex items-center gap-3 px-4 py-2 rounded-lg border border-zinc-300/30 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02]">
                     <div className="text-right">
-                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Global XP</p>
-                        <p className="text-lg font-bold text-white">{user?.xp || 0} <span className="text-xs text-zinc-500">pts</span></p>
+                        <p className="text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">Global XP</p>
+                        <p className="text-lg font-bold text-zinc-900 dark:text-white">{user?.xp || 0} <span className="text-xs text-zinc-500 dark:text-zinc-400">pts</span></p>
                     </div>
-                    <div className="h-6 w-px bg-white/10" />
+                    <div className="h-6 w-px bg-zinc-300 dark:bg-white/10" />
                     <div className="text-right">
-                        <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Efficiency</p>
+                        <p className="text-xs font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">Efficiency</p>
                         <p className="text-lg font-bold text-indigo-400">{(totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0)}%</p>
                     </div>
                 </div>
