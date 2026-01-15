@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Bell, Palette, Shield, LogOut, Mail as MailIcon, Slack, Monitor, Moon, LayoutGrid, Check, X, CreditCard, ExternalLink, Zap, Lock, Mail } from "lucide-react";
+import { User, Bell, Palette, Shield, LogOut, Mail as MailIcon, Slack, Moon, LayoutGrid, Check, X, CreditCard, Zap, Lock, Mail } from "lucide-react";
 
 import { useUser } from "../context/UserContext";
 import { useTheme } from "../context/ThemeContext";
@@ -12,7 +12,7 @@ import { useRef } from "react";
 export default function SettingsPage() {
     const navigate = useNavigate();
     const { user, reloadUser } = useUser();
-    const { theme, setTheme, compactView, setCompactView } = useTheme();
+    const { compactView, setCompactView } = useTheme();
     const [activeTab, setActiveTab] = useState("general");
     const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
     const [isSaving, setIsSaving] = useState(false);
@@ -138,6 +138,9 @@ export default function SettingsPage() {
             },
             cancel: {
                 label: "Cancel",
+                onClick: () => {
+                    // Cancel action - toast will dismiss automatically
+                },
             },
             duration: 5000,
         });
