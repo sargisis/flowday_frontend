@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload } from "lucide-react";
+import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Task, Attachment } from "../../api/tasks";
 import { duplicateTask, uploadTaskAttachment, getTaskAttachments, deleteTaskAttachment } from "../../api/tasks";
 import { useTasks } from "../../context/TaskContext";
 import TaskComments from "./TaskComments";
+import TimeTracker from "../time-tracking/TimeTracker";
 
 interface TaskDetailsModalProps {
     task: Task | null;
@@ -371,8 +372,17 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                 )}
                             </div>
 
+                            {/* Time Tracking Section */}
+                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Clock size={16} className="text-zinc-600 dark:text-zinc-400" />
+                                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Time Tracking</h3>
+                                </div>
+                                <TimeTracker taskId={task.id} />
+                            </div>
+
                             {/* Comments Section */}
-                            <div className="border-t border-zinc-800/50 pt-5">
+                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
                                 <TaskComments taskId={task.id} />
                             </div>
 
