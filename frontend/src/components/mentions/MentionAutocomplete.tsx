@@ -47,27 +47,29 @@ export default function MentionAutocomplete({
     }
   };
 
-  useEffect(() => {
-    const handleInput = (e: KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setSelectedIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelectedIndex((prev) => Math.max(prev - 1, 0));
-      } else if (e.key === "Enter" && showSuggestions && suggestions.length > 0) {
-        e.preventDefault();
-        selectMention(suggestions[selectedIndex]);
-      } else if (e.key === "Escape") {
-        setShowSuggestions(false);
-      }
-    };
-
-    if (showSuggestions) {
-      window.addEventListener("keydown", handleInput);
-      return () => window.removeEventListener("keydown", handleInput);
+  // Handle keyboard navigation only when suggestions are visible
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!showSuggestions || suggestions.length === 0) {
+      // Normal textarea behavior when no suggestions
+      return;
     }
-  }, [showSuggestions, suggestions, selectedIndex]);
+
+    // Only handle special keys when suggestions are visible
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex((prev) => Math.max(prev - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      selectMention(suggestions[selectedIndex]);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setShowSuggestions(false);
+    }
+    // For all other keys, allow normal textarea behavior
+  };
 
   const handleChange = (newValue: string) => {
     onChange(newValue);
@@ -94,7 +96,8 @@ export default function MentionAutocomplete({
         setSuggestions(filtered.slice(0, 5));
       }
       
-      setShowSuggestions(suggestions.length > 0 || query.length === 0);
+      const shouldShow = query.length === 0 ? members.length > 0 : filtered.length > 0;
+      setShowSuggestions(shouldShow);
       setSelectedIndex(0);
     } else {
       setShowSuggestions(false);
@@ -132,11 +135,7 @@ export default function MentionAutocomplete({
         ref={textareaRef}
         value={value}
         onChange={(e) => handleChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
-            e.preventDefault();
-          }
-        }}
+        onKeyDown={handleKeyDown}
         placeholder={placeholder}
         className={className}
         rows={rows}
