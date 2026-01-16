@@ -5,10 +5,13 @@ import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 import EmptyState from "../components/state/EmptyState";
 import { KanbanBoardSkeleton } from "../components/SkeletonLoader";
-import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter, Trash2, FileText } from "lucide-react";
+import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter, Trash2, FileText, Keyboard } from "lucide-react";
 import useSound from "../hooks/useSound";
 import SavedViewsDropdown from "../components/saved-views/SavedViewsDropdown";
 import TaskTemplateModal from "../components/templates/TaskTemplateModal";
+import ExportImportButtons from "../components/export-import/ExportImportButtons";
+import KeyboardShortcutsModal from "../components/keyboard-shortcuts/KeyboardShortcutsModal";
+import { useKeyboardShortcuts, COMMON_SHORTCUTS } from "../hooks/useKeyboardShortcuts";
 
 export default function TasksPage() {
     const { activeProjectId } = useProject();
@@ -23,6 +26,7 @@ export default function TasksPage() {
     
     // ✅ NEW FEATURES: Templates and Saved Views
     const [showTemplateModal, setShowTemplateModal] = useState(false);
+    const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
     // Use a premium "glass" sounding chime
     const playSuccess = useSound("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3", 0.6);
@@ -72,36 +76,42 @@ export default function TasksPage() {
         return () => window.removeEventListener('task-updated', handleTaskUpdated);
     }, [activeProjectId]);
 
-    // Keyboard shortcuts
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            // Ignore if typing in input/textarea
-            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
-                return;
-            }
-
-            // C - Create new task
-            if (e.key.toLowerCase() === 'c') {
-                e.preventDefault();
-                openCreateModal();
-            }
-
-            // S - Toggle selection mode
-            if (e.key.toLowerCase() === 's' && !isSelectionMode) {
-                e.preventDefault();
-                setIsSelectionMode(true);
-            }
-
-            // / - Focus search (future - will add search bar)
-            if (e.key === '/' && !isSelectionMode) {
-                e.preventDefault();
-                // TODO: Focus search input when implemented
-                // Search hotkey pressed - implement global search
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [openCreateModal, isSelectionMode]);
+    // ✅ NEW: Enhanced Keyboard Shortcuts
+    useKeyboardShortcuts(
+        [
+            {
+                ...COMMON_SHORTCUTS.CREATE_TASK,
+                action: () => openCreateModal(),
+            },
+            {
+                ...COMMON_SHORTCUTS.SELECT_MODE,
+                action: () => {
+                    if (!isSelectionMode) {
+                        setIsSelectionMode(true);
+                    }
+                },
+            },
+            {
+                key: '?',
+                shift: true,
+                description: 'Show keyboard shortcuts',
+                action: () => setShowShortcutsModal(true),
+            },
+            {
+                key: 'Escape',
+                description: 'Close modals / Cancel selection',
+                action: () => {
+                    if (isSelectionMode) {
+                        setIsSelectionMode(false);
+                        setSelectedTaskIds(new Set());
+                    }
+                    setShowTemplateModal(false);
+                    setShowShortcutsModal(false);
+                },
+            },
+        ],
+        true
+    );
 
     // Keyboard shortcuts for selection mode
     useEffect(() => {
@@ -318,6 +328,16 @@ export default function TasksPage() {
                                 }}
                             />
                             
+                            {/* ✅ NEW: Export/Import */}
+                            <ExportImportButtons
+                                projectId={activeProjectId}
+                                onImportComplete={() => {
+                                    if (activeProjectId) {
+                                        getTasksByProject(activeProjectId).then(setTasks);
+                                    }
+                                }}
+                            />
+                            
                             {/* ✅ NEW: Templates Button */}
                             <button
                                 onClick={() => setShowTemplateModal(true)}
@@ -326,6 +346,16 @@ export default function TasksPage() {
                             >
                                 <FileText size={14} />
                                 Templates
+                            </button>
+                            
+                            {/* ✅ NEW: Keyboard Shortcuts */}
+                            <button
+                                onClick={() => setShowShortcutsModal(true)}
+                                className="bg-zinc-100 dark:bg-white/[0.03] hover:bg-zinc-200 dark:hover:bg-white/[0.08] border border-zinc-300 dark:border-white/10 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-2 uppercase tracking-wider"
+                                title="Keyboard Shortcuts"
+                            >
+                                <Keyboard size={14} />
+                                Shortcuts
                             </button>
                             
                             <button
@@ -462,6 +492,12 @@ export default function TasksPage() {
                         getTasksByProject(activeProjectId).then(setTasks);
                     }
                 }}
+            />
+            
+            {/* ✅ NEW: Keyboard Shortcuts Modal */}
+            <KeyboardShortcutsModal
+                isOpen={showShortcutsModal}
+                onClose={() => setShowShortcutsModal(false)}
             />
         </div>
     );
