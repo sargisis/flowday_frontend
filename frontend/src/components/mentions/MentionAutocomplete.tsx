@@ -131,7 +131,6 @@ export default function MentionAutocomplete({
     const username = member.user?.name || member.user?.email || "user";
     const beforeMention = value.substring(0, startPos);
     const cursorPos = textareaRef.current.selectionStart;
-    const textAfterCursor = value.substring(cursorPos);
     // Find where the @mention text ends (after @ and any typed characters)
     const textBeforeCursor = value.substring(0, cursorPos);
     const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
