@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { MessageCircle, Send, Trash2, Edit2, Check, X } from "lucide-react";
 import { getTaskComments, createComment, updateComment, deleteComment, type Comment } from "../../api/comments";
 import { useUser } from "../../context/UserContext";
+import { useProject } from "../../context/ProjectContext";
 import { toast } from "sonner";
+import MentionAutocomplete from "../mentions/MentionAutocomplete";
 
 interface TaskCommentsProps {
     taskId: string;
@@ -10,6 +12,7 @@ interface TaskCommentsProps {
 
 export default function TaskComments({ taskId }: TaskCommentsProps) {
     const { user } = useUser();
+    const { activeProjectId } = useProject();
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(true);
     const [newComment, setNewComment] = useState("");
@@ -203,10 +206,11 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
 
             {/* Comment Form */}
             <form onSubmit={handleSubmit} className="space-y-2">
-                <textarea
+                <MentionAutocomplete
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a comment..."
+                    onChange={setNewComment}
+                    projectId={activeProjectId || undefined}
+                    placeholder="Add a comment... (Type @ to mention someone)"
                     className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-all resize-none"
                     rows={3}
                 />

@@ -8,6 +8,7 @@ import { useProject } from "../../context/ProjectContext";
 import TaskComments from "./TaskComments";
 import TimeTracker from "../time-tracking/TimeTracker";
 import TaskDependencies from "../task-dependencies/TaskDependencies";
+import MentionAutocomplete from "../mentions/MentionAutocomplete";
 
 interface TaskDetailsModalProps {
     task: Task | null;
@@ -285,12 +286,13 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                             <ReactMarkdown>{description || "*No description yet.*"}</ReactMarkdown>
                                         </div>
                                     ) : (
-                                        <textarea
+                                        <MentionAutocomplete
                                             value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            rows={6}
-                                            placeholder="Add more details about this task..."
+                                            onChange={setDescription}
+                                            projectId={activeProjectId || undefined}
+                                            placeholder="Add more details about this task... (Type @ to mention someone)"
                                             className="w-full bg-transparent p-4 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-600 focus:outline-none resize-none text-sm leading-relaxed"
+                                            rows={6}
                                         />
                                     )}
                                 </div>

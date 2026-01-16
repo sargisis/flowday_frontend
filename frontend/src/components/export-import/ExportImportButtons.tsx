@@ -24,20 +24,32 @@ export default function ExportImportButtons({
   const handleExportCSV = async () => {
     try {
       const blob = await exportTasksCSV(projectId);
+      if (!blob || blob.size === 0) {
+        toast.error("Export failed: Empty file received");
+        return;
+      }
       downloadCSV(blob, `tasks_export_${new Date().toISOString().split("T")[0]}.csv`);
       toast.success("Tasks exported to CSV");
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to export tasks");
+      const errorMessage = error.response?.data?.error || error.message || "Failed to export tasks";
+      console.error("Export CSV error:", error);
+      toast.error(errorMessage);
     }
   };
 
   const handleExportJSON = async () => {
     try {
       const data = await exportTasksJSON(projectId);
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        toast.warning("No tasks to export");
+        return;
+      }
       downloadJSON(data, `tasks_export_${new Date().toISOString().split("T")[0]}.json`);
       toast.success("Tasks exported to JSON");
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to export tasks");
+      const errorMessage = error.response?.data?.error || error.message || "Failed to export tasks";
+      console.error("Export JSON error:", error);
+      toast.error(errorMessage);
     }
   };
 
@@ -45,16 +57,39 @@ export default function ExportImportButtons({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.name.endsWith('.csv')) {
+      toast.error("Please select a CSV file");
+      if (e.target) e.target.value = "";
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      if (e.target) e.target.value = "";
+      return;
+    }
+
     setImporting(true);
     try {
       const result = await importTasksCSV(file);
-      toast.success(`Imported ${result.imported} tasks`);
+      if (result.imported > 0) {
+        toast.success(`Successfully imported ${result.imported} task${result.imported !== 1 ? 's' : ''}`);
+      } else {
+        toast.warning("No tasks were imported");
+      }
       if (result.errors.length > 0) {
-        toast.warning(`${result.errors.length} errors occurred`);
+        console.error("Import errors:", result.errors);
+        toast.error(`${result.errors.length} error${result.errors.length !== 1 ? 's' : ''} occurred. Check console for details.`, {
+          duration: 5000,
+        });
       }
       onImportComplete?.();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to import tasks");
+      const errorMessage = error.response?.data?.error || error.message || "Failed to import tasks";
+      console.error("Import CSV error:", error);
+      toast.error(errorMessage);
     } finally {
       setImporting(false);
       if (e.target) e.target.value = "";
@@ -65,18 +100,54 @@ export default function ExportImportButtons({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.name.endsWith('.json')) {
+      toast.error("Please select a JSON file");
+      if (e.target) e.target.value = "";
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size must be less than 10MB");
+      if (e.target) e.target.value = "";
+      return;
+    }
+
     setImporting(true);
     try {
       const text = await file.text();
-      const tasks = JSON.parse(text);
+      let tasks;
+      try {
+        tasks = JSON.parse(text);
+      } catch (parseError) {
+        toast.error("Invalid JSON file format");
+        console.error("JSON parse error:", parseError);
+        return;
+      }
+
+      if (!Array.isArray(tasks) && typeof tasks !== 'object') {
+        toast.error("JSON file must contain an array of tasks or a task object");
+        return;
+      }
+
       const result = await importTasksJSON(Array.isArray(tasks) ? tasks : [tasks]);
-      toast.success(`Imported ${result.imported} tasks`);
+      if (result.imported > 0) {
+        toast.success(`Successfully imported ${result.imported} task${result.imported !== 1 ? 's' : ''}`);
+      } else {
+        toast.warning("No tasks were imported");
+      }
       if (result.errors.length > 0) {
-        toast.warning(`${result.errors.length} errors occurred`);
+        console.error("Import errors:", result.errors);
+        toast.error(`${result.errors.length} error${result.errors.length !== 1 ? 's' : ''} occurred. Check console for details.`, {
+          duration: 5000,
+        });
       }
       onImportComplete?.();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to import tasks");
+      const errorMessage = error.response?.data?.error || error.message || "Failed to import tasks";
+      console.error("Import JSON error:", error);
+      toast.error(errorMessage);
     } finally {
       setImporting(false);
       if (e.target) e.target.value = "";
