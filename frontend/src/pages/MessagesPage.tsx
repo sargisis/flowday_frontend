@@ -7,6 +7,7 @@ import { getAvatarUrl, getMe, getFileUrl } from "../api/auth";
 import { toast } from "sonner";
 import { MessagesSkeleton } from "../components/MessagesSkeleton";
 import { RichMessageInput } from "./RichMessageInput";
+import { useWebSocket } from "../hooks/useWebSocket";
 
 export default function MessagesPage() {
     const { chatId } = useParams();
@@ -106,6 +107,155 @@ export default function MessagesPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+    // ✅ REAL-TIME: WebSocket connection for real-time messages
+    // Connect always - we'll handle user loading in the handler
+    const { isConnected: wsConnected } = useWebSocket({
+        autoConnect: true, // Always try to connect
+        onMessageReceived: (messageData: any) => {
+            console.log('[MessagesPage] 🎯 onMessageReceived called with:', messageData);
+            
+            // Convert WebSocket message format to Message format
+            const newMessage: Message = {
+                id: messageData.id,
+                sender_id: messageData.sender_id,
+                receiver_id: messageData.receiver_id,
+                content: messageData.content || "",
+                attachment_url: messageData.attachment_url || "",
+                attachment_type: messageData.attachment_type || "",
+                created_at: messageData.created_at || new Date().toISOString(),
+                is_read: messageData.is_read || false,
+            };
+
+            // Get current user ID - reload if not available
+            let currentUserId = currentUser?.id;
+            console.log('[MessagesPage] Current user ID:', currentUserId, 'Current user:', currentUser, 'WS Connected:', wsConnected);
+            
+            // If current user not loaded, try to reload and process message after
+            if (!currentUserId) {
+                console.warn('[MessagesPage] ⚠️ Current user not loaded, trying to reload...');
+                getMe().then(user => {
+                    console.log('[MessagesPage] ✅ Reloaded user:', user);
+                    setCurrentUser(user);
+                    // Re-process the message with loaded user
+                    if (user?.id) {
+                        processIncomingMessage(newMessage, String(user.id));
+                    }
+                }).catch(err => {
+                    console.error('[MessagesPage] ❌ Failed to reload user:', err);
+                });
+                return;
+            }
+            
+            processIncomingMessage(newMessage, String(currentUserId));
+        },
+    });
+
+    // ✅ Helper function to process incoming WebSocket messages
+    const processIncomingMessage = (newMessage: Message, currentUserIdStr: string) => {
+        const senderIdStr = String(newMessage.sender_id);
+        const receiverIdStr = String(newMessage.receiver_id);
+        
+        const isIncomingMessage = receiverIdStr === currentUserIdStr;
+        const isOutgoingMessage = senderIdStr === currentUserIdStr;
+        
+        console.log('[MessagesPage] 🔍 Message analysis:', {
+            currentUserId: currentUserIdStr,
+            senderId: senderIdStr,
+            receiverId: receiverIdStr,
+            isIncomingMessage,
+            isOutgoingMessage,
+            chatId: chatId ? String(chatId) : null,
+        });
+        
+        // Check if message is for current chat
+        // Message is for current chat if:
+        // - We're viewing this chat (chatId matches the other participant)
+        // - And we're either receiving (incoming) or sending (outgoing) the message
+        let isCurrentChat = false;
+        if (chatId) {
+            const chatIdStr = String(chatId);
+            if (isIncomingMessage) {
+                // We're receiving: check if chatId matches sender (we're chatting with sender)
+                isCurrentChat = chatIdStr === senderIdStr;
+                console.log('[MessagesPage] 📥 Incoming message check:', { chatIdStr, senderIdStr, isCurrentChat });
+            } else if (isOutgoingMessage) {
+                // We're sending: check if chatId matches receiver (we're chatting with receiver)
+                isCurrentChat = chatIdStr === receiverIdStr;
+                console.log('[MessagesPage] 📤 Outgoing message check:', { chatIdStr, receiverIdStr, isCurrentChat });
+            }
+        } else {
+            console.log('[MessagesPage] ⚠️ No chatId, message not for current chat');
+        }
+
+        console.log('[MessagesPage] ✅ Final decision:', {
+            messageId: newMessage.id,
+            content: newMessage.content,
+            isCurrentChat,
+            willAddToMessages: isCurrentChat,
+        });
+
+        // If message is for current chat, add it to messages list
+        if (isCurrentChat) {
+            setMessages(prev => {
+                // Check if message already exists (avoid duplicates)
+                const exists = prev.some(m => String(m.id) === String(newMessage.id));
+                if (exists) {
+                    console.log('[MessagesPage] ⏭️ Message already exists, skipping. Current messages:', prev.length);
+                    return prev;
+                }
+                console.log('[MessagesPage] ✨ Adding new message to chat! Previous count:', prev.length);
+                const updated = [...prev, newMessage];
+                console.log('[MessagesPage] ✨ New message count:', updated.length);
+                return updated;
+            });
+        } else {
+            console.log('[MessagesPage] ❌ Message not for current chat, not adding to messages');
+        }
+
+        // Update conversations list
+        setConversations(prev => {
+            // For incoming messages, update conversation with sender
+            // For outgoing messages, update conversation with receiver
+            const conversationUserId = isIncomingMessage ? String(newMessage.sender_id) : String(newMessage.receiver_id);
+            const existingConv = prev.find(c => String(c.user_id) === conversationUserId);
+            
+            if (existingConv) {
+                // Update existing conversation
+                return prev.map(c =>
+                    String(c.user_id) === conversationUserId
+                        ? {
+                            ...c,
+                            last_message: newMessage.content || (newMessage.attachment_url ? "Attachment" : ""),
+                            last_message_time: "Just now",
+                            // Increment unread count only for incoming messages not in current chat
+                            unread_count: (isIncomingMessage && !isCurrentChat) ? (c.unread_count + 1) : c.unread_count,
+                        }
+                        : c
+                ).sort((a, b) => {
+                    // Sort by last message time (most recent first)
+                    if (a.user_id === conversationUserId) return -1;
+                    if (b.user_id === conversationUserId) return 1;
+                    return 0;
+                });
+            } else if (isOutgoingMessage) {
+                // New conversation from us - refresh conversations to get user info
+                getConversations().then(refreshed => {
+                    setConversations(refreshed);
+                });
+                return prev;
+            }
+            return prev;
+        });
+
+        // Show notification for incoming messages not in current chat
+        if (isIncomingMessage && !isCurrentChat) {
+            const senderName = conversations.find(c => String(c.user_id) === String(newMessage.sender_id))?.user_name || "Someone";
+            toast.info(`New message from ${senderName}`, {
+                description: newMessage.content || "Attachment",
+            });
+        }
+    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

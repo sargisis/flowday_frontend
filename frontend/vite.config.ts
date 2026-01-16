@@ -63,6 +63,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // ✅ SPA: Don't cache navigation requests (let router handle them)
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/_/, /\.(js|css|png|jpg|jpeg|svg|gif|webp|woff|woff2)$/],
+        // ✅ PERFORMANCE: Skip waiting and claim clients for immediate updates
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -176,10 +182,19 @@ export default defineConfig({
     // Enable CSS code splitting
     cssCodeSplit: true,
   },
+  // Development server configuration
+  server: {
+    port: 5173,
+    host: true,
+    // ✅ SPA: Vite automatically handles history API fallback for SPA routing
+    // ✅ CORS: Allow cross-origin requests in development
+    cors: true,
+  },
   // Preview server configuration
   preview: {
     port: 4173,
     host: true,
+    // ✅ SPA: Vite automatically handles history API fallback for SPA routing
   },
   // Optimize dependencies
   optimizeDeps: {

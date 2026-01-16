@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Service Worker - Flowday</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 20px;
+            background: #09090b;
+            color: #fff;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #4f46e5;
+        }
+        .success {
+            color: #10b981;
+            margin: 20px 0;
+        }
+        .error {
+            color: #ef4444;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clear Service Worker</h1>
+    <p>Если у тебя проблемы с кешированием или навигацией, нажми кнопку ниже чтобы очистить Service Worker и кеш.</p>
+    
+    <button onclick="clearServiceWorkers()">Очистить Service Worker</button>
+    <button onclick="clearCache()">Очистить весь кеш</button>
+    <button onclick="clearAll()">Очистить всё</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function clearServiceWorkers() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<p>Очищаем Service Workers...</p>';
+            
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                        console.log('Unregistered:', registration.scope);
+                    }
+                    result.innerHTML = `<p class="success">✅ Успешно! Очищено ${registrations.length} Service Worker(s). Перезагрузи страницу.</p>`;
+                } else {
+                    result.innerHTML = `<p class="error">Service Workers не поддерживаются в этом браузере.</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p class="error">Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        async function clearCache() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<p>Очищаем кеш...</p>';
+            
+            try {
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    result.innerHTML = `<p class="success">✅ Успешно! Очищено ${cacheNames.length} кеш(ей). Перезагрузи страницу.</p>`;
+                } else {
+                    result.innerHTML = `<p class="error">Cache API не поддерживается в этом браузере.</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p class="error">Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        async function clearAll() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<p>Очищаем всё...</p>';
+            
+            try {
+                // Clear Service Workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                    }
+                }
+                
+                // Clear Cache
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                }
+                
+                // Clear localStorage
+                localStorage.clear();
+                
+                // Clear sessionStorage
+                sessionStorage.clear();
+                
+                result.innerHTML = `<p class="success">✅ Успешно! Очищено всё. Перезагрузи страницу.</p>`;
+            } catch (error) {
+                result.innerHTML = `<p class="error">Ошибка: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
