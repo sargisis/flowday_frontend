@@ -85,19 +85,19 @@ export default function MentionAutocomplete({
       
       setMentionStart(mentionPos);
       
+      let filtered: ProjectMember[] = [];
       if (query.length === 0) {
-        setSuggestions(members.slice(0, 5));
+        filtered = members.slice(0, 5);
       } else {
-        const filtered = members.filter(
+        filtered = members.filter(
           (m) =>
             m.user?.name?.toLowerCase().includes(query) ||
             m.user?.email?.toLowerCase().includes(query)
-        );
-        setSuggestions(filtered.slice(0, 5));
+        ).slice(0, 5);
       }
       
-      const shouldShow = query.length === 0 ? members.length > 0 : filtered.length > 0;
-      setShowSuggestions(shouldShow);
+      setSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
       setSelectedIndex(0);
     } else {
       setShowSuggestions(false);
