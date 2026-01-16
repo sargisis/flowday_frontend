@@ -5,8 +5,10 @@ import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 import EmptyState from "../components/state/EmptyState";
 import { KanbanBoardSkeleton } from "../components/SkeletonLoader";
-import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter, Trash2 } from "lucide-react";
+import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter, Trash2, FileText } from "lucide-react";
 import useSound from "../hooks/useSound";
+import SavedViewsDropdown from "../components/saved-views/SavedViewsDropdown";
+import TaskTemplateModal from "../components/templates/TaskTemplateModal";
 
 export default function TasksPage() {
     const { activeProjectId } = useProject();
@@ -18,6 +20,9 @@ export default function TasksPage() {
     // Selection state
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+    
+    // ✅ NEW FEATURES: Templates and Saved Views
+    const [showTemplateModal, setShowTemplateModal] = useState(false);
 
     // Use a premium "glass" sounding chime
     const playSuccess = useSound("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3", 0.6);
@@ -295,6 +300,34 @@ export default function TasksPage() {
                         </>
                     ) : (
                         <>
+                            {/* ✅ NEW: Saved Views */}
+                            <SavedViewsDropdown
+                                projectId={activeProjectId}
+                                currentFilters={{ 
+                                    status: activeFilter !== 'all' ? [activeFilter] : undefined 
+                                }}
+                                onApplyFilters={(filters) => {
+                                    // Apply saved view filters
+                                    if (filters.status && Array.isArray(filters.status) && filters.status.length > 0) {
+                                        // Handle status filter - apply first status from array
+                                        const firstStatus = filters.status[0];
+                                        if (['all', 'high', 'due-soon'].includes(firstStatus)) {
+                                            setActiveFilter(firstStatus as 'all' | 'high' | 'due-soon');
+                                        }
+                                    }
+                                }}
+                            />
+                            
+                            {/* ✅ NEW: Templates Button */}
+                            <button
+                                onClick={() => setShowTemplateModal(true)}
+                                className="bg-zinc-100 dark:bg-white/[0.03] hover:bg-zinc-200 dark:hover:bg-white/[0.08] border border-zinc-300 dark:border-white/10 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-2 uppercase tracking-wider"
+                                title="Task Templates"
+                            >
+                                <FileText size={14} />
+                                Templates
+                            </button>
+                            
                             <button
                                 onClick={() => setIsSelectionMode(true)}
                                 className="bg-zinc-100 dark:bg-white/[0.03] hover:bg-zinc-200 dark:hover:bg-white/[0.08] border border-zinc-300 dark:border-white/10 text-zinc-600 dark:text-zinc-400 px-4 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-2 uppercase tracking-wider group hover:text-zinc-900 dark:hover:text-white"
@@ -417,6 +450,19 @@ export default function TasksPage() {
                     />
                 )}
             </div>
+            
+            {/* ✅ NEW: Task Template Modal */}
+            <TaskTemplateModal
+                isOpen={showTemplateModal}
+                onClose={() => setShowTemplateModal(false)}
+                projectId={activeProjectId}
+                onSuccess={() => {
+                    // Refresh tasks if needed
+                    if (activeProjectId) {
+                        getTasksByProject(activeProjectId).then(setTasks);
+                    }
+                }}
+            />
         </div>
     );
 }
