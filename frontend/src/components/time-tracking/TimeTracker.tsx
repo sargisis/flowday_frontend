@@ -43,7 +43,8 @@ export default function TimeTracker({
   const checkActiveEntry = async () => {
     try {
       const allEntries = await getTimeEntries(taskId);
-      const active = allEntries.find((e) => !e.end_time);
+      const entriesArray = Array.isArray(allEntries) ? allEntries : [];
+      const active = entriesArray.find((e) => !e.end_time);
       if (active) {
         setCurrentEntry(active);
         setIsTracking(true);
@@ -59,11 +60,13 @@ export default function TimeTracker({
   const loadEntries = async () => {
     try {
       const data = await getTimeEntries(taskId);
-      setEntries(data);
-      const total = data.reduce((sum, e) => sum + e.duration, 0);
+      const entriesArray = Array.isArray(data) ? data : [];
+      setEntries(entriesArray);
+      const total = entriesArray.reduce((sum, e) => sum + (e.duration || 0), 0);
       onTimeUpdate?.(total);
     } catch (error) {
-      // Ignore errors
+      // Ignore errors, but ensure entries is always an array
+      setEntries([]);
     }
   };
 
@@ -105,7 +108,7 @@ export default function TimeTracker({
     return `${h}h ${m}m`;
   };
 
-  const totalTime = entries.reduce((sum, e) => sum + e.duration, 0);
+  const totalTime = (Array.isArray(entries) ? entries : []).reduce((sum, e) => sum + (e.duration || 0), 0);
 
   return (
     <div className="space-y-4">
@@ -149,7 +152,7 @@ export default function TimeTracker({
         )}
       </div>
 
-      {entries.length > 0 && (
+      {Array.isArray(entries) && entries.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm text-zinc-400">
             <TrendingUp className="w-4 h-4" />
