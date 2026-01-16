@@ -2,11 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { Task, Attachment } from "../../api/tasks";
-import { duplicateTask, uploadTaskAttachment, getTaskAttachments, deleteTaskAttachment } from "../../api/tasks";
+import { duplicateTask, uploadTaskAttachment, getTaskAttachments, deleteTaskAttachment, getTasksByProject } from "../../api/tasks";
 import { useTasks } from "../../context/TaskContext";
+import { useProject } from "../../context/ProjectContext";
 import TaskComments from "./TaskComments";
 import TimeTracker from "../time-tracking/TimeTracker";
 import TaskDependencies from "../task-dependencies/TaskDependencies";
+import MentionAutocomplete from "../mentions/MentionAutocomplete";
 
 interface TaskDetailsModalProps {
     task: Task | null;
@@ -20,6 +22,7 @@ import { toast } from "sonner";
 
 export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDelete }: TaskDetailsModalProps) {
     const { handleEnrichTask } = useTasks();
+    const { activeProjectId } = useProject();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [subtasks, setSubtasks] = useState<{ id: string; title: string; completed: boolean }[]>([]);
@@ -31,6 +34,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const [isPreview, setIsPreview] = useState(false);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [isUploading, setIsUploading] = useState(false);
+    const [allTasks, setAllTasks] = useState<Task[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -43,8 +47,12 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
             setDueDate(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : "");
             // Load attachments
             loadAttachments();
+            // Load all tasks for dependencies
+            if (activeProjectId) {
+                getTasksByProject(activeProjectId).then(setAllTasks).catch(console.error);
+            }
         }
-    }, [task, isOpen]);
+    }, [task, isOpen, activeProjectId]);
 
     const loadAttachments = async () => {
         if (!task) return;
@@ -278,12 +286,13 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                             <ReactMarkdown>{description || "*No description yet.*"}</ReactMarkdown>
                                         </div>
                                     ) : (
-                                        <textarea
+                                        <MentionAutocomplete
                                             value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            rows={6}
-                                            placeholder="Add more details about this task..."
+                                            onChange={setDescription}
+                                            projectId={activeProjectId || undefined}
+                                            placeholder="Add more details about this task... (Type @ to mention someone)"
                                             className="w-full bg-transparent p-4 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-600 focus:outline-none resize-none text-sm leading-relaxed"
+                                            rows={6}
                                         />
                                     )}
                                 </div>
@@ -386,9 +395,12 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                             <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
                                 <TaskDependencies
                                     taskId={task.id}
-                                    allTasks={[]} // TODO: Pass all tasks from parent
+                                    allTasks={allTasks}
                                     onUpdate={() => {
-                                        // Refresh task data
+                                        // Refresh tasks list
+                                        if (activeProjectId) {
+                                            getTasksByProject(activeProjectId).then(setAllTasks).catch(console.error);
+                                        }
                                     }}
                                 />
                             </div>
