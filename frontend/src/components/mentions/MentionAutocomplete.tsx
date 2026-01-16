@@ -57,15 +57,22 @@ export default function MentionAutocomplete({
     // Only handle special keys when suggestions are visible
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      e.stopPropagation();
       setSelectedIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      e.stopPropagation();
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
-    } else if (e.key === "Enter") {
+    } else if (e.key === "Enter" && !e.shiftKey) {
+      // Only intercept Enter if Shift is not pressed (Shift+Enter = new line)
       e.preventDefault();
-      selectMention(suggestions[selectedIndex]);
+      e.stopPropagation();
+      if (suggestions[selectedIndex]) {
+        selectMention(suggestions[selectedIndex]);
+      }
     } else if (e.key === "Escape") {
       e.preventDefault();
+      e.stopPropagation();
       setShowSuggestions(false);
     }
     // For all other keys, allow normal textarea behavior
@@ -106,11 +113,31 @@ export default function MentionAutocomplete({
   };
 
   const selectMention = (member: ProjectMember) => {
-    if (!mentionStart || !textareaRef.current) return;
+    if (!member || !textareaRef.current) return;
+    
+    // If mentionStart is null, try to find @ in current value
+    let startPos = mentionStart;
+    if (startPos === null) {
+      const cursorPos = textareaRef.current.selectionStart;
+      const textBeforeCursor = value.substring(0, cursorPos);
+      startPos = textBeforeCursor.lastIndexOf("@");
+      if (startPos === -1) {
+        // No @ found, can't insert mention
+        setShowSuggestions(false);
+        return;
+      }
+    }
 
     const username = member.user?.name || member.user?.email || "user";
-    const beforeMention = value.substring(0, mentionStart);
-    const afterMention = value.substring(textareaRef.current.selectionStart);
+    const beforeMention = value.substring(0, startPos);
+    const cursorPos = textareaRef.current.selectionStart;
+    const textAfterCursor = value.substring(cursorPos);
+    // Find where the @mention text ends (after @ and any typed characters)
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+    const mentionEnd = mentionMatch ? cursorPos : startPos + 1;
+    const afterMention = value.substring(mentionEnd);
+    
     const newValue = `${beforeMention}@${username} ${afterMention}`;
 
     onChange(newValue);
@@ -120,7 +147,7 @@ export default function MentionAutocomplete({
     // Set cursor position after mention
     setTimeout(() => {
       if (textareaRef.current) {
-        const newPos = mentionStart + username.length + 2; // +2 for @ and space
+        const newPos = startPos + username.length + 2; // +2 for @ and space
         textareaRef.current.setSelectionRange(newPos, newPos);
         textareaRef.current.focus();
       }

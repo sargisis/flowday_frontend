@@ -46,6 +46,10 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // Don't submit if user is selecting a mention (let MentionAutocomplete handle it)
+        if (newComment.includes("@") && newComment.match(/@\w*$/)) {
+            return; // User is typing a mention, don't submit
+        }
         if (!newComment.trim()) return;
 
         try {
@@ -205,7 +209,16 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
             </div>
 
             {/* Comment Form */}
-            <form onSubmit={handleSubmit} className="space-y-2">
+            <form 
+                onSubmit={handleSubmit} 
+                className="space-y-2"
+                onKeyDown={(e) => {
+                    // Prevent form submission when selecting mention
+                    if (e.key === "Enter" && newComment.match(/@\w*$/)) {
+                        e.preventDefault();
+                    }
+                }}
+            >
                 <MentionAutocomplete
                     value={newComment}
                     onChange={setNewComment}
