@@ -6,6 +6,7 @@ import { duplicateTask, uploadTaskAttachment, getTaskAttachments, deleteTaskAtta
 import { useTasks } from "../../context/TaskContext";
 import TaskComments from "./TaskComments";
 import TimeTracker from "../time-tracking/TimeTracker";
+import TaskDependencies from "../task-dependencies/TaskDependencies";
 
 interface TaskDetailsModalProps {
     task: Task | null;
@@ -379,6 +380,17 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                     <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Time Tracking</h3>
                                 </div>
                                 <TimeTracker taskId={task.id} />
+                            </div>
+
+                            {/* Task Dependencies Section */}
+                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
+                                <TaskDependencies
+                                    taskId={task.id}
+                                    allTasks={[]} // TODO: Pass all tasks from parent
+                                    onUpdate={() => {
+                                        // Refresh task data
+                                    }}
+                                />
                             </div>
 
                             {/* Comments Section */}
