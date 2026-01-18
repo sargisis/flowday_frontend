@@ -110,6 +110,7 @@ export default function MessagesPage() {
 
     // ✅ REAL-TIME: WebSocket connection for real-time messages
     // Connect always - we'll handle user loading in the handler
+    // Note: Connection persists across page navigation to avoid reconnections
     const { isConnected: wsConnected } = useWebSocket({
         autoConnect: true, // Always try to connect
         onMessageReceived: (messageData: any) => {

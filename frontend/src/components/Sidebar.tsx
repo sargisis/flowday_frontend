@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { useState, useEffect, startTransition, memo } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { createProject } from "../api/projects";
 import { useProject } from "../context/ProjectContext";
 import { toast } from "sonner";
@@ -16,7 +16,26 @@ import {
     MessageSquare
 } from "lucide-react";
 
-export default function Sidebar() {
+// Prefetch routes on hover for faster navigation
+const prefetchRoute = (path: string) => {
+    if (path === '/app/v1/dashboard') {
+        import("../pages/Dashboard");
+    } else if (path === '/app/v1/calendar') {
+        import("../pages/Calendar");
+    } else if (path === '/app/v1/tasks') {
+        import("../pages/TasksPage");
+    } else if (path === '/app/v1/messages') {
+        import("../pages/MessagesPage");
+    } else if (path === '/app/v1/team') {
+        import("../pages/TeamPage");
+    } else if (path === '/app/v1/invitations') {
+        import("../pages/InvitationsPage");
+    } else if (path === '/app/v1/settings') {
+        import("../pages/SettingsPage");
+    }
+};
+
+function Sidebar() {
     const { projects, activeProjectId, setActiveProjectId, refreshProjects } = useProject();
     const [isCreating, setIsCreating] = useState(false);
     const [newProjectName, setNewProjectName] = useState("");
@@ -118,6 +137,7 @@ export default function Sidebar() {
                     <NavLink
                         key={item.path}
                         to={item.path}
+                        onMouseEnter={() => prefetchRoute(item.path)}
                         className={({ isActive }) =>
                             `nav-item ${isActive ? "active-nav" : ""} `
                         }
@@ -192,3 +212,6 @@ export default function Sidebar() {
         </aside>
     );
 }
+
+// Memoize Sidebar to prevent unnecessary re-renders
+export default memo(Sidebar);
