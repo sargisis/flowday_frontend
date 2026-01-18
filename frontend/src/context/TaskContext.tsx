@@ -75,14 +75,21 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
             await apiUpdateTask(taskId, updates);
             triggerRefresh();
 
-            // If task was completed, refresh user to update XP/Level
-            if (updates.status?.toLowerCase() === 'done') {
-                reloadUser();
-            }
-
             // Update selected task if it's the one being updated
             if (selectedTask?.id === taskId) {
                 setSelectedTask(prev => prev ? { ...prev, ...updates } : null);
+            }
+
+            // If task was completed, refresh user to update XP/Level (non-blocking)
+            if (updates.status?.toLowerCase() === 'done') {
+                // Use setTimeout to defer reloadUser and prevent blocking
+                // This prevents WebSocket disconnection issues
+                setTimeout(() => {
+                    reloadUser().catch(err => {
+                        // Silently fail - user will be updated on next page refresh
+                        console.warn("Failed to reload user after task completion:", err);
+                    });
+                }, 500);
             }
         } catch (error) {
             console.error("Task update failed", error);

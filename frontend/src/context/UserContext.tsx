@@ -40,10 +40,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
         try {
             const userData = await getMe();
             setUser(userData);
-        } catch (err) {
-            console.error("Failed to fetch user", err);
-            setUser(null);
-        } finally {
+            setLoading(false);
+        } catch (err: any) {
+            // Don't clear user on 401 - axios interceptor will handle token refresh
+            // Only log error without resetting user to prevent UI flicker
+            if (err?.response?.status !== 401) {
+                console.error("Failed to fetch user", err);
+            }
+            // Don't set user to null on error - keep existing user data
             setLoading(false);
         }
     };

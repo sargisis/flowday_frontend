@@ -56,14 +56,34 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const shouldReconnectRef = useRef(true); // Flag to control reconnection
 
   const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      return; // Already connected
+    // Prevent multiple connection attempts
+    if (wsRef.current) {
+      const state = wsRef.current.readyState;
+      if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) {
+        return; // Already connected or connecting
+      }
+      // Clean up closed/failed connection
+      if (state === WebSocket.CLOSED || state === WebSocket.CLOSING) {
+        wsRef.current = null;
+      }
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
       setError(new Error('No access token available'));
       return;
+    }
+
+    // Check if token is expired
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < now) {
+        setError(new Error('Token expired'));
+        return;
+      }
+    } catch (e) {
+      // If we can't parse token, continue anyway - server will validate
     }
 
     // Get WebSocket URL from environment or use default
@@ -243,13 +263,20 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   useEffect(() => {
     if (autoConnect) {
-      connect();
-    }
+      // Small delay to prevent multiple rapid connection attempts
+      const timeoutId = setTimeout(() => {
+        connect();
+      }, 100);
 
-    return () => {
-      disconnect();
-    };
-  }, [autoConnect, connect, disconnect]);
+      return () => {
+        clearTimeout(timeoutId);
+        // Only disconnect if explicitly requested (not on unmount)
+        // This prevents closing connection when switching pages
+        // Connection will be reused if component remounts quickly
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoConnect]); // Remove connect/disconnect from dependencies to prevent reconnections
 
   return {
     isConnected,
