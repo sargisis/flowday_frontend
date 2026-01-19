@@ -152,21 +152,49 @@ export default defineConfig({
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) {
             return 'react-vendor';
           }
+          // TanStack Query (React Query)
+          if (id.includes('node_modules/@tanstack/react-query')) {
+            return 'query-vendor';
+          }
           // UI libraries
-          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/sonner') || id.includes('node_modules/canvas-confetti')) {
+          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/sonner')) {
             return 'ui-vendor';
+          }
+          // Heavy UI libraries (loaded on demand)
+          if (id.includes('node_modules/canvas-confetti') || id.includes('node_modules/react-markdown')) {
+            return 'ui-heavy';
           }
           // Utility libraries
           if (id.includes('node_modules/axios') || id.includes('node_modules/date-fns') || id.includes('node_modules/zod')) {
             return 'utils-vendor';
           }
-          // DnD Kit for kanban
+          // DnD Kit for kanban (loaded when needed)
           if (id.includes('node_modules/@dnd-kit')) {
             return 'dnd-vendor';
+          }
+          // Sentry (error tracking - loaded on demand)
+          if (id.includes('node_modules/@sentry')) {
+            return 'monitoring-vendor';
           }
           // Other vendor code
           if (id.includes('node_modules')) {
             return 'vendor';
+          }
+          // Feature-based chunks for better code splitting
+          if (id.includes('/components/kanban/')) {
+            return 'kanban';
+          }
+          if (id.includes('/components/ai/')) {
+            return 'ai';
+          }
+          if (id.includes('/pages/')) {
+            // Pages are already lazy loaded, but we can group them
+            if (id.includes('Dashboard') || id.includes('TasksPage') || id.includes('Calendar')) {
+              return 'core-pages';
+            }
+            if (id.includes('FocusMode') || id.includes('FocusHistory')) {
+              return 'focus-pages';
+            }
           }
         },
         // Optimize chunk file names for better caching

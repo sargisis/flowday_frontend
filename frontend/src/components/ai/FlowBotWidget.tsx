@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { MessageCircle, X, Send, Sparkles, Zap, Lock, ChevronDown, Bot } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
 import { chatWithAI, getChatHistory, getQuotaStatus, type Message } from "../../api/ai";
 import { toast } from "sonner";
-import ReactMarkdown from 'react-markdown';
+
+// Lazy load ReactMarkdown (heavy library)
+const ReactMarkdown = lazy(() => import('react-markdown'));
 
 export default function FlowBotWidget() {
     const { user } = useUser();
@@ -157,7 +159,11 @@ export default function FlowBotWidget() {
                                         : 'bg-black/40 border-white/10 text-zinc-300 rounded-tl-none'}
                                 `}>
                                     {msg.role === 'assistant'
-                                        ? <div className="markdown prose prose-invert prose-xs max-w-none"><ReactMarkdown>{msg.content}</ReactMarkdown></div>
+                                        ? <div className="markdown prose prose-invert prose-xs max-w-none">
+                                            <Suspense fallback={<div className="text-zinc-400 italic">Loading...</div>}>
+                                                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                            </Suspense>
+                                          </div>
                                         : msg.content
                                     }
                                 </div>

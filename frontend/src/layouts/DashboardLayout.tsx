@@ -9,7 +9,8 @@ import CommandPalette from "../components/command-palette/CommandPalette";
 import { AnalyticsTracker } from "../components/AnalyticsTracker";
 import { useTasks } from "../context/TaskContext";
 import { useUser } from "../context/UserContext";
-import confetti from "canvas-confetti";
+// Dynamic import for confetti (heavy library, only loaded when needed)
+const loadConfetti = () => import("canvas-confetti").then(m => m.default);
 import FlowBotWidget from "../components/ai/FlowBotWidget";
 import CreateTaskModal from "../components/create-task-components/CreateTaskModal";
 import TaskDetailsModal from "../components/task-components/TaskDetailsModal";
@@ -35,12 +36,14 @@ export default function DashboardLayout() {
     // Level-Up Celebration Logic
     useEffect(() => {
         if (user && prevLevelRef.current !== undefined && (user.level || 0) > prevLevelRef.current) {
-            // Level increased!
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#6366f1', '#a855f7', '#ec4899']
+            // Level increased! Load and fire confetti
+            loadConfetti().then(confetti => {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#6366f1', '#a855f7', '#ec4899']
+                });
             });
 
             // Optional: Play a sound if available

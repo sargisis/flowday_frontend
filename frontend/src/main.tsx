@@ -29,6 +29,12 @@ initSentry();
 // Initialize Google Analytics
 initAnalytics();
 
+// Prefetch critical routes after initial load
+import { prefetchCriticalRoutes } from './utils/prefetch';
+setTimeout(() => {
+    prefetchCriticalRoutes();
+}, 3000); // Prefetch after 3 seconds (non-blocking)
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
