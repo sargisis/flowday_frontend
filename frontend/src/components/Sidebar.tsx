@@ -13,7 +13,8 @@ import {
     Calendar,
     Hexagon,
     Bell,
-    MessageSquare
+    MessageSquare,
+    BarChart3
 } from "lucide-react";
 
 // Prefetch routes on hover for faster navigation
@@ -104,6 +105,7 @@ function Sidebar() {
         { label: "Dashboard", path: "/app/v1/dashboard", icon: LayoutDashboard },
         { label: "Calendar", path: "/app/v1/calendar", icon: Calendar },
         { label: "My Tasks", path: "/app/v1/tasks", icon: CheckSquare },
+        { label: "Analytics", path: "/app/v1/analytics", icon: BarChart3 },
         { label: "Messages", path: "/app/v1/messages", icon: MessageSquare },
         { label: "Team", path: "/app/v1/team", icon: Users },
         { label: "Invitations", path: "/app/v1/invitations", icon: Mail },

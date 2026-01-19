@@ -28,6 +28,7 @@ const FocusHistoryPage = lazy(() => import("../pages/FocusHistoryPage"));
 const AchievementsPage = lazy(() => import("../pages/AchievementsPage"));
 const FocusMode = lazy(() => import("../pages/FocusMode"));
 const Calendar = lazy(() => import("../pages/Calendar"));
+const AnalyticsPage = lazy(() => import("../pages/AnalyticsPage"));
 
 // Simple loading fallback component
 const PageLoader = () => (
@@ -236,6 +237,16 @@ export const router = createBrowserRouter([
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
                             <AchievementsPage />
+                        </Suspense>
+                    </ErrorBoundary>
+                )
+            },
+            { 
+                path: "analytics", 
+                element: (
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <AnalyticsPage />
                         </Suspense>
                     </ErrorBoundary>
                 )

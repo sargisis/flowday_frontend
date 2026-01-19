@@ -42,6 +42,7 @@ export function prefetchRoute(pathname: string) {
         '/app/v1/focus': '../pages/FocusMode',
         '/app/v1/notifications': '../pages/NotificationsPage',
         '/app/v1/achievements': '../pages/AchievementsPage',
+        '/app/v1/analytics': '../pages/AnalyticsPage',
     };
 
     const modulePath = routeMap[pathname];
