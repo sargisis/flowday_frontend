@@ -17,22 +17,10 @@ import {
 } from "lucide-react";
 
 // Prefetch routes on hover for faster navigation
+import { prefetchRoute as prefetchRouteUtil } from '../utils/prefetch';
+
 const prefetchRoute = (path: string) => {
-    if (path === '/app/v1/dashboard') {
-        import("../pages/Dashboard");
-    } else if (path === '/app/v1/calendar') {
-        import("../pages/Calendar");
-    } else if (path === '/app/v1/tasks') {
-        import("../pages/TasksPage");
-    } else if (path === '/app/v1/messages') {
-        import("../pages/MessagesPage");
-    } else if (path === '/app/v1/team') {
-        import("../pages/TeamPage");
-    } else if (path === '/app/v1/invitations') {
-        import("../pages/InvitationsPage");
-    } else if (path === '/app/v1/settings') {
-        import("../pages/SettingsPage");
-    }
+    prefetchRouteUtil(path);
 };
 
 function Sidebar() {

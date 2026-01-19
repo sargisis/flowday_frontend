@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock, Undo2, Redo2 } from "lucide-react";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import { useAutoSave } from "../../hooks/useAutoSave";
-import ReactMarkdown from "react-markdown";
+
+// Lazy load ReactMarkdown (heavy library)
+const ReactMarkdown = lazy(() => import("react-markdown"));
 import type { Task, Attachment } from "../../api/tasks";
 import { duplicateTask, uploadTaskAttachment, getTaskAttachments, deleteTaskAttachment, getTasksByProject } from "../../api/tasks";
 import { useTasks } from "../../context/TaskContext";
@@ -391,7 +393,9 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                 <div className="min-h-[140px] bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700/50 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500/50 transition-all">
                                     {isPreview ? (
                                         <div className="p-4 text-sm text-zinc-900 dark:text-zinc-200 leading-relaxed overflow-y-auto max-h-[300px] prose dark:prose-invert prose-sm max-w-none">
-                                            <ReactMarkdown>{description || "*No description yet.*"}</ReactMarkdown>
+                                            <Suspense fallback={<div className="text-zinc-500 italic">Loading markdown...</div>}>
+                                                <ReactMarkdown>{description || "*No description yet.*"}</ReactMarkdown>
+                                            </Suspense>
                                         </div>
                                     ) : (
                                         <MentionAutocomplete
