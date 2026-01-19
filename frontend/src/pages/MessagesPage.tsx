@@ -7,7 +7,7 @@ import { getAvatarUrl, getMe, getFileUrl } from "../api/auth";
 import { toast } from "sonner";
 import { MessagesSkeleton } from "../components/MessagesSkeleton";
 import { RichMessageInput } from "./RichMessageInput";
-import { useWebSocket } from "../hooks/useWebSocket";
+import { useWebSocketContext } from "../context/WebSocketContext";
 
 export default function MessagesPage() {
     const { chatId } = useParams();
@@ -109,11 +109,13 @@ export default function MessagesPage() {
     const emojiPickerRef = useRef<HTMLDivElement>(null);
 
     // ✅ REAL-TIME: WebSocket connection for real-time messages
-    // Connect always - we'll handle user loading in the handler
-    // Note: Connection persists across page navigation to avoid reconnections
-    const { isConnected: wsConnected } = useWebSocket({
-        autoConnect: true, // Always try to connect
-        onMessageReceived: (messageData: any) => {
+    // Use global WebSocket provider to avoid reconnections on page navigation
+    const { isConnected: wsConnected, subscribe } = useWebSocketContext();
+
+    // Subscribe to message events
+    useEffect(() => {
+        const unsubscribe = subscribe('message', (wsMessage) => {
+            const messageData = wsMessage.payload;
             console.log('[MessagesPage] 🎯 onMessageReceived called with:', messageData);
             
             // Convert WebSocket message format to Message format
@@ -149,8 +151,10 @@ export default function MessagesPage() {
             }
             
             processIncomingMessage(newMessage, String(currentUserId));
-        },
-    });
+        });
+
+        return unsubscribe;
+    }, [subscribe, currentUser, wsConnected]);
 
     // ✅ Helper function to process incoming WebSocket messages
     const processIncomingMessage = (newMessage: Message, currentUserIdStr: string) => {

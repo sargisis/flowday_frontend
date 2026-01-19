@@ -6,6 +6,7 @@ import { ProjectProvider } from "../context/ProjectContext";
 import { UserProvider } from "../context/UserContext";
 import { FocusProvider } from "../context/FocusContext";
 import { TaskProvider } from "../context/TaskContext";
+import { WebSocketProvider } from "../context/WebSocketContext";
 import { DashboardSkeleton } from "../components/SkeletonLoader";
 
 // Lazy load pages for code splitting and faster initial load
@@ -84,13 +85,15 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute>
                 <UserProvider>
-                    <ProjectProvider>
-                        <FocusProvider>
-                            <TaskProvider>
-                                <DashboardLayout />
-                            </TaskProvider>
-                        </FocusProvider>
-                    </ProjectProvider>
+                    <WebSocketProvider>
+                        <ProjectProvider>
+                            <FocusProvider>
+                                <TaskProvider>
+                                    <DashboardLayout />
+                                </TaskProvider>
+                            </FocusProvider>
+                        </ProjectProvider>
+                    </WebSocketProvider>
                 </UserProvider>
             </ProtectedRoute>
         ),

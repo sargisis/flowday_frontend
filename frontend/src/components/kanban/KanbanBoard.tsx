@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, memo, useCallback } from "react";
 import {
     DndContext,
     DragOverlay,
@@ -67,15 +67,15 @@ export default function KanbanBoard({
         })
     );
 
-    const handleDragStart = (event: DragStartEvent) => {
+    const handleDragStart = useCallback((event: DragStartEvent) => {
         setActiveId(event.active.id as string);
-    };
+    }, []);
 
     // We only rely on handleDragEnd for the status change to avoid state loops
-    const handleDragOver = (_: DragOverEvent) => {
-    };
+    const handleDragOver = useCallback((_: DragOverEvent) => {
+    }, []);
 
-    const handleDragEnd = (event: DragEndEvent) => {
+    const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;
         setActiveId(null);
 
@@ -169,7 +169,7 @@ export default function KanbanBoard({
 
         // Re-sync local state to be safe (in case backend fails or returns slightly diff data)
         // Actually, preventing flicker: we leave local state as is, and let the useEffect above sync it when next props come in.
-    };
+    }, [tasks, onTaskUpdate]);
 
     // Filter tasks for columns (Case-insensitive)
     const todoTasks = useMemo(() => tasks.filter(t => t.status.toLowerCase() === "todo"), [tasks]);
@@ -273,3 +273,6 @@ export default function KanbanBoard({
         </DndContext>
     );
 }
+
+// Memoize KanbanBoard to prevent unnecessary re-renders
+export default memo(KanbanBoard);
