@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import { type Task, updateTask, deleteTask } from "../../api/tasks"
 import { useNavigate } from "react-router-dom";
 import { Maximize2 } from "lucide-react";
@@ -11,7 +11,7 @@ interface TaskItemProps {
     onView: (task: Task) => void;
 }
 
-export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
+function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
     const navigate = useNavigate();
     const [optimisticStatus, setOptimisticStatus] = useState(task.status);
 
@@ -20,7 +20,7 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
         setOptimisticStatus(task.status);
     }, [task.status]);
 
-    const handleDelete = async () => {
+    const handleDelete = useCallback(async () => {
         if (window.confirm("Are you sure you want to delete this task?")) {
             try {
                 await deleteTask(task.id);
@@ -30,7 +30,32 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
                 toast.error("Failed to delete task");
             }
         }
-    };
+    }, [task.id, onUpdate]);
+
+    const handleStatusChange = useCallback(async (newStatus: string) => {
+        const previousStatus = optimisticStatus;
+        // 1. Optimistic Update
+        setOptimisticStatus(newStatus);
+
+        try {
+            // 2. API Call in background
+            await updateTask(task.id, { status: newStatus });
+            // 3. Sync with parent (optional, but good for consistency)
+            onUpdate();
+        } catch {
+            // 4. Rollback on failure
+            setOptimisticStatus(previousStatus);
+            toast.error("Failed to update status");
+        }
+    }, [task.id, optimisticStatus, onUpdate]);
+
+    const handleView = useCallback(() => {
+        onView(task);
+    }, [task, onView]);
+
+    const handleFocusMode = useCallback(() => {
+        navigate(`/app/v1/focus/${task.id}`);
+    }, [task.id, navigate]);
 
     return (
         <div className="task-row group">
@@ -56,22 +81,7 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
             <div className="-ml-2">
                 <StatusSelector
                     currentStatus={optimisticStatus}
-                    onStatusChange={async (newStatus) => {
-                        const previousStatus = optimisticStatus;
-                        // 1. Optimistic Update
-                        setOptimisticStatus(newStatus);
-
-                        try {
-                            // 2. API Call in background
-                            await updateTask(task.id, { status: newStatus });
-                            // 3. Sync with parent (optional, but good for consistency)
-                            onUpdate();
-                        } catch {
-                            // 4. Rollback on failure
-                            setOptimisticStatus(previousStatus);
-                            toast.error("Failed to update status");
-                        }
-                    }}
+                    onStatusChange={handleStatusChange}
                 />
             </div>
 
@@ -81,7 +91,7 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
                 {/* New Focus Mode Button */}
                 <button
                     className="action-btn view"
-                    onClick={() => navigate(`/app/v1/focus/${task.id}`)}
+                    onClick={handleFocusMode}
                     title="Enter Focus Mode"
                 >
                     <Maximize2 size={16} />
@@ -90,7 +100,7 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
                 {/* View Description Button (Only if description exists) */}
                 {task.description && (
                     <button
-                        onClick={() => onView(task)}
+                        onClick={handleView}
                         className="action-btn view"
                         title="View Description"
                     >
@@ -102,7 +112,7 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
                 )}
 
                 <button
-                    onClick={() => navigate(`/app/v1/focus/${task.id}`)}
+                    onClick={handleFocusMode}
                     className="action-btn focus"
                     title="Focus Mode"
                 >
@@ -119,3 +129,15 @@ export default function TaskItem({ task, onUpdate, onView }: TaskItemProps) {
         </div>
     );
 }
+
+// Memoize TaskItem to prevent unnecessary re-renders
+export default memo(TaskItem, (prevProps, nextProps) => {
+    // Custom comparison function for better memoization
+    return (
+        prevProps.task.id === nextProps.task.id &&
+        prevProps.task.title === nextProps.task.title &&
+        prevProps.task.status === nextProps.task.status &&
+        prevProps.task.priority === nextProps.task.priority &&
+        prevProps.task.description === nextProps.task.description
+    );
+});
