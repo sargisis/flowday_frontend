@@ -6,6 +6,7 @@ import KanbanBoard from "../components/kanban/KanbanBoard";
 import EmptyState from "../components/state/EmptyState";
 import { KanbanColumnSkeleton } from "../components/skeletons/KanbanColumnSkeleton";
 import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter, Trash2, FileText, Keyboard } from "lucide-react";
+import { toast } from "sonner";
 import useSound from "../hooks/useSound";
 import SavedViewsDropdown from "../components/saved-views/SavedViewsDropdown";
 import TaskTemplateModal from "../components/templates/TaskTemplateModal";
@@ -76,6 +77,10 @@ export default function TasksPage() {
         return () => window.removeEventListener('task-updated', handleTaskUpdated);
     }, [activeProjectId]);
 
+    // State for keyboard navigation
+    const [selectedTaskIndex, setSelectedTaskIndex] = useState<number>(-1);
+    const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+
     // ✅ NEW: Enhanced Keyboard Shortcuts
     useKeyboardShortcuts(
         [
@@ -107,11 +112,50 @@ export default function TasksPage() {
                     }
                     setShowTemplateModal(false);
                     setShowShortcutsModal(false);
+                    setSelectedTaskId(null);
+                    setSelectedTaskIndex(-1);
+                },
+            },
+            // Quick actions for selected task
+            {
+                key: 'e',
+                description: 'Edit selected task',
+                action: () => {
+                    if (selectedTaskId) {
+                        const task = tasks.find(t => t.id === selectedTaskId);
+                        if (task) {
+                            openDetailsModal(task);
+                        }
+                    }
+                },
+            },
+            {
+                key: 'd',
+                description: 'Delete selected task',
+                action: () => {
+                    if (selectedTaskId && !isSelectionMode) {
+                        const task = tasks.find(t => t.id === selectedTaskId);
+                        if (task && confirm(`Delete task "${task.title}"?`)) {
+                            handleDeleteTask(task.id);
+                            setSelectedTaskId(null);
+                            setSelectedTaskIndex(-1);
+                        }
+                    }
+                },
+            },
+            {
+                key: 'f',
+                description: 'Focus mode for selected task',
+                action: () => {
+                    if (selectedTaskId) {
+                        window.location.href = `/app/v1/focus/${selectedTaskId}`;
+                    }
                 },
             },
         ],
         true
     );
+
 
     // Keyboard shortcuts for selection mode
     useEffect(() => {
@@ -131,29 +175,22 @@ export default function TasksPage() {
             // Delete/Backspace: Delete selected tasks
             if ((e.key === 'Delete' || e.key === 'Backspace') && isSelectionMode && selectedTaskIds.size > 0) {
                 e.preventDefault();
+                handleBulkDelete();
+            }
 
-                if (!confirm(`Delete ${selectedTaskIds.size} selected tasks?`)) return;
-
-                setIsLoading(true);
-                bulkDeleteTasks(Array.from(selectedTaskIds))
-                    .then(() => {
-                        if (activeProjectId) {
-                            return getTasksByProject(activeProjectId);
-                        }
-                    })
-                    .then((data) => {
-                        if (data) {
-                            setTasks(data);
-                        }
-                        setIsSelectionMode(false);
-                        setSelectedTaskIds(new Set());
-                    })
-                    .catch((error) => {
-                        console.error("Failed to bulk delete", error);
-                    })
-                    .finally(() => {
-                        setIsLoading(false);
-                    });
+            // Bulk status change: 1-4 keys for quick status change
+            if (isSelectionMode && selectedTaskIds.size > 0 && ['1', '2', '3', '4'].includes(e.key)) {
+                e.preventDefault();
+                const statusMap: Record<string, string> = {
+                    '1': 'Todo',
+                    '2': 'In_Progress',
+                    '3': 'Blocked',
+                    '4': 'Done',
+                };
+                const newStatus = statusMap[e.key];
+                if (newStatus) {
+                    handleBulkStatusChange(newStatus);
+                }
             }
 
             // Escape: Cancel selection mode
@@ -204,6 +241,74 @@ export default function TasksPage() {
         return tasks;
     }, [tasks, activeFilter]);
 
+    // Keyboard navigation for tasks (after filteredTasks is defined)
+    useEffect(() => {
+        if (isSelectionMode || isLoading) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ignore if typing in input/textarea
+            const target = e.target as HTMLElement;
+            if (
+                ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
+                target.isContentEditable
+            ) {
+                return;
+            }
+
+            if (filteredTasks.length === 0) return;
+
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    setSelectedTaskIndex(prev => {
+                        const next = prev + 1;
+                        if (next >= filteredTasks.length) return 0; // Loop
+                        return next;
+                    });
+                    break;
+
+                case 'ArrowUp':
+                    e.preventDefault();
+                    setSelectedTaskIndex(prev => {
+                        const next = prev - 1;
+                        if (next < 0) return filteredTasks.length - 1; // Loop
+                        return next;
+                    });
+                    break;
+
+                case 'Home':
+                    e.preventDefault();
+                    setSelectedTaskIndex(0);
+                    break;
+
+                case 'End':
+                    e.preventDefault();
+                    setSelectedTaskIndex(filteredTasks.length - 1);
+                    break;
+
+                case 'Enter':
+                    if (selectedTaskIndex >= 0 && selectedTaskIndex < filteredTasks.length) {
+                        e.preventDefault();
+                        const task = filteredTasks[selectedTaskIndex];
+                        openDetailsModal(task);
+                    }
+                    break;
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [filteredTasks, isSelectionMode, isLoading, selectedTaskIndex, openDetailsModal]);
+
+    // Update selected task ID when index changes
+    useEffect(() => {
+        if (selectedTaskIndex >= 0 && selectedTaskIndex < filteredTasks.length) {
+            setSelectedTaskId(filteredTasks[selectedTaskIndex].id);
+        } else {
+            setSelectedTaskId(null);
+        }
+    }, [selectedTaskIndex, filteredTasks]);
+
     if (!activeProjectId) {
         return (
             <div className="h-full flex items-center justify-center p-8">
@@ -242,8 +347,39 @@ export default function TasksPage() {
             }
             setIsSelectionMode(false);
             setSelectedTaskIds(new Set());
+            toast.success(`Deleted ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''}`);
         } catch (error) {
             console.error("Failed to bulk delete", error);
+            toast.error("Failed to delete tasks");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleBulkStatusChange = async (newStatus: string) => {
+        if (selectedTaskIds.size === 0) return;
+
+        setIsLoading(true);
+        try {
+            // Update all selected tasks
+            await Promise.all(
+                Array.from(selectedTaskIds).map(taskId =>
+                    handleUpdateTask(taskId, { status: newStatus })
+                )
+            );
+            
+            // Refresh tasks
+            if (activeProjectId) {
+                const data = await getTasksByProject(activeProjectId);
+                setTasks(data);
+            }
+            
+            toast.success(`Updated ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''} to ${newStatus}`);
+            setIsSelectionMode(false);
+            setSelectedTaskIds(new Set());
+        } catch (error) {
+            console.error("Failed to bulk update", error);
+            toast.error("Failed to update tasks");
         } finally {
             setIsLoading(false);
         }
@@ -290,13 +426,38 @@ export default function TasksPage() {
                                 {selectedTaskIds.size} Selected
                             </span>
                             {selectedTaskIds.size > 0 && (
-                                <button
-                                    onClick={handleBulkDelete}
-                                    className="bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 px-4 py-2 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-2 uppercase tracking-wider"
-                                >
-                                    <Trash2 size={14} />
-                                    Delete Selected
-                                </button>
+                                <>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleBulkStatusChange('Todo')}
+                                            className="bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors uppercase tracking-wider"
+                                            title="Set to Todo (1)"
+                                        >
+                                            Todo
+                                        </button>
+                                        <button
+                                            onClick={() => handleBulkStatusChange('In_Progress')}
+                                            className="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors uppercase tracking-wider"
+                                            title="Set to In Progress (2)"
+                                        >
+                                            In Progress
+                                        </button>
+                                        <button
+                                            onClick={() => handleBulkStatusChange('Done')}
+                                            className="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors uppercase tracking-wider"
+                                            title="Set to Done (4)"
+                                        >
+                                            Done
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={handleBulkDelete}
+                                        className="bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 px-4 py-2 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-2 uppercase tracking-wider"
+                                    >
+                                        <Trash2 size={14} />
+                                        Delete Selected
+                                    </button>
+                                </>
                             )}
                             <button
                                 onClick={() => {
@@ -485,6 +646,7 @@ export default function TasksPage() {
                         isSelectionMode={isSelectionMode}
                         selectedTaskIds={selectedTaskIds}
                         onToggleTaskSelection={toggleTaskSelection}
+                        keyboardSelectedTaskId={selectedTaskId}
                     />
                 )}
             </div>

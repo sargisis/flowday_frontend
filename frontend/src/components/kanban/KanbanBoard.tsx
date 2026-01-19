@@ -26,6 +26,7 @@ interface KanbanBoardProps {
     isSelectionMode?: boolean;
     selectedTaskIds?: Set<string>;
     onToggleTaskSelection?: (taskId: string) => void;
+    keyboardSelectedTaskId?: string | null; // For keyboard navigation highlight
 }
 
 const dropAnimation: DropAnimation = {
@@ -45,7 +46,8 @@ function KanbanBoard({
     onTaskClick,
     isSelectionMode,
     selectedTaskIds,
-    onToggleTaskSelection
+    onToggleTaskSelection,
+    keyboardSelectedTaskId
 }: KanbanBoardProps) {
     // Local state for optimistic updates (smooth dragging)
     const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -223,6 +225,7 @@ function KanbanBoard({
                             isSelectionMode={isSelectionMode}
                             selectedTaskIds={selectedTaskIds}
                             onToggleTaskSelection={onToggleTaskSelection}
+                            keyboardSelectedTaskId={keyboardSelectedTaskId}
                         />
                     </div>
                     <div className="min-h-0 h-full flex flex-col">
@@ -235,6 +238,7 @@ function KanbanBoard({
                             isSelectionMode={isSelectionMode}
                             selectedTaskIds={selectedTaskIds}
                             onToggleTaskSelection={onToggleTaskSelection}
+                            keyboardSelectedTaskId={keyboardSelectedTaskId}
                         />
                     </div>
 
@@ -249,6 +253,7 @@ function KanbanBoard({
                             isSelectionMode={isSelectionMode}
                             selectedTaskIds={selectedTaskIds}
                             onToggleTaskSelection={onToggleTaskSelection}
+                            keyboardSelectedTaskId={keyboardSelectedTaskId}
                         />
                     </div>
                     <div className="min-h-0 h-full flex flex-col">
@@ -261,6 +266,7 @@ function KanbanBoard({
                             isSelectionMode={isSelectionMode}
                             selectedTaskIds={selectedTaskIds}
                             onToggleTaskSelection={onToggleTaskSelection}
+                            keyboardSelectedTaskId={keyboardSelectedTaskId}
                         />
                     </div>
                 </div>

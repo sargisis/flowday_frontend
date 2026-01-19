@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Bell, Palette, Shield, LogOut, Mail as MailIcon, Slack, Moon, LayoutGrid, Check, X, CreditCard, Zap, Lock, Mail } from "lucide-react";
+import { User, Bell, Palette, Shield, LogOut, Mail as MailIcon, Slack, Moon, LayoutGrid, Check, X, CreditCard, Zap, Lock, Mail, Keyboard } from "lucide-react";
 
 import { useUser } from "../context/UserContext";
 import { useTheme } from "../context/ThemeContext";
@@ -8,6 +8,7 @@ import { notificationManager } from "../utils/notificationManager";
 import { updateProfile, uploadAvatar, requestEmailChange, confirmEmailChange, getAvatarUrl, updateNotificationSettings, testSlackWebhook, initiateSlackOAuth, disconnectSlack, getSlackChannels, updateSlackChannel, testSlackOAuth } from "../api/auth";
 import { toast } from "sonner";
 import { useRef } from "react";
+import { useCustomShortcuts, type CustomShortcut } from "../hooks/useCustomShortcuts";
 
 export default function SettingsPage() {
     const navigate = useNavigate();
@@ -210,10 +211,14 @@ export default function SettingsPage() {
         }
     };
 
+    const { customShortcuts, updateShortcut, resetToDefaults } = useCustomShortcuts();
+    const [capturingKey, setCapturingKey] = useState<string | null>(null);
+
     const tabs = [
         { id: "general", label: "General", icon: Shield },
         { id: "notifications", label: "Notifications", icon: Bell },
         { id: "appearance", label: "Appearance", icon: Palette },
+        { id: "shortcuts", label: "Keyboard Shortcuts", icon: Keyboard },
         { id: "billing", label: "Billing", icon: CreditCard },
         { id: "account", label: "Account", icon: User },
     ];
@@ -672,6 +677,122 @@ export default function SettingsPage() {
                                         }`}></div>
                                     </div>
                                 </label>
+                            </div>
+                        </section>
+                    </div>
+                )}
+
+                {/* Keyboard Shortcuts Tab */}
+                {activeTab === 'shortcuts' && (
+                    <div className="space-y-6">
+                        <section className="p-6 rounded-xl border border-zinc-300/30 dark:border-zinc-700/50 bg-zinc-100/50 dark:bg-zinc-800/40 backdrop-blur-sm">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                                        <Keyboard size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">Keyboard Shortcuts</h3>
+                                        <p className="text-zinc-600 dark:text-zinc-400 text-xs">Customize keyboard shortcuts for faster workflow</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={resetToDefaults}
+                                    className="px-3 py-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 rounded-lg transition-colors"
+                                >
+                                    Reset to Defaults
+                                </button>
+                            </div>
+
+                            <div className="space-y-3">
+                                {customShortcuts.map((shortcut) => {
+                                    const actionLabels: Record<string, string> = {
+                                        'create_task': 'Create Task',
+                                        'search': 'Search',
+                                        'select_mode': 'Selection Mode',
+                                        'save': 'Save',
+                                        'delete': 'Delete',
+                                        'quick_add': 'Quick Add',
+                                        'edit_task': 'Edit Task',
+                                        'focus_mode': 'Focus Mode',
+                                    };
+
+                                    const isCapturing = capturingKey === shortcut.action;
+
+                                    return (
+                                        <div
+                                            key={shortcut.action}
+                                            className="flex items-center justify-between p-4 rounded-lg border border-zinc-300/30 dark:border-zinc-700/50 bg-zinc-100/50 dark:bg-zinc-800/30 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/50 transition-colors"
+                                        >
+                                            <div className="flex-1">
+                                                <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">
+                                                    {actionLabels[shortcut.action] || shortcut.action}
+                                                </h4>
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    if (isCapturing) {
+                                                        setCapturingKey(null);
+                                                    } else {
+                                                        setCapturingKey(shortcut.action);
+                                                    }
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (isCapturing) {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        
+                                                        // Don't capture Escape
+                                                        if (e.key === 'Escape') {
+                                                            setCapturingKey(null);
+                                                            return;
+                                                        }
+                                                        
+                                                        const newShortcut: Partial<CustomShortcut> = {
+                                                            key: e.key,
+                                                            ctrl: e.ctrlKey || e.metaKey,
+                                                            shift: e.shiftKey,
+                                                            alt: e.altKey,
+                                                        };
+                                                        
+                                                        updateShortcut(shortcut.action, newShortcut);
+                                                        setCapturingKey(null);
+                                                        toast.success('Shortcut updated');
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    if (isCapturing) {
+                                                        setCapturingKey(null);
+                                                    }
+                                                }}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                                                    isCapturing
+                                                        ? 'bg-indigo-500 text-white animate-pulse'
+                                                        : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                                                }`}
+                                            >
+                                                {isCapturing ? (
+                                                    'Press key...'
+                                                ) : (
+                                                    <div className="flex items-center gap-1">
+                                                        {shortcut.ctrl && <kbd className="px-1.5 py-0.5 bg-zinc-300 dark:bg-zinc-600 rounded text-xs">Ctrl</kbd>}
+                                                        {shortcut.shift && <kbd className="px-1.5 py-0.5 bg-zinc-300 dark:bg-zinc-600 rounded text-xs">Shift</kbd>}
+                                                        {shortcut.alt && <kbd className="px-1.5 py-0.5 bg-zinc-300 dark:bg-zinc-600 rounded text-xs">Alt</kbd>}
+                                                        <kbd className="px-1.5 py-0.5 bg-zinc-300 dark:bg-zinc-600 rounded text-xs">
+                                                            {shortcut.key === ' ' ? 'Space' : shortcut.key}
+                                                        </kbd>
+                                                    </div>
+                                                )}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="mt-6 p-4 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                                <p className="text-xs text-indigo-300">
+                                    💡 Tip: Click on a shortcut button and press the key combination you want to use. Press Escape to cancel.
+                                </p>
                             </div>
                         </section>
                     </div>
