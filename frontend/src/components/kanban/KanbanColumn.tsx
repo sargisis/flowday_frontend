@@ -14,9 +14,10 @@ interface KanbanColumnProps {
     selectedTaskIds?: Set<string>;
     onToggleTaskSelection?: (taskId: string) => void;
     keyboardSelectedTaskId?: string | null;
+    isDragOver?: boolean; // Visual feedback when dragging over this column
 }
 
-function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode, selectedTaskIds, onToggleTaskSelection, keyboardSelectedTaskId }: KanbanColumnProps) {
+function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode, selectedTaskIds, onToggleTaskSelection, keyboardSelectedTaskId, isDragOver }: KanbanColumnProps) {
     // Use useDroppable to make the column a drop zone for tasks
     const { setNodeRef, isOver } = useDroppable({
         id,
@@ -32,15 +33,28 @@ function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode
     return (
         <div
             ref={setNodeRef}
-            className={`flex flex-col bg-zinc-900/40 border-2 rounded-2xl p-4 h-full min-h-0 transition-colors duration-200 ${isOver ? "border-indigo-500/50 bg-indigo-500/5" : "border-white/5"
-                }`}
+            className={`flex flex-col bg-zinc-900/40 border-2 rounded-2xl p-4 h-full min-h-0 transition-all duration-200 ${
+                isDragOver 
+                    ? "border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/20 scale-[1.02]" 
+                    : isOver 
+                        ? "border-indigo-500/50 bg-indigo-500/5" 
+                        : "border-white/5"
+            }`}
         >
             {/* Column Header */}
             <div className="flex items-center justify-between mb-4 shrink-0">
                 <div>
-                    <h3 className={`text-sm font-bold uppercase tracking-wider transition-colors ${isOver ? "text-indigo-400" : "text-zinc-400"
-                        }`}>
+                    <h3 className={`text-sm font-bold uppercase tracking-wider transition-colors ${
+                        isDragOver 
+                            ? "text-indigo-300" 
+                            : isOver 
+                                ? "text-indigo-400" 
+                                : "text-zinc-400"
+                    }`}>
                         {title}
+                        {isDragOver && (
+                            <span className="ml-2 text-xs text-indigo-400 animate-pulse">← Drop here</span>
+                        )}
                     </h3>
                     <span className="text-xs text-zinc-600">{tasks.length} tasks</span>
                 </div>
@@ -64,8 +78,12 @@ function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode
                 </SortableContext>
                 {/* Empty state - outside SortableContext so it doesn't interfere with drops */}
                 {tasks.length === 0 && (
-                    <div className="h-24 rounded-xl border-2 border-dashed border-zinc-800/50 flex items-center justify-center text-zinc-700 text-sm italic pointer-events-none">
-                        Drop tasks here
+                    <div className={`h-24 rounded-xl border-2 border-dashed flex items-center justify-center text-sm italic pointer-events-none transition-all ${
+                        isDragOver
+                            ? "border-indigo-500/50 bg-indigo-500/5 text-indigo-400"
+                            : "border-zinc-800/50 text-zinc-700"
+                    }`}>
+                        {isDragOver ? "Release to drop" : "Drop tasks here"}
                     </div>
                 )}
             </div>
@@ -97,6 +115,9 @@ export default memo(KanbanColumn, (prevProps, nextProps) => {
     
     // Check keyboardSelectedTaskId
     if (prevProps.keyboardSelectedTaskId !== nextProps.keyboardSelectedTaskId) return false;
+    
+    // Check isDragOver
+    if (prevProps.isDragOver !== nextProps.isDragOver) return false;
     
     return true;
 });

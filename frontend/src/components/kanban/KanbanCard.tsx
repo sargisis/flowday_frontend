@@ -71,10 +71,11 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
             <div
                 className={`
             p-3 rounded-xl 
-            bg-zinc-800 
-            border border-zinc-700
+            bg-gradient-to-br from-zinc-800 to-zinc-900
+            border-2 border-indigo-500/50
             shadow-2xl cursor-grabbing
             w-full
+            backdrop-blur-sm
           `}
             >
                 <div className="flex justify-between items-start mb-1.5">
@@ -102,7 +103,7 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
             <div
                 ref={setNodeRef}
                 style={style}
-                className="opacity-30 bg-zinc-800 p-3 rounded-xl border border-white/10 h-[80px]"
+                className="opacity-20 bg-zinc-800/50 p-3 rounded-xl border-2 border-dashed border-indigo-500/30 h-[80px] animate-pulse"
             />
         );
     }
@@ -127,6 +128,7 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
                         ? 'border-indigo-400/60 bg-indigo-500/5 ring-2 ring-indigo-400/30'
                         : 'border-white/5 hover:border-white/10'}
         ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
+        hover:scale-[1.02] active:scale-[0.98]
       `}
         >
             <div className="flex justify-between items-start mb-1.5">
