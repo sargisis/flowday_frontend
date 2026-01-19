@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock } from "lucide-react";
+import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock, Undo2, Redo2 } from "lucide-react";
+import { useUndoRedo } from "../../hooks/useUndoRedo";
+import { useAutoSave } from "../../hooks/useAutoSave";
 import ReactMarkdown from "react-markdown";
 import type { Task, Attachment } from "../../api/tasks";
 import { duplicateTask, uploadTaskAttachment, getTaskAttachments, deleteTaskAttachment, getTasksByProject } from "../../api/tasks";
@@ -37,14 +39,101 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const [allTasks, setAllTasks] = useState<Task[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Undo/Redo functionality
+    const taskData = { title, description, subtasks, status, priority, dueDate };
+    const isUpdatingFromUndoRedo = useRef(false);
+    const { current: undoRedoData, setValue: setUndoRedoValue, undo, redo, canUndo, canRedo, reset: resetUndoRedo } = useUndoRedo({
+        initialValue: taskData,
+    });
+
+    // Sync undo/redo state with form state (only when undo/redo is triggered)
+    useEffect(() => {
+        if (isUpdatingFromUndoRedo.current && undoRedoData) {
+            setTitle(undoRedoData.title);
+            setDescription(undoRedoData.description);
+            setSubtasks(undoRedoData.subtasks);
+            setStatus(undoRedoData.status);
+            setPriority(undoRedoData.priority);
+            setDueDate(undoRedoData.dueDate);
+            isUpdatingFromUndoRedo.current = false;
+        }
+    }, [undoRedoData]);
+
+    // Update undo/redo history when form changes (but not from undo/redo)
+    useEffect(() => {
+        if (!isUpdatingFromUndoRedo.current) {
+            setUndoRedoValue(taskData, true);
+        }
+    }, [title, description, subtasks, status, priority, dueDate, setUndoRedoValue]);
+
+    // Auto-save draft
+    useAutoSave({
+        data: taskData,
+        onSave: async () => {
+            // Auto-save is handled by localStorage via storageKey
+        },
+        storageKey: task ? `task-draft-${task.id}` : undefined,
+        delay: 2000,
+        enabled: isOpen && task !== null,
+    });
+
+    // Wrapped undo/redo to set flag
+    const handleUndo = () => {
+        isUpdatingFromUndoRedo.current = true;
+        undo();
+    };
+
+    const handleRedo = () => {
+        isUpdatingFromUndoRedo.current = true;
+        redo();
+    };
+
+    // Keyboard shortcuts for undo/redo
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const isMod = e.metaKey || e.ctrlKey;
+            
+            // Don't trigger if typing in input/textarea
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                if (!isMod) return;
+            }
+
+            if (isMod && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                handleUndo();
+            } else if (isMod && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+                e.preventDefault();
+                handleRedo();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen]);
+
     useEffect(() => {
         if (task && isOpen) {
-            setTitle(task.title || "");
-            setDescription(task.description || "");
-            setSubtasks(task.subtasks || []);
-            setStatus(task.status || "Todo");
-            setPriority(task.priority || "medium");
-            setDueDate(task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : "");
+            const initialData = {
+                title: task.title || "",
+                description: task.description || "",
+                subtasks: task.subtasks || [],
+                status: task.status || "Todo",
+                priority: task.priority || "medium",
+                dueDate: task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : "",
+            };
+            
+            setTitle(initialData.title);
+            setDescription(initialData.description);
+            setSubtasks(initialData.subtasks);
+            setStatus(initialData.status);
+            setPriority(initialData.priority);
+            setDueDate(initialData.dueDate);
+            
+            // Reset undo/redo history with initial data
+            resetUndoRedo(initialData);
+            
             // Load attachments
             loadAttachments();
             // Load all tasks for dependencies
@@ -52,7 +141,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 getTasksByProject(activeProjectId).then(setAllTasks).catch(console.error);
             }
         }
-    }, [task, isOpen, activeProjectId]);
+    }, [task, isOpen, activeProjectId, resetUndoRedo]);
 
     const loadAttachments = async () => {
         if (!task) return;
@@ -192,6 +281,25 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-200 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-900/50">
                     <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Task Details</h2>
                     <div className="flex items-center gap-1">
+                        {/* Undo/Redo buttons */}
+                        <div className="flex items-center gap-1 mr-2 border-r border-zinc-300 dark:border-zinc-700 pr-2">
+                            <button
+                                onClick={handleUndo}
+                                disabled={!canUndo}
+                                className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Undo (Ctrl+Z)"
+                            >
+                                <Undo2 size={18} />
+                            </button>
+                            <button
+                                onClick={handleRedo}
+                                disabled={!canRedo}
+                                className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Redo (Ctrl+Y)"
+                            >
+                                <Redo2 size={18} />
+                            </button>
+                        </div>
                         <button
                             onClick={handleDuplicate}
                             className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"

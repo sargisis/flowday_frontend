@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Calendar } from "lucide-react";
+import { useAutoSave } from "../../hooks/useAutoSave";
 
 interface CreateTaskModalProps {
     isOpen: boolean;
@@ -14,11 +15,40 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
     const [dueDate, setDueDate] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // Auto-save draft to localStorage
+    const formData = { title, priority, dueDate };
+    const { clearDraft } = useAutoSave({
+        data: formData,
+        onSave: async () => {
+            // Just save to localStorage, no API call
+            // This is handled by the storageKey option
+        },
+        storageKey: 'task-draft',
+        delay: 1500,
+        enabled: isOpen && title.trim().length > 0, // Only save if modal is open and has content
+    });
+
     useEffect(() => {
         if (isOpen) {
-            setTitle("");
-            setPriority("medium");
-            setDueDate(initialDate || "");
+            // Try to load draft from localStorage
+            try {
+                const saved = localStorage.getItem('task-draft');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    setTitle(parsed.title || "");
+                    setPriority(parsed.priority || "medium");
+                    setDueDate(parsed.dueDate || initialDate || "");
+                } else {
+                    setTitle("");
+                    setPriority("medium");
+                    setDueDate(initialDate || "");
+                }
+            } catch {
+                // If parsing fails, use defaults
+                setTitle("");
+                setPriority("medium");
+                setDueDate(initialDate || "");
+            }
             // Focus input after a small delay to allow modal animation
             setTimeout(() => inputRef.current?.focus(), 50);
         }
@@ -28,6 +58,7 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
         e.preventDefault();
         if (!title.trim()) return;
         onCreate(title, priority, dueDate || undefined);
+        clearDraft(); // Clear draft after successful creation
         onClose();
     };
 
@@ -109,7 +140,9 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
                     <div className="px-6 py-4 bg-zinc-900/50 border-t border-zinc-800/50 flex justify-end gap-3">
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={() => {
+                                onClose();
+                            }}
                             className="px-5 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 text-sm font-medium transition-colors"
                         >
                             Cancel
