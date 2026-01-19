@@ -13,6 +13,7 @@ import confetti from "canvas-confetti";
 import FlowBotWidget from "../components/ai/FlowBotWidget";
 import CreateTaskModal from "../components/create-task-components/CreateTaskModal";
 import TaskDetailsModal from "../components/task-components/TaskDetailsModal";
+import { OfflineBanner } from "../components/error/OfflineBanner";
 
 export default function DashboardLayout() {
     const navigate = useNavigate();
@@ -118,6 +119,8 @@ export default function DashboardLayout() {
 
     return (
         <div className="flex h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white overflow-hidden transition-colors">
+            {/* Offline Banner */}
+            <OfflineBanner />
             {/* ✅ FIX: AnalyticsTracker inside Router context */}
             <AnalyticsTracker />
             <TacticalOverlay />
