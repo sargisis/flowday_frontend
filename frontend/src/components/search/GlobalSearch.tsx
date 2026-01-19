@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Search, X, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 import { getAllTasks, type Task } from '../../api/tasks';
 import { useTasks } from '../../context/TaskContext';
+import { useDebounce } from '../../hooks/useDebounce';
 
 interface GlobalSearchProps {
     isOpen: boolean;
@@ -16,17 +17,21 @@ export default function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const { openDetailsModal } = useTasks();
 
-    // Filter results with memoization
-    const results = useMemo(() => {
-        if (!query.trim()) return [];
+    // Debounce search query to avoid excessive filtering
+    const debouncedQuery = useDebounce(query, 300);
 
+    // Filter results with memoization (using debounced query)
+    const results = useMemo(() => {
+        if (!debouncedQuery.trim()) return [];
+
+        const lowerQuery = debouncedQuery.toLowerCase();
         const filtered = allTasks.filter(task => {
             const searchStr = `${task.title} ${task.description || ''} ${task.status} ${task.priority}`.toLowerCase();
-            return searchStr.includes(query.toLowerCase());
+            return searchStr.includes(lowerQuery);
         });
 
         return filtered.slice(0, 10);
-    }, [query, allTasks]);
+    }, [debouncedQuery, allTasks]);
 
     // Load tasks only when modal opens
     useEffect(() => {

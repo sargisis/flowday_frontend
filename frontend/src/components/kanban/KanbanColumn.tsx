@@ -72,4 +72,26 @@ function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode
 }
 
 // Memoize KanbanColumn to prevent unnecessary re-renders
-export default memo(KanbanColumn);
+export default memo(KanbanColumn, (prevProps, nextProps) => {
+    // Custom comparison for better performance
+    if (prevProps.id !== nextProps.id) return false;
+    if (prevProps.title !== nextProps.title) return false;
+    if (prevProps.tasks.length !== nextProps.tasks.length) return false;
+    if (prevProps.isSelectionMode !== nextProps.isSelectionMode) return false;
+    
+    // Check if tasks array changed
+    if (prevProps.tasks.length !== nextProps.tasks.length) return false;
+    for (let i = 0; i < prevProps.tasks.length; i++) {
+        if (prevProps.tasks[i].id !== nextProps.tasks[i].id) return false;
+    }
+    
+    // Check selectedTaskIds Set
+    if (prevProps.selectedTaskIds?.size !== nextProps.selectedTaskIds?.size) return false;
+    if (prevProps.selectedTaskIds && nextProps.selectedTaskIds) {
+        for (const id of prevProps.selectedTaskIds) {
+            if (!nextProps.selectedTaskIds.has(id)) return false;
+        }
+    }
+    
+    return true;
+});
