@@ -39,6 +39,14 @@ export interface FilterPreset {
     icon?: string;
 }
 
+export type GroupBy = 'none' | 'status' | 'priority' | 'dueDate' | 'assignee' | 'project';
+
+export interface GroupingOptions {
+    groupBy: GroupBy;
+    showEmptyGroups?: boolean;
+    collapsedGroups?: Set<string>;
+}
+
 export const DEFAULT_PRESETS: FilterPreset[] = [
     {
         id: 'all',

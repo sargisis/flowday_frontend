@@ -16,7 +16,9 @@ import { useKeyboardShortcuts, COMMON_SHORTCUTS } from "../hooks/useKeyboardShor
 import { useTaskFilters } from "../hooks/useTaskFilters";
 import { useURLFilters } from "../hooks/useURLFilters";
 import FilterPanel from "../components/filters/FilterPanel";
-import { DEFAULT_PRESETS } from "../types/filters";
+import GroupingSelector from "../components/filters/GroupingSelector";
+import { DEFAULT_PRESETS, type GroupBy, type GroupingOptions } from "../types/filters";
+import { useTaskGrouping } from "../hooks/useTaskGrouping";
 
 export default function TasksPage() {
     const { activeProjectId } = useProject();
@@ -25,10 +27,15 @@ export default function TasksPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState<'all' | 'high' | 'due-soon'>('all');
     const [showFilterPanel, setShowFilterPanel] = useState(false);
+    const [groupBy, setGroupBy] = useState<GroupBy>('none');
     
     // ✅ NEW: Advanced filters and sorting
     const { filters, sort, updateFilters, updateSort } = useURLFilters();
     const filteredAndSortedTasks = useTaskFilters(tasks, filters, sort);
+    
+    // ✅ NEW: Task grouping
+    const grouping: GroupingOptions = { groupBy, showEmptyGroups: false };
+    const taskGroups = useTaskGrouping(filteredAndSortedTasks, grouping);
 
     // Selection state
     const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -592,46 +599,56 @@ export default function TasksPage() {
                 />
             )}
 
-            {/* Filter Bar */}
-            <div className="flex items-center gap-2 mb-4 shrink-0 flex-wrap">
-                <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-500">
-                    <Filter size={14} />
-                    <span className="font-bold uppercase tracking-wider">Quick Filters:</span>
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                    {/* Preset Filters */}
-                    {DEFAULT_PRESETS.slice(0, 4).map((preset) => (
+            {/* Filter & Grouping Bar */}
+            <div className="flex items-center gap-4 mb-4 shrink-0 flex-wrap">
+                {/* Quick Filters */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-500">
+                        <Filter size={14} />
+                        <span className="font-bold uppercase tracking-wider">Quick Filters:</span>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                        {/* Preset Filters */}
+                        {DEFAULT_PRESETS.slice(0, 4).map((preset) => (
+                            <button
+                                key={preset.id}
+                                onClick={() => {
+                                    updateFilters(preset.filters);
+                                    if (preset.sort) {
+                                        updateSort(preset.sort);
+                                    }
+                                    setActiveFilter('all'); // Reset legacy filter
+                                }}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                                    JSON.stringify(filters) === JSON.stringify(preset.filters)
+                                        ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                                        : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
+                                }`}
+                            >
+                                {preset.icon && <Sparkles size={12} />}
+                                {preset.name}
+                            </button>
+                        ))}
                         <button
-                            key={preset.id}
-                            onClick={() => {
-                                updateFilters(preset.filters);
-                                if (preset.sort) {
-                                    updateSort(preset.sort);
-                                }
-                                setActiveFilter('all'); // Reset legacy filter
-                            }}
+                            onClick={() => setShowFilterPanel(!showFilterPanel)}
                             className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                                JSON.stringify(filters) === JSON.stringify(preset.filters)
+                                showFilterPanel
                                     ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
                                     : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
                             }`}
                         >
-                            {preset.icon && <Sparkles size={12} />}
-                            {preset.name}
+                            <Filter size={12} />
+                            Advanced
                         </button>
-                    ))}
-                    <button
-                        onClick={() => setShowFilterPanel(!showFilterPanel)}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                            showFilterPanel
-                                ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                                : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
-                        }`}
-                    >
-                        <Filter size={12} />
-                        Advanced
-                    </button>
+                    </div>
                 </div>
+
+                {/* Grouping Selector */}
+                <GroupingSelector
+                    groupBy={groupBy}
+                    onGroupByChange={setGroupBy}
+                />
+
                 {(activeFilter !== 'all' || Object.keys(filters).length > 0) && (
                     <span className="text-xs text-zinc-600 dark:text-zinc-400">
                         ({filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'})
@@ -661,7 +678,7 @@ export default function TasksPage() {
                         }}
                         className="h-full bg-zinc-50 dark:bg-black/10 backdrop-blur-sm border-zinc-300 dark:border-white/5"
                     />
-                ) : (
+                ) : groupBy === 'none' ? (
                     <KanbanBoard
                         tasks={filteredTasks}
                         onTaskUpdate={onTaskUpdateOptimistic}
@@ -672,6 +689,42 @@ export default function TasksPage() {
                         onToggleTaskSelection={toggleTaskSelection}
                         keyboardSelectedTaskId={selectedTaskId}
                     />
+                ) : (
+                    // ✅ NEW: Grouped view
+                    <div className="h-full overflow-y-auto">
+                        <div className="space-y-6 pb-4">
+                            {taskGroups.map((group) => (
+                                <div key={group.id} className="bg-zinc-50 dark:bg-zinc-900/30 rounded-xl p-4 border border-zinc-200 dark:border-white/10">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider">
+                                            {group.label}
+                                        </h3>
+                                        <span className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                                            {group.tasks.length} {group.tasks.length === 1 ? 'task' : 'tasks'}
+                                        </span>
+                                    </div>
+                                    <KanbanBoard
+                                        tasks={group.tasks}
+                                        onTaskUpdate={onTaskUpdateOptimistic}
+                                        onTaskDelete={handleDeleteTask}
+                                        onTaskClick={openDetailsModal}
+                                        isSelectionMode={isSelectionMode}
+                                        selectedTaskIds={selectedTaskIds}
+                                        onToggleTaskSelection={toggleTaskSelection}
+                                        keyboardSelectedTaskId={selectedTaskId}
+                                    />
+                                </div>
+                            ))}
+                            {taskGroups.length === 0 && (
+                                <EmptyState
+                                    icon={CheckSquare}
+                                    title="No tasks match filters"
+                                    description="Try adjusting your filters or grouping options."
+                                    className="h-64 bg-zinc-50 dark:bg-black/10 backdrop-blur-sm border-zinc-300 dark:border-white/5"
+                                />
+                            )}
+                        </div>
+                    </div>
                 )}
             </div>
             
