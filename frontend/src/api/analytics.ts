@@ -46,8 +46,16 @@ export async function getFocusSessions(
     if (from) params.from = from;
     if (to) params.to = to;
     
-    const response = await api.get('/focus/sessions', { params });
-    return response.data || [];
+    try {
+        const response = await api.get('/focus/sessions', { params });
+        return response.data || [];
+    } catch (error: any) {
+        // If endpoint doesn't exist (404), return empty array silently
+        if (error?.response?.status === 404) {
+            return [];
+        }
+        throw error;
+    }
 }
 
 /**
@@ -70,10 +78,13 @@ export async function getActivityData(
     try {
         const response = await api.get('/analytics/activity', { params });
         return response.data || [];
-    } catch (error) {
-        // If endpoint doesn't exist, calculate from tasks and focus sessions
-        console.warn('Analytics endpoint not available, calculating locally');
-        return [];
+    } catch (error: any) {
+        // If endpoint doesn't exist (404), return empty array silently
+        // Other errors should be handled by caller
+        if (error?.response?.status === 404) {
+            return [];
+        }
+        throw error;
     }
 }
 
@@ -97,9 +108,11 @@ export async function getAnalyticsData(
     try {
         const response = await api.get('/analytics', { params });
         return response.data || {};
-    } catch (error) {
-        // Fallback: return empty data if endpoint doesn't exist
-        console.warn('Analytics endpoint not available');
-        return {};
+    } catch (error: any) {
+        // If endpoint doesn't exist (404), return empty data silently
+        if (error?.response?.status === 404) {
+            return {};
+        }
+        throw error;
     }
 }

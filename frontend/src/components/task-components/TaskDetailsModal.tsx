@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
-import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock, Undo2, Redo2 } from "lucide-react";
+import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock, Undo2, Redo2, List, Network } from "lucide-react";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import { useAutoSave } from "../../hooks/useAutoSave";
 
@@ -12,6 +12,8 @@ import { useProject } from "../../context/ProjectContext";
 import TaskComments from "./TaskComments";
 import TimeTracker from "../time-tracking/TimeTracker";
 import TaskDependencies from "../task-dependencies/TaskDependencies";
+import { DependencyGraph } from "../task-dependencies/DependencyGraph";
+import { getTaskDependencies, type TaskDependency } from "../../api/taskDependencies";
 import MentionAutocomplete from "../mentions/MentionAutocomplete";
 
 interface TaskDetailsModalProps {
@@ -39,6 +41,9 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [allTasks, setAllTasks] = useState<Task[]>([]);
+    const [dependenciesMap, setDependenciesMap] = useState<Map<string, TaskDependency>>(new Map());
+    const [dependencyViewMode, setDependencyViewMode] = useState<'list' | 'graph'>('list');
+    const [isLoadingDependencies, setIsLoadingDependencies] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Undo/Redo functionality
@@ -141,9 +146,57 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
             // Load all tasks for dependencies
             if (activeProjectId) {
                 getTasksByProject(activeProjectId).then(setAllTasks).catch(console.error);
+                loadAllDependencies(activeProjectId);
             }
         }
     }, [task, isOpen, activeProjectId, resetUndoRedo]);
+
+    const loadAllDependencies = async (projectId: string) => {
+        setIsLoadingDependencies(true);
+        try {
+            const tasks = await getTasksByProject(projectId);
+            const depsMap = new Map<string, TaskDependency>();
+            
+            // Load dependencies for all tasks
+            await Promise.all(
+                tasks.map(async (t) => {
+                    try {
+                        const deps = await getTaskDependencies(t.id);
+                        depsMap.set(t.id, deps);
+                    } catch (err) {
+                        // Task might not have dependencies endpoint yet
+                        console.warn(`Failed to load dependencies for task ${t.id}:`, err);
+                    }
+                })
+            );
+            
+            setDependenciesMap(depsMap);
+        } catch (error) {
+            console.error('Failed to load dependencies:', error);
+        } finally {
+            setIsLoadingDependencies(false);
+        }
+    };
+
+    const handleDependencyUpdate = async () => {
+        // Refresh tasks list and dependencies
+        if (activeProjectId) {
+            const tasks = await getTasksByProject(activeProjectId);
+            setAllTasks(tasks);
+            await loadAllDependencies(activeProjectId);
+        }
+    };
+
+    const handleTaskClickInGraph = (taskId: string) => {
+        // Could navigate to task or show details
+        const clickedTask = allTasks.find(t => String(t.id) === String(taskId));
+        if (clickedTask) {
+            // Update current task to show clicked task
+            // This would require a callback to parent component
+            // For now, just show a toast
+            toast.info(`Task: ${clickedTask.title}`);
+        }
+    };
 
     const loadAttachments = async () => {
         if (!task) return;
@@ -505,16 +558,62 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
 
                             {/* Task Dependencies Section */}
                             <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
-                                <TaskDependencies
-                                    taskId={task.id}
-                                    allTasks={allTasks}
-                                    onUpdate={() => {
-                                        // Refresh tasks list
-                                        if (activeProjectId) {
-                                            getTasksByProject(activeProjectId).then(setAllTasks).catch(console.error);
-                                        }
-                                    }}
-                                />
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <Network size={16} className="text-zinc-600 dark:text-zinc-400" />
+                                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Dependencies</h3>
+                                    </div>
+                                    <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-1">
+                                        <button
+                                            onClick={() => setDependencyViewMode('list')}
+                                            className={`px-3 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
+                                                dependencyViewMode === 'list'
+                                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                                                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300'
+                                            }`}
+                                        >
+                                            <List size={14} />
+                                            List
+                                        </button>
+                                        <button
+                                            onClick={() => setDependencyViewMode('graph')}
+                                            className={`px-3 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
+                                                dependencyViewMode === 'graph'
+                                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                                                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300'
+                                            }`}
+                                        >
+                                            <Network size={14} />
+                                            Graph
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {dependencyViewMode === 'list' ? (
+                                    <TaskDependencies
+                                        taskId={task.id}
+                                        allTasks={allTasks}
+                                        onUpdate={handleDependencyUpdate}
+                                    />
+                                ) : (
+                                    <div className="mt-4">
+                                        {isLoadingDependencies ? (
+                                            <div className="flex items-center justify-center h-64 text-zinc-500">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <div className="w-6 h-6 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin" />
+                                                    <span className="text-sm">Loading dependencies...</span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <DependencyGraph
+                                                rootTaskId={task.id}
+                                                tasks={allTasks}
+                                                dependenciesMap={dependenciesMap}
+                                                onTaskClick={handleTaskClickInGraph}
+                                            />
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Comments Section */}

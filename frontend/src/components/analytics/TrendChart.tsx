@@ -53,6 +53,30 @@ export function TrendChart({ data, period, label = 'Value', color = 'indigo' }: 
         return { chartData: filledData, maxValue: max };
     }, [data, period]);
 
+    const totalValue = chartData.reduce((sum, point) => sum + point.value, 0);
+
+    if (totalValue === 0) {
+        return (
+            <div className="w-full">
+                {label && (
+                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4">
+                        {label}
+                    </h4>
+                )}
+                <div className="h-32 flex items-center justify-center text-zinc-500">
+                    <div className="text-center">
+                        <div className="text-2xl mb-1">📈</div>
+                        <p className="text-xs">No data for this period</p>
+                    </div>
+                </div>
+                <div className="flex justify-between mt-2 text-xs text-zinc-600">
+                    <span>{format(chartData[0]?.date || new Date(), 'MMM d')}</span>
+                    <span>{format(chartData[chartData.length - 1]?.date || new Date(), 'MMM d')}</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full">
             {label && (

@@ -126,8 +126,11 @@ api.interceptors.response.use(
 
             case 404:
                 // Not found
-                if (!originalRequest?.url?.includes("/me")) {
-                    // Don't show toast for silent 404s (like checking if user exists)
+                const url = originalRequest?.url || '';
+                // Don't show toast for silent 404s (like checking if user exists, analytics endpoints that may not exist yet)
+                const silent404Paths = ['/me', '/analytics', '/focus/sessions'];
+                const isSilent404 = silent404Paths.some(path => url.includes(path));
+                if (!isSilent404) {
                     toast.error(data?.error || "Resource not found.");
                 }
                 break;
