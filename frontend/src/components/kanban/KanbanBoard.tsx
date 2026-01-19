@@ -38,7 +38,7 @@ const dropAnimation: DropAnimation = {
     }),
 };
 
-export default function KanbanBoard({
+function KanbanBoard({
     tasks: initialTasks,
     onTaskUpdate,
     onTaskDelete,
@@ -207,10 +207,13 @@ export default function KanbanBoard({
             }}
         >
             <div className="h-full w-full overflow-hidden p-2">
-                {/* 2x2 Grid Layout */}
-                <div className="grid grid-cols-2 grid-rows-2 gap-6 w-full h-full mx-auto pb-4">
+                {/* 2x2 Grid Layout - Fixed height with equal rows */}
+                <div 
+                    className="grid grid-cols-2 gap-6 w-full h-full mx-auto pb-4 min-h-0"
+                    style={{ gridTemplateRows: '1fr 1fr' }}
+                >
                     {/* Row 1 */}
-                    <div className="min-h-0">
+                    <div className="min-h-0 h-full flex flex-col">
                         <KanbanColumn
                             id="Todo"
                             title="To Do"
@@ -222,7 +225,7 @@ export default function KanbanBoard({
                             onToggleTaskSelection={onToggleTaskSelection}
                         />
                     </div>
-                    <div className="min-h-0">
+                    <div className="min-h-0 h-full flex flex-col">
                         <KanbanColumn
                             id="In_Progress"
                             title="In Progress"
@@ -236,7 +239,7 @@ export default function KanbanBoard({
                     </div>
 
                     {/* Row 2 */}
-                    <div className="min-h-0">
+                    <div className="min-h-0 h-full flex flex-col">
                         <KanbanColumn
                             id="Blocked"
                             title="Blocked"
@@ -248,7 +251,7 @@ export default function KanbanBoard({
                             onToggleTaskSelection={onToggleTaskSelection}
                         />
                     </div>
-                    <div className="min-h-0">
+                    <div className="min-h-0 h-full flex flex-col">
                         <KanbanColumn
                             id="Done"
                             title="Done"

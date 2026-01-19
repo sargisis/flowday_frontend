@@ -15,7 +15,7 @@ interface KanbanColumnProps {
     onToggleTaskSelection?: (taskId: string) => void;
 }
 
-export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode, selectedTaskIds, onToggleTaskSelection }: KanbanColumnProps) {
+function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode, selectedTaskIds, onToggleTaskSelection }: KanbanColumnProps) {
     // Use useDroppable to make the column a drop zone for tasks
     const { setNodeRef, isOver } = useDroppable({
         id,
@@ -31,7 +31,7 @@ export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, 
     return (
         <div
             ref={setNodeRef}
-            className={`flex flex-col bg-zinc-900/40 border-2 rounded-2xl p-4 h-full transition-colors duration-200 ${isOver ? "border-indigo-500/50 bg-indigo-500/5" : "border-white/5"
+            className={`flex flex-col bg-zinc-900/40 border-2 rounded-2xl p-4 h-full min-h-0 transition-colors duration-200 ${isOver ? "border-indigo-500/50 bg-indigo-500/5" : "border-white/5"
                 }`}
         >
             {/* Column Header */}
@@ -45,8 +45,8 @@ export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, 
                 </div>
             </div>
 
-            {/* Task List - With Internal Scroll */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 space-y-3 min-h-0">
+            {/* Task List - With Internal Scroll - Fixed height with scroll */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 space-y-3 min-h-0 max-h-full">
                 <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
                     {tasks.map((task) => (
                         <KanbanCard

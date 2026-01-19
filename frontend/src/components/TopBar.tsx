@@ -7,7 +7,7 @@ import { getAvatarUrl } from "../api/auth";
 import NotificationDropdown from "./notification/NotificationDropdown";
 import GlobalSearch from "./search/GlobalSearch";
 
-export default function TopBar() {
+function TopBar() {
     const { user } = useUser();
     const { activeProjectId } = useProject();
     const [displayRole, setDisplayRole] = useState("MEMBER");
