@@ -2,7 +2,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useDroppable } from "@dnd-kit/core";
 import type { Task } from "../../api/tasks";
 import KanbanCard from "./KanbanCard";
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 
 interface KanbanColumnProps {
     id: string;
@@ -70,3 +70,6 @@ export default function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, 
         </div>
     );
 }
+
+// Memoize KanbanColumn to prevent unnecessary re-renders
+export default memo(KanbanColumn);

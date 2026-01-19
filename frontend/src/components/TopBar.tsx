@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { Search, User as UserIcon } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import { useProject } from "../context/ProjectContext";
@@ -94,4 +94,7 @@ export default function TopBar() {
         </>
     );
 }
+
+// Memoize TopBar to prevent unnecessary re-renders
+export default memo(TopBar);
 

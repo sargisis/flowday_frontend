@@ -162,12 +162,17 @@ api.interceptors.response.use(
                 break;
 
             case 422:
-                // Validation errors
+                // Validation errors - show all validation errors
                 const validationErrors = data?.errors || data?.error;
                 if (Array.isArray(validationErrors)) {
                     validationErrors.forEach((err: string) => toast.error(err));
+                } else if (typeof validationErrors === 'object') {
+                    // Handle object with field errors
+                    Object.entries(validationErrors).forEach(([field, message]) => {
+                        toast.error(`${field}: ${message}`);
+                    });
                 } else {
-                    toast.error(validationErrors || "Validation error.");
+                    toast.error(validationErrors || "Validation error. Please check your input.");
                 }
                 break;
 
