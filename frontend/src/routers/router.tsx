@@ -8,6 +8,7 @@ import { FocusProvider } from "../context/FocusContext";
 import { TaskProvider } from "../context/TaskContext";
 import { WebSocketProvider } from "../context/WebSocketContext";
 import { DashboardSkeleton } from "../components/SkeletonLoader";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 // Lazy load pages for code splitting and faster initial load
 const LandingPage = lazy(() => import("../pages/LandingPage"));
@@ -102,113 +103,141 @@ export const router = createBrowserRouter([
             { 
                 path: "dashboard", 
                 element: (
-                    <Suspense fallback={<DashboardSkeleton />}>
-                        <Dashboard />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<DashboardSkeleton />}>
+                            <Dashboard />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "calendar", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <Calendar />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <Calendar />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "tasks", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <TasksPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <TasksPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "tasks/new", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <CreateTaskPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <CreateTaskPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "team", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <TeamPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <TeamPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "messages", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <MessagesPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <MessagesPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "messages/:chatId", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <MessagesPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <MessagesPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "invitations", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <InvitationsPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <InvitationsPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "notifications", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <NotificationsPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <NotificationsPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "settings", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <SettingsPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <SettingsPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "focus", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <FocusMode />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <FocusMode />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "focus/:taskId", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <FocusMode />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <FocusMode />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "focus/history", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <FocusHistoryPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <FocusHistoryPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
             { 
                 path: "achievements", 
                 element: (
-                    <Suspense fallback={<PageLoader />}>
-                        <AchievementsPage />
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader />}>
+                            <AchievementsPage />
+                        </Suspense>
+                    </ErrorBoundary>
                 )
             },
         ]
