@@ -5,7 +5,7 @@ import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 import EmptyState from "../components/state/EmptyState";
 import { KanbanColumnSkeleton } from "../components/skeletons/KanbanColumnSkeleton";
-import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter, Trash2, FileText, Keyboard } from "lucide-react";
+import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter, Trash2, FileText, Keyboard, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import useSound from "../hooks/useSound";
 import SavedViewsDropdown from "../components/saved-views/SavedViewsDropdown";
@@ -13,6 +13,10 @@ import TaskTemplateModal from "../components/templates/TaskTemplateModal";
 import ExportImportButtons from "../components/export-import/ExportImportButtons";
 import KeyboardShortcutsModal from "../components/keyboard-shortcuts/KeyboardShortcutsModal";
 import { useKeyboardShortcuts, COMMON_SHORTCUTS } from "../hooks/useKeyboardShortcuts";
+import { useTaskFilters } from "../hooks/useTaskFilters";
+import { useURLFilters } from "../hooks/useURLFilters";
+import FilterPanel from "../components/filters/FilterPanel";
+import { DEFAULT_PRESETS } from "../types/filters";
 
 export default function TasksPage() {
     const { activeProjectId } = useProject();
@@ -20,6 +24,11 @@ export default function TasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [activeFilter, setActiveFilter] = useState<'all' | 'high' | 'due-soon'>('all');
+    const [showFilterPanel, setShowFilterPanel] = useState(false);
+    
+    // ✅ NEW: Advanced filters and sorting
+    const { filters, sort, updateFilters, updateSort } = useURLFilters();
+    const filteredAndSortedTasks = useTaskFilters(tasks, filters, sort);
 
     // Selection state
     const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -220,26 +229,25 @@ export default function TasksPage() {
         return { todo, inProgress, done, blocked, total, completionRate };
     }, [tasks]);
 
-    // Filter tasks
+    // Apply legacy quick filters on top of advanced filters
     const filteredTasks = useMemo(() => {
-        if (activeFilter === 'all') return tasks;
+        let result = filteredAndSortedTasks;
 
+        // Apply legacy quick filters if active
         if (activeFilter === 'high') {
-            return tasks.filter(t => t.priority === 'high');
-        }
-
-        if (activeFilter === 'due-soon') {
+            result = result.filter(t => t.priority === 'high');
+        } else if (activeFilter === 'due-soon') {
             const threeDaysFromNow = new Date();
             threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-            return tasks.filter(t => {
+            result = result.filter(t => {
                 if (!t.due_date) return false;
                 const dueDate = new Date(t.due_date);
                 return dueDate <= threeDaysFromNow && t.status !== 'done';
             });
         }
 
-        return tasks;
-    }, [tasks, activeFilter]);
+        return result;
+    }, [filteredAndSortedTasks, activeFilter]);
 
     // Keyboard navigation for tasks (after filteredTasks is defined)
     useEffect(() => {
@@ -573,43 +581,59 @@ export default function TasksPage() {
                 </div>
             </div>
 
+            {/* ✅ NEW: Advanced Filter Panel */}
+            {showFilterPanel && (
+                <FilterPanel
+                    filters={filters}
+                    sort={sort}
+                    onFiltersChange={updateFilters}
+                    onSortChange={updateSort}
+                    onClose={() => setShowFilterPanel(false)}
+                />
+            )}
+
             {/* Filter Bar */}
-            <div className="flex items-center gap-2 mb-4 shrink-0">
+            <div className="flex items-center gap-2 mb-4 shrink-0 flex-wrap">
                 <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-500">
                     <Filter size={14} />
-                    <span className="font-bold uppercase tracking-wider">Filter:</span>
+                    <span className="font-bold uppercase tracking-wider">Quick Filters:</span>
                 </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setActiveFilter('all')}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${activeFilter === 'all'
-                            ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                            : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
+                <div className="flex gap-2 flex-wrap">
+                    {/* Preset Filters */}
+                    {DEFAULT_PRESETS.slice(0, 4).map((preset) => (
+                        <button
+                            key={preset.id}
+                            onClick={() => {
+                                updateFilters(preset.filters);
+                                if (preset.sort) {
+                                    updateSort(preset.sort);
+                                }
+                                setActiveFilter('all'); // Reset legacy filter
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                                JSON.stringify(filters) === JSON.stringify(preset.filters)
+                                    ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                                    : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
                             }`}
-                    >
-                        All
-                    </button>
+                        >
+                            {preset.icon && <Sparkles size={12} />}
+                            {preset.name}
+                        </button>
+                    ))}
                     <button
-                        onClick={() => setActiveFilter('high')}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${activeFilter === 'high'
-                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                            : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
-                            }`}
+                        onClick={() => setShowFilterPanel(!showFilterPanel)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                            showFilterPanel
+                                ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                                : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
+                        }`}
                     >
-                        High Priority
-                    </button>
-                    <button
-                        onClick={() => setActiveFilter('due-soon')}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${activeFilter === 'due-soon'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-500 border border-zinc-300 dark:border-white/5 hover:border-zinc-400 dark:hover:border-white/10'
-                            }`}
-                    >
-                        Due Soon
+                        <Filter size={12} />
+                        Advanced
                     </button>
                 </div>
-                {activeFilter !== 'all' && (
-                    <span className="text-xs text-zinc-600">
+                {(activeFilter !== 'all' || Object.keys(filters).length > 0) && (
+                    <span className="text-xs text-zinc-600 dark:text-zinc-400">
                         ({filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'})
                     </span>
                 )}
