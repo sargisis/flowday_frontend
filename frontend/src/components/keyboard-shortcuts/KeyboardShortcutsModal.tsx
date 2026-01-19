@@ -6,14 +6,35 @@ interface KeyboardShortcutsModalProps {
 }
 
 const shortcuts = [
-  { keys: ["C"], description: "Create new task" },
-  { keys: ["/"], description: "Focus search" },
-  { keys: ["S"], description: "Toggle selection mode" },
-  { keys: ["Ctrl", "S"], description: "Save current changes" },
-  { keys: ["Delete"], description: "Delete selected items" },
-  { keys: ["Q"], description: "Quick add task" },
-  { keys: ["Esc"], description: "Close modal / Cancel" },
-  { keys: ["?", "Shift"], description: "Show keyboard shortcuts" },
+  { category: "Navigation", shortcuts: [
+    { keys: ["↑", "↓"], description: "Navigate tasks in list" },
+    { keys: ["Home"], description: "Jump to first task" },
+    { keys: ["End"], description: "Jump to last task" },
+    { keys: ["Enter"], description: "Open selected task / Edit task" },
+  ]},
+  { category: "Tasks", shortcuts: [
+    { keys: ["C"], description: "Create new task" },
+    { keys: ["Q"], description: "Quick add task" },
+    { keys: ["E"], description: "Edit selected task" },
+    { keys: ["D"], description: "Delete selected task" },
+    { keys: ["F"], description: "Focus mode for selected task" },
+  ]},
+  { category: "Selection", shortcuts: [
+    { keys: ["S"], description: "Toggle selection mode" },
+    { keys: ["Ctrl", "A"], description: "Select all tasks" },
+    { keys: ["1", "2", "3", "4"], description: "Bulk change status (1=Todo, 2=In Progress, 3=Blocked, 4=Done)" },
+    { keys: ["Delete"], description: "Delete selected items" },
+    { keys: ["Esc"], description: "Cancel selection" },
+  ]},
+  { category: "Search & Navigation", shortcuts: [
+    { keys: ["/"], description: "Focus search" },
+    { keys: ["Ctrl", "K"], description: "Open command palette" },
+    { keys: ["?"], description: "Show keyboard shortcuts" },
+  ]},
+  { category: "Actions", shortcuts: [
+    { keys: ["Ctrl", "S"], description: "Save current changes" },
+    { keys: ["Esc"], description: "Close modal / Cancel" },
+  ]},
 ];
 
 export default function KeyboardShortcutsModal({
@@ -39,23 +60,32 @@ export default function KeyboardShortcutsModal({
         </div>
 
         <div className="p-6">
-          <div className="space-y-4">
-            {shortcuts.map((shortcut, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4 bg-zinc-800 rounded-lg hover:bg-zinc-700 transition-colors"
-              >
-                <span className="text-zinc-300">{shortcut.description}</span>
-                <div className="flex items-center gap-1">
-                  {shortcut.keys.map((key, keyIndex) => (
-                    <span key={keyIndex}>
-                      <kbd className="px-2 py-1 text-xs font-semibold text-zinc-300 bg-zinc-700 border border-zinc-600 rounded">
-                        {key}
-                      </kbd>
-                      {keyIndex < shortcut.keys.length - 1 && (
-                        <span className="mx-1 text-zinc-500">+</span>
-                      )}
-                    </span>
+          <div className="space-y-6">
+            {shortcuts.map((category, categoryIndex) => (
+              <div key={categoryIndex}>
+                <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+                  {category.category}
+                </h3>
+                <div className="space-y-2">
+                  {category.shortcuts.map((shortcut, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg hover:bg-zinc-700/50 transition-colors"
+                    >
+                      <span className="text-zinc-300 text-sm">{shortcut.description}</span>
+                      <div className="flex items-center gap-1">
+                        {shortcut.keys.map((key, keyIndex) => (
+                          <span key={keyIndex}>
+                            <kbd className="px-2 py-1 text-xs font-semibold text-zinc-300 bg-zinc-700 border border-zinc-600 rounded">
+                              {key}
+                            </kbd>
+                            {keyIndex < shortcut.keys.length - 1 && (
+                              <span className="mx-1 text-zinc-500">+</span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>

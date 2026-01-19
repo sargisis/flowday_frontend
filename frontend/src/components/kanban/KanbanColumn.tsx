@@ -13,9 +13,10 @@ interface KanbanColumnProps {
     isSelectionMode?: boolean;
     selectedTaskIds?: Set<string>;
     onToggleTaskSelection?: (taskId: string) => void;
+    keyboardSelectedTaskId?: string | null;
 }
 
-function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode, selectedTaskIds, onToggleTaskSelection }: KanbanColumnProps) {
+function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode, selectedTaskIds, onToggleTaskSelection, keyboardSelectedTaskId }: KanbanColumnProps) {
     // Use useDroppable to make the column a drop zone for tasks
     const { setNodeRef, isOver } = useDroppable({
         id,
@@ -57,6 +58,7 @@ function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode
                             isSelectionMode={isSelectionMode}
                             isSelected={selectedTaskIds?.has(task.id)}
                             onToggleSelection={onToggleTaskSelection}
+                            isKeyboardSelected={keyboardSelectedTaskId === task.id}
                         />
                     ))}
                 </SortableContext>
@@ -92,6 +94,9 @@ export default memo(KanbanColumn, (prevProps, nextProps) => {
             if (!nextProps.selectedTaskIds.has(id)) return false;
         }
     }
+    
+    // Check keyboardSelectedTaskId
+    if (prevProps.keyboardSelectedTaskId !== nextProps.keyboardSelectedTaskId) return false;
     
     return true;
 });

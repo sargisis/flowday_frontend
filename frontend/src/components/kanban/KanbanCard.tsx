@@ -12,9 +12,10 @@ interface KanbanCardProps {
     isSelectionMode?: boolean;
     isSelected?: boolean;
     onToggleSelection?: (taskId: string) => void;
+    isKeyboardSelected?: boolean; // For keyboard navigation highlight
 }
 
-function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelected, onToggleSelection }: KanbanCardProps) {
+function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelected, onToggleSelection, isKeyboardSelected }: KanbanCardProps) {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const {
@@ -113,6 +114,7 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
             {...(!isSelectionMode ? attributes : {})}
             {...(!isSelectionMode ? listeners : {})}
             onClick={isSelectionMode ? handleCardClick : () => onClick?.(task)}
+            id={`task-item-${task.id}`}
             className={`
         group relative p-3 rounded-xl 
         bg-zinc-900/40 
@@ -121,7 +123,9 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
         ${isSelectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}
         ${isSelected
                     ? 'border-indigo-500 bg-indigo-500/10'
-                    : 'border-white/5 hover:border-white/10'}
+                    : isKeyboardSelected
+                        ? 'border-indigo-400/60 bg-indigo-500/5 ring-2 ring-indigo-400/30'
+                        : 'border-white/5 hover:border-white/10'}
         ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
       `}
         >
