@@ -64,7 +64,7 @@ function KanbanBoard({
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
-                distance: 5,
+                distance: 5, // Distance in pixels before drag starts
             },
         }),
         useSensor(KeyboardSensor, {

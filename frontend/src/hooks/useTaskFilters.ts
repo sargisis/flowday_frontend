@@ -112,7 +112,19 @@ export function useTaskFilters(tasks: Task[], filters: TaskFilters, sort?: TaskS
             const searchLower = filters.search.toLowerCase();
             result = result.filter(task => 
                 task.title.toLowerCase().includes(searchLower) ||
-                task.description?.toLowerCase().includes(searchLower)
+                task.description?.toLowerCase().includes(searchLower) ||
+                task.tags?.some(tag => tag.name.toLowerCase().includes(searchLower))
+            );
+        }
+
+        if (filters.tags && filters.tags.length > 0) {
+            result = result.filter(task => 
+                task.tags && task.tags.some(tag => 
+                    filters.tags!.some(filterTag => 
+                        tag.name.toLowerCase() === filterTag.toLowerCase() || 
+                        tag.id === filterTag
+                    )
+                )
             );
         }
 

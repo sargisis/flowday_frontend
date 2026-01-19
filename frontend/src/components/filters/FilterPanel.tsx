@@ -45,7 +45,8 @@ export default function FilterPanel({ filters, sort, onFiltersChange, onSortChan
         filters.search ||
         filters.hasDescription !== undefined ||
         filters.hasSubtasks !== undefined ||
-        filters.hasAttachments !== undefined
+        filters.hasAttachments !== undefined ||
+        filters.tags?.length
     );
 
     return (

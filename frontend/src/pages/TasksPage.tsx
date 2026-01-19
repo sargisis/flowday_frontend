@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { type Task, getTasksByProject, bulkDeleteTasks } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
@@ -19,6 +19,7 @@ import FilterPanel from "../components/filters/FilterPanel";
 import GroupingSelector from "../components/filters/GroupingSelector";
 import { DEFAULT_PRESETS, type GroupBy, type GroupingOptions } from "../types/filters";
 import { useTaskGrouping } from "../hooks/useTaskGrouping";
+import GlobalSearch from "../components/search/GlobalSearch";
 
 export default function TasksPage() {
     const { activeProjectId } = useProject();
@@ -44,6 +45,7 @@ export default function TasksPage() {
     // ✅ NEW FEATURES: Templates and Saved Views
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+    const [showGlobalSearch, setShowGlobalSearch] = useState(false);
 
     // Use a premium "glass" sounding chime
     const playSuccess = useSound("https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3", 0.6);
@@ -97,6 +99,59 @@ export default function TasksPage() {
     const [selectedTaskIndex, setSelectedTaskIndex] = useState<number>(-1);
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
+    // Selection handling functions - defined early so they can be used in useEffect
+    const handleBulkDelete = useCallback(async () => {
+        if (selectedTaskIds.size === 0) return;
+        if (!confirm(`Delete ${selectedTaskIds.size} selected tasks?`)) return;
+
+        setIsLoading(true);
+        try {
+            await bulkDeleteTasks(Array.from(selectedTaskIds));
+            // Trigger refresh
+            if (activeProjectId) {
+                const data = await getTasksByProject(activeProjectId);
+                setTasks(data);
+            }
+            setIsSelectionMode(false);
+            setSelectedTaskIds(new Set());
+            toast.success(`Deleted ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''}`);
+        } catch (error) {
+            console.error("Failed to bulk delete", error);
+            toast.error("Failed to delete tasks");
+        } finally {
+            setIsLoading(false);
+        }
+    }, [selectedTaskIds, activeProjectId]);
+
+    const handleBulkStatusChange = useCallback(async (newStatus: string) => {
+        if (selectedTaskIds.size === 0) return;
+
+        setIsLoading(true);
+        try {
+            // Update all selected tasks
+            await Promise.all(
+                Array.from(selectedTaskIds).map(taskId =>
+                    handleUpdateTask(taskId, { status: newStatus })
+                )
+            );
+            
+            // Refresh tasks
+            if (activeProjectId) {
+                const data = await getTasksByProject(activeProjectId);
+                setTasks(data);
+            }
+            
+            toast.success(`Updated ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''} to ${newStatus}`);
+            setIsSelectionMode(false);
+            setSelectedTaskIds(new Set());
+        } catch (error) {
+            console.error("Failed to bulk update", error);
+            toast.error("Failed to update tasks");
+        } finally {
+            setIsLoading(false);
+        }
+    }, [selectedTaskIds, activeProjectId, handleUpdateTask]);
+
     // ✅ NEW: Enhanced Keyboard Shortcuts
     useKeyboardShortcuts(
         [
@@ -119,6 +174,10 @@ export default function TasksPage() {
                 action: () => setShowShortcutsModal(true),
             },
             {
+                ...COMMON_SHORTCUTS.SEARCH,
+                action: () => setShowGlobalSearch(true),
+            },
+            {
                 key: 'Escape',
                 description: 'Close modals / Cancel selection',
                 action: () => {
@@ -134,18 +193,6 @@ export default function TasksPage() {
             },
             // Quick actions for selected task
             {
-                key: 'e',
-                description: 'Edit selected task',
-                action: () => {
-                    if (selectedTaskId) {
-                        const task = tasks.find(t => t.id === selectedTaskId);
-                        if (task) {
-                            openDetailsModal(task);
-                        }
-                    }
-                },
-            },
-            {
                 key: 'd',
                 description: 'Delete selected task',
                 action: () => {
@@ -159,15 +206,6 @@ export default function TasksPage() {
                     }
                 },
             },
-            {
-                key: 'f',
-                description: 'Focus mode for selected task',
-                action: () => {
-                    if (selectedTaskId) {
-                        window.location.href = `/app/v1/focus/${selectedTaskId}`;
-                    }
-                },
-            },
         ],
         true
     );
@@ -175,28 +213,39 @@ export default function TasksPage() {
 
     // Keyboard shortcuts for selection mode
     useEffect(() => {
+        if (!isSelectionMode) return;
+
         const handleKeyDown = (e: KeyboardEvent) => {
             // Ignore if typing in input/textarea
-            if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+            const target = e.target as HTMLElement;
+            if (
+                ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
+                target.isContentEditable
+            ) {
                 return;
             }
 
             // Ctrl/Cmd + A: Select all tasks
-            if ((e.ctrlKey || e.metaKey) && e.key === 'a' && isSelectionMode) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
                 e.preventDefault();
+                e.stopPropagation();
                 const allIds = new Set(tasks.map(t => t.id));
                 setSelectedTaskIds(allIds);
+                return;
             }
 
             // Delete/Backspace: Delete selected tasks
-            if ((e.key === 'Delete' || e.key === 'Backspace') && isSelectionMode && selectedTaskIds.size > 0) {
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedTaskIds.size > 0) {
                 e.preventDefault();
+                e.stopPropagation();
                 handleBulkDelete();
+                return;
             }
 
             // Bulk status change: 1-4 keys for quick status change
-            if (isSelectionMode && selectedTaskIds.size > 0 && ['1', '2', '3', '4'].includes(e.key)) {
+            if (selectedTaskIds.size > 0 && ['1', '2', '3', '4'].includes(e.key)) {
                 e.preventDefault();
+                e.stopPropagation();
                 const statusMap: Record<string, string> = {
                     '1': 'Todo',
                     '2': 'In_Progress',
@@ -207,19 +256,22 @@ export default function TasksPage() {
                 if (newStatus) {
                     handleBulkStatusChange(newStatus);
                 }
+                return;
             }
 
             // Escape: Cancel selection mode
-            if (e.key === 'Escape' && isSelectionMode) {
+            if (e.key === 'Escape') {
                 e.preventDefault();
+                e.stopPropagation();
                 setIsSelectionMode(false);
                 setSelectedTaskIds(new Set());
+                return;
             }
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isSelectionMode, selectedTaskIds, tasks]);
+        window.addEventListener('keydown', handleKeyDown, true); // Use capture phase
+        return () => window.removeEventListener('keydown', handleKeyDown, true);
+    }, [isSelectionMode, selectedTaskIds, tasks, handleBulkDelete, handleBulkStatusChange]);
 
     // Calculate stats
     const stats = useMemo(() => {
@@ -257,6 +309,7 @@ export default function TasksPage() {
     }, [filteredAndSortedTasks, activeFilter]);
 
     // Keyboard navigation for tasks (after filteredTasks is defined)
+    // Use capture phase to handle before other handlers
     useEffect(() => {
         if (isSelectionMode || isLoading) return;
 
@@ -270,11 +323,29 @@ export default function TasksPage() {
                 return;
             }
 
+            // Don't handle if modifiers are pressed (let shortcuts handle those)
+            // EXCEPT for Shift+? which should be handled by shortcuts
+            if (e.ctrlKey || e.metaKey || e.altKey) {
+                return;
+            }
+            
+            // Allow Shift only for Shift+? combination
+            if (e.shiftKey && e.key !== '?' && e.key !== '/') {
+                return;
+            }
+
+            // Only handle navigation keys
+            const navigationKeys = ['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'];
+            if (!navigationKeys.includes(e.key)) {
+                return;
+            }
+
             if (filteredTasks.length === 0) return;
 
             switch (e.key) {
                 case 'ArrowDown':
                     e.preventDefault();
+                    e.stopPropagation();
                     setSelectedTaskIndex(prev => {
                         const next = prev + 1;
                         if (next >= filteredTasks.length) return 0; // Loop
@@ -284,6 +355,7 @@ export default function TasksPage() {
 
                 case 'ArrowUp':
                     e.preventDefault();
+                    e.stopPropagation();
                     setSelectedTaskIndex(prev => {
                         const next = prev - 1;
                         if (next < 0) return filteredTasks.length - 1; // Loop
@@ -293,17 +365,20 @@ export default function TasksPage() {
 
                 case 'Home':
                     e.preventDefault();
+                    e.stopPropagation();
                     setSelectedTaskIndex(0);
                     break;
 
                 case 'End':
                     e.preventDefault();
+                    e.stopPropagation();
                     setSelectedTaskIndex(filteredTasks.length - 1);
                     break;
 
                 case 'Enter':
                     if (selectedTaskIndex >= 0 && selectedTaskIndex < filteredTasks.length) {
                         e.preventDefault();
+                        e.stopPropagation();
                         const task = filteredTasks[selectedTaskIndex];
                         openDetailsModal(task);
                     }
@@ -311,14 +386,21 @@ export default function TasksPage() {
             }
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener('keydown', handleKeyDown, true); // Use capture phase
+        return () => window.removeEventListener('keydown', handleKeyDown, true);
     }, [filteredTasks, isSelectionMode, isLoading, selectedTaskIndex, openDetailsModal]);
 
     // Update selected task ID when index changes
     useEffect(() => {
         if (selectedTaskIndex >= 0 && selectedTaskIndex < filteredTasks.length) {
-            setSelectedTaskId(filteredTasks[selectedTaskIndex].id);
+            const taskId = filteredTasks[selectedTaskIndex].id;
+            setSelectedTaskId(taskId);
+            
+            // Scroll to selected task
+            const taskElement = document.getElementById(`task-item-${taskId}`);
+            if (taskElement) {
+                taskElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         } else {
             setSelectedTaskId(null);
         }
@@ -336,8 +418,6 @@ export default function TasksPage() {
         );
     }
 
-    // Selection handling functions
-
     const toggleTaskSelection = (taskId: string) => {
         const newSet = new Set(selectedTaskIds);
         if (newSet.has(taskId)) {
@@ -346,58 +426,6 @@ export default function TasksPage() {
             newSet.add(taskId);
         }
         setSelectedTaskIds(newSet);
-    };
-
-    const handleBulkDelete = async () => {
-        if (selectedTaskIds.size === 0) return;
-        if (!confirm(`Delete ${selectedTaskIds.size} selected tasks?`)) return;
-
-        setIsLoading(true);
-        try {
-            await bulkDeleteTasks(Array.from(selectedTaskIds));
-            // Trigger refresh
-            if (activeProjectId) {
-                const data = await getTasksByProject(activeProjectId);
-                setTasks(data);
-            }
-            setIsSelectionMode(false);
-            setSelectedTaskIds(new Set());
-            toast.success(`Deleted ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''}`);
-        } catch (error) {
-            console.error("Failed to bulk delete", error);
-            toast.error("Failed to delete tasks");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleBulkStatusChange = async (newStatus: string) => {
-        if (selectedTaskIds.size === 0) return;
-
-        setIsLoading(true);
-        try {
-            // Update all selected tasks
-            await Promise.all(
-                Array.from(selectedTaskIds).map(taskId =>
-                    handleUpdateTask(taskId, { status: newStatus })
-                )
-            );
-            
-            // Refresh tasks
-            if (activeProjectId) {
-                const data = await getTasksByProject(activeProjectId);
-                setTasks(data);
-            }
-            
-            toast.success(`Updated ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''} to ${newStatus}`);
-            setIsSelectionMode(false);
-            setSelectedTaskIds(new Set());
-        } catch (error) {
-            console.error("Failed to bulk update", error);
-            toast.error("Failed to update tasks");
-        } finally {
-            setIsLoading(false);
-        }
     };
 
     const onTaskUpdateOptimistic = async (id: string, status: string) => {
@@ -745,6 +773,12 @@ export default function TasksPage() {
             <KeyboardShortcutsModal
                 isOpen={showShortcutsModal}
                 onClose={() => setShowShortcutsModal(false)}
+            />
+            
+            {/* ✅ NEW: Global Search */}
+            <GlobalSearch
+                isOpen={showGlobalSearch}
+                onClose={() => setShowGlobalSearch(false)}
             />
         </div>
     );

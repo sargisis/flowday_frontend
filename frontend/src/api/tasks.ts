@@ -20,6 +20,7 @@ export interface Task {
     due_date?: string;
     created_at?: string;
     attachments?: Attachment[];
+    tags?: Array<{ id: string; name: string; color: string }>;
 }
 
 export const getTasksByProject = async (projectId: string): Promise<Task[]> => {
