@@ -30,10 +30,12 @@ interface KanbanBoardProps {
 }
 
 const dropAnimation: DropAnimation = {
+    duration: 200,
+    easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
     sideEffects: defaultDropAnimationSideEffects({
         styles: {
             active: {
-                opacity: '0.5',
+                opacity: '0.4',
             },
         },
     }),
@@ -52,6 +54,7 @@ function KanbanBoard({
     // Local state for optimistic updates (smooth dragging)
     const [tasks, setTasks] = useState<Task[]>(initialTasks);
     const [activeId, setActiveId] = useState<string | null>(null);
+    const [overColumnId, setOverColumnId] = useState<string | null>(null);
 
     // Sync local state when props change (e.g. from backend refresh)
     useEffect(() => {
@@ -70,16 +73,58 @@ function KanbanBoard({
     );
 
     const handleDragStart = useCallback((event: DragStartEvent) => {
-        setActiveId(event.active.id as string);
-    }, []);
+        const draggedId = event.active.id as string;
+        setActiveId(draggedId);
+        
+        // If in selection mode and this task is selected, we'll handle multi-drag
+        if (isSelectionMode && selectedTaskIds?.has(draggedId)) {
+            // Multi-select drag - we'll handle all selected tasks
+            // For now, just drag the active one, but we can enhance this
+        }
+        
+        // Add haptic feedback if available
+        if ('vibrate' in navigator) {
+            navigator.vibrate(50);
+        }
+    }, [isSelectionMode, selectedTaskIds]);
 
-    // We only rely on handleDragEnd for the status change to avoid state loops
-    const handleDragOver = useCallback((_: DragOverEvent) => {
-    }, []);
+    // Track which column we're hovering over for visual feedback
+    const handleDragOver = useCallback((event: DragOverEvent) => {
+        const { over } = event;
+        if (!over) {
+            setOverColumnId(null);
+            return;
+        }
+
+        const overData = over.data.current;
+        const overId = over.id as string;
+
+        // Determine column ID
+        let columnId: string | null = null;
+        
+        if (overData?.type === 'Column' || overData?.columnId) {
+            columnId = overData.columnId || overId;
+        } else {
+            // Check if overId is a column ID
+            const columnIds = ['Todo', 'In_Progress', 'Blocked', 'Done'];
+            if (columnIds.includes(overId)) {
+                columnId = overId;
+            } else {
+                // Check if dropped on a task - find its column
+                const overTask = tasks.find(t => t.id === overId);
+                if (overTask) {
+                    columnId = overTask.status;
+                }
+            }
+        }
+
+        setOverColumnId(columnId);
+    }, [tasks]);
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;
         setActiveId(null);
+        setOverColumnId(null);
 
         if (!over) return;
 
@@ -166,12 +211,24 @@ function KanbanBoard({
             return;
         }
 
-        // Commit the change to backend
-        onTaskUpdate(activeId, normalizedStatus);
+        // Multi-select drag: if in selection mode and multiple tasks selected, update all
+        if (isSelectionMode && selectedTaskIds && selectedTaskIds.size > 1 && selectedTaskIds.has(activeId)) {
+            // Update all selected tasks
+            const tasksToUpdate = Array.from(selectedTaskIds);
+            tasksToUpdate.forEach(taskId => {
+                const task = tasks.find(t => t.id === taskId);
+                if (task && task.status !== normalizedStatus) {
+                    onTaskUpdate(taskId, normalizedStatus);
+                }
+            });
+        } else {
+            // Single task drag
+            onTaskUpdate(activeId, normalizedStatus);
+        }
 
         // Re-sync local state to be safe (in case backend fails or returns slightly diff data)
         // Actually, preventing flicker: we leave local state as is, and let the useEffect above sync it when next props come in.
-    }, [tasks, onTaskUpdate]);
+    }, [tasks, onTaskUpdate, isSelectionMode, selectedTaskIds]);
 
     // Filter tasks for columns (Case-insensitive)
     const todoTasks = useMemo(() => tasks.filter(t => t.status.toLowerCase() === "todo"), [tasks]);
@@ -226,6 +283,7 @@ function KanbanBoard({
                             selectedTaskIds={selectedTaskIds}
                             onToggleTaskSelection={onToggleTaskSelection}
                             keyboardSelectedTaskId={keyboardSelectedTaskId}
+                            isDragOver={overColumnId === 'Todo' && activeId !== null}
                         />
                     </div>
                     <div className="min-h-0 h-full flex flex-col">
@@ -239,6 +297,7 @@ function KanbanBoard({
                             selectedTaskIds={selectedTaskIds}
                             onToggleTaskSelection={onToggleTaskSelection}
                             keyboardSelectedTaskId={keyboardSelectedTaskId}
+                            isDragOver={overColumnId === 'In_Progress' && activeId !== null}
                         />
                     </div>
 
@@ -254,6 +313,7 @@ function KanbanBoard({
                             selectedTaskIds={selectedTaskIds}
                             onToggleTaskSelection={onToggleTaskSelection}
                             keyboardSelectedTaskId={keyboardSelectedTaskId}
+                            isDragOver={overColumnId === 'Blocked' && activeId !== null}
                         />
                     </div>
                     <div className="min-h-0 h-full flex flex-col">
@@ -267,6 +327,7 @@ function KanbanBoard({
                             selectedTaskIds={selectedTaskIds}
                             onToggleTaskSelection={onToggleTaskSelection}
                             keyboardSelectedTaskId={keyboardSelectedTaskId}
+                            isDragOver={overColumnId === 'Done' && activeId !== null}
                         />
                     </div>
                 </div>
@@ -274,8 +335,20 @@ function KanbanBoard({
 
             <DragOverlay dropAnimation={dropAnimation}>
                 {activeId && activeTask ? (
-                    <div className="cursor-grabbing w-[300px] shadow-2xl relative z-50">
-                        <KanbanCard task={activeTask} overlay={true} />
+                    <div className="cursor-grabbing w-[300px] shadow-2xl relative z-50 transform rotate-2 scale-105">
+                        <div className="relative">
+                            <KanbanCard task={activeTask} overlay={true} />
+                            {/* Additional info in drag preview */}
+                            <div className="absolute -top-2 -right-2 bg-indigo-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
+                                {isSelectionMode && selectedTaskIds && selectedTaskIds.size > 1 ? (
+                                    <>
+                                        <span>{selectedTaskIds.size} tasks</span>
+                                    </>
+                                ) : (
+                                    <span>Moving...</span>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 ) : null}
             </DragOverlay>
