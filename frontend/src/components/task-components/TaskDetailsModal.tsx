@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
-import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock, Undo2, Redo2, List, Network } from "lucide-react";
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
+import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock, Undo2, Redo2, List, Network, Hash } from "lucide-react";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import { useAutoSave } from "../../hooks/useAutoSave";
+import TagInput from "../tags/TagInput";
+import type { Tag } from "../../types/tags";
 
 // Lazy load ReactMarkdown (heavy library)
 const ReactMarkdown = lazy(() => import("react-markdown"));
@@ -35,6 +37,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const [status, setStatus] = useState("");
     const [priority, setPriority] = useState("");
     const [dueDate, setDueDate] = useState("");
+    const [tags, setTags] = useState<Tag[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [isEnriching, setIsEnriching] = useState(false);
     const [isPreview, setIsPreview] = useState(false);
@@ -47,7 +50,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Undo/Redo functionality
-    const taskData = { title, description, subtasks, status, priority, dueDate };
+    const taskData = useMemo(() => ({ title, description, subtasks, status, priority, dueDate }), [title, description, subtasks, status, priority, dueDate]);
     const isUpdatingFromUndoRedo = useRef(false);
     const { current: undoRedoData, setValue: setUndoRedoValue, undo, redo, canUndo, canRedo, reset: resetUndoRedo } = useUndoRedo({
         initialValue: taskData,
@@ -56,22 +59,36 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     // Sync undo/redo state with form state (only when undo/redo is triggered)
     useEffect(() => {
         if (isUpdatingFromUndoRedo.current && undoRedoData) {
-            setTitle(undoRedoData.title);
-            setDescription(undoRedoData.description);
-            setSubtasks(undoRedoData.subtasks);
-            setStatus(undoRedoData.status);
-            setPriority(undoRedoData.priority);
-            setDueDate(undoRedoData.dueDate);
+            // Only update if values actually changed to prevent unnecessary re-renders
+            if (title !== undoRedoData.title) setTitle(undoRedoData.title);
+            if (description !== undoRedoData.description) setDescription(undoRedoData.description);
+            if (JSON.stringify(subtasks) !== JSON.stringify(undoRedoData.subtasks)) setSubtasks(undoRedoData.subtasks);
+            if (status !== undoRedoData.status) setStatus(undoRedoData.status);
+            if (priority !== undoRedoData.priority) setPriority(undoRedoData.priority);
+            if (dueDate !== undoRedoData.dueDate) setDueDate(undoRedoData.dueDate);
             isUpdatingFromUndoRedo.current = false;
         }
-    }, [undoRedoData]);
+    }, [undoRedoData, title, description, subtasks, status, priority, dueDate]);
 
     // Update undo/redo history when form changes (but not from undo/redo)
+    const prevTaskDataRef = useRef(taskData);
     useEffect(() => {
         if (!isUpdatingFromUndoRedo.current) {
-            setUndoRedoValue(taskData, true);
+            // Only update if data actually changed
+            const hasChanged = 
+                prevTaskDataRef.current.title !== taskData.title ||
+                prevTaskDataRef.current.description !== taskData.description ||
+                JSON.stringify(prevTaskDataRef.current.subtasks) !== JSON.stringify(taskData.subtasks) ||
+                prevTaskDataRef.current.status !== taskData.status ||
+                prevTaskDataRef.current.priority !== taskData.priority ||
+                prevTaskDataRef.current.dueDate !== taskData.dueDate;
+            
+            if (hasChanged) {
+                prevTaskDataRef.current = taskData;
+                setUndoRedoValue(taskData, true);
+            }
         }
-    }, [title, description, subtasks, status, priority, dueDate, setUndoRedoValue]);
+    }, [taskData, setUndoRedoValue]);
 
     // Auto-save draft
     useAutoSave({
@@ -137,6 +154,11 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
             setStatus(initialData.status);
             setPriority(initialData.priority);
             setDueDate(initialData.dueDate);
+            setTags((task.tags || []).map(t => ({
+                id: t.id,
+                name: t.name,
+                color: t.color || 'blue',
+            })));
             
             // Reset undo/redo history with initial data
             resetUndoRedo(initialData);
@@ -255,7 +277,8 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 subtasks,
                 status,
                 priority,
-                due_date: dueDate ? new Date(dueDate).toISOString() : undefined
+                due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
+                tags: tags.map(t => ({ id: t.id, name: t.name, color: t.color })),
             });
             onClose();
             toast.success("Task updated");
@@ -330,10 +353,10 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     };
 
         return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="w-full max-w-3xl bg-white dark:bg-zinc-900/95 border border-zinc-200 dark:border-zinc-800/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
+            <div className="w-full max-w-3xl bg-gradient-to-br from-white via-white to-zinc-50 dark:from-zinc-900/98 dark:via-zinc-900/95 dark:to-zinc-950/98 border border-zinc-200/80 dark:border-zinc-700/50 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-2xl ring-1 ring-white/5 dark:ring-white/10">
                 {/* Header */}
-                <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-200 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-900/50">
+                <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-200/60 dark:border-zinc-800/40 bg-gradient-to-r from-zinc-50/80 to-transparent dark:from-zinc-900/40 dark:to-transparent backdrop-blur-sm">
                     <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Task Details</h2>
                     <div className="flex items-center gap-1">
                         {/* Undo/Redo buttons */}
@@ -357,23 +380,23 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                         </div>
                         <button
                             onClick={handleDuplicate}
-                            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                            className="p-2.5 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
                             title="Duplicate Task"
                         >
-                            <Copy size={18} />
+                            <Copy size={18} strokeWidth={2.5} />
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            className="p-2.5 text-zinc-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
                             title="Delete Task"
                         >
-                            <Trash2 size={18} />
+                            <Trash2 size={18} strokeWidth={2.5} />
                         </button>
                         <button 
                             onClick={onClose} 
-                            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                            className="p-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
                         >
-                            <X size={18} />
+                            <X size={18} strokeWidth={2.5} />
                         </button>
                     </div>
                 </div>
@@ -728,22 +751,36 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                     )}
                                 </div>
                             </div>
+
+                            {/* Tags Card */}
+                            <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
+                                <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Hash size={12} />
+                                    Tags
+                                </label>
+                                <TagInput
+                                    tags={tags}
+                                    availableTags={[]} // Can be enhanced to load from project
+                                    onTagsChange={setTags}
+                                    placeholder="Add tags..."
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-zinc-900/50 border-t border-zinc-800/50 flex justify-end gap-3">
+                <div className="px-6 py-4 bg-gradient-to-t from-zinc-900/60 via-zinc-900/40 to-transparent border-t border-zinc-800/40 backdrop-blur-sm flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-5 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 text-sm font-medium transition-colors"
+                        className="px-5 py-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/60 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 disabled:opacity-50 text-white text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all"
+                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 hover:from-blue-500 hover:via-blue-400 hover:to-blue-500 disabled:opacity-50 text-white text-sm font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 hover:scale-105 active:scale-95 disabled:hover:scale-100"
                     >
                         {isSaving ? "Saving..." : "Save Changes"}
                     </button>

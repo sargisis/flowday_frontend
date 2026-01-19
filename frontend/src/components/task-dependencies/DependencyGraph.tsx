@@ -124,7 +124,7 @@ export function DependencyGraph({
     return (
         <div
             ref={containerRef}
-            className={`relative bg-zinc-900/40 border border-white/5 rounded-xl overflow-hidden ${
+            className={`relative bg-gradient-to-br from-zinc-900/60 via-zinc-900/40 to-zinc-800/30 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-xl ${
                 isFullscreen ? 'fixed inset-0 z-50' : 'h-96'
             }`}
             onMouseDown={handleMouseDown}
@@ -137,31 +137,31 @@ export function DependencyGraph({
             <div className="absolute top-4 right-4 z-10 flex gap-2">
                 <button
                     onClick={handleZoomIn}
-                    className="p-2 bg-zinc-800/80 hover:bg-zinc-700 rounded-lg transition-colors"
+                    className="p-2.5 bg-zinc-800/90 backdrop-blur-sm hover:bg-zinc-700/90 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
                     title="Zoom In"
                 >
-                    <ZoomIn size={16} className="text-zinc-300" />
+                    <ZoomIn size={16} className="text-zinc-200" strokeWidth={2.5} />
                 </button>
                 <button
                     onClick={handleZoomOut}
-                    className="p-2 bg-zinc-800/80 hover:bg-zinc-700 rounded-lg transition-colors"
+                    className="p-2.5 bg-zinc-800/90 backdrop-blur-sm hover:bg-zinc-700/90 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
                     title="Zoom Out"
                 >
-                    <ZoomOut size={16} className="text-zinc-300" />
+                    <ZoomOut size={16} className="text-zinc-200" strokeWidth={2.5} />
                 </button>
                 <button
                     onClick={handleReset}
-                    className="p-2 bg-zinc-800/80 hover:bg-zinc-700 rounded-lg transition-colors"
+                    className="p-2.5 bg-zinc-800/90 backdrop-blur-sm hover:bg-zinc-700/90 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
                     title="Reset View"
                 >
-                    <RotateCcw size={16} className="text-zinc-300" />
+                    <RotateCcw size={16} className="text-zinc-200" strokeWidth={2.5} />
                 </button>
                 <button
                     onClick={() => setIsFullscreen(!isFullscreen)}
-                    className="p-2 bg-zinc-800/80 hover:bg-zinc-700 rounded-lg transition-colors"
+                    className="p-2.5 bg-zinc-800/90 backdrop-blur-sm hover:bg-zinc-700/90 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg"
                     title="Toggle Fullscreen"
                 >
-                    <Maximize2 size={16} className="text-zinc-300" />
+                    <Maximize2 size={16} className="text-zinc-200" strokeWidth={2.5} />
                 </button>
             </div>
 
@@ -295,7 +295,7 @@ export function DependencyGraph({
             </svg>
 
             {/* Legend */}
-            <div className="absolute bottom-4 left-4 z-10 bg-zinc-800/90 backdrop-blur-sm rounded-lg p-3 text-xs space-y-2">
+            <div className="absolute bottom-4 left-4 z-10 bg-zinc-800/95 backdrop-blur-md rounded-2xl p-4 text-xs space-y-2 border border-white/10 shadow-2xl">
                 <div className="font-semibold text-zinc-300 mb-2">Legend</div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-0.5 bg-indigo-500"></div>

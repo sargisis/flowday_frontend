@@ -14,10 +14,7 @@ const shortcuts = [
   ]},
   { category: "Tasks", shortcuts: [
     { keys: ["C"], description: "Create new task" },
-    { keys: ["Q"], description: "Quick add task" },
-    { keys: ["E"], description: "Edit selected task" },
     { keys: ["D"], description: "Delete selected task" },
-    { keys: ["F"], description: "Focus mode for selected task" },
   ]},
   { category: "Selection", shortcuts: [
     { keys: ["S"], description: "Toggle selection mode" },
@@ -27,9 +24,9 @@ const shortcuts = [
     { keys: ["Esc"], description: "Cancel selection" },
   ]},
   { category: "Search & Navigation", shortcuts: [
-    { keys: ["/"], description: "Focus search" },
+    { keys: ["/"], description: "Open global search" },
     { keys: ["Ctrl", "K"], description: "Open command palette" },
-    { keys: ["?"], description: "Show keyboard shortcuts" },
+    { keys: ["Shift", "?"], description: "Show keyboard shortcuts" },
   ]},
   { category: "Actions", shortcuts: [
     { keys: ["Ctrl", "S"], description: "Save current changes" },

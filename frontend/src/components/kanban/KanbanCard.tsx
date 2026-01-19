@@ -2,7 +2,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Task } from "../../api/tasks";
 import { GripVertical, Trash2, Sparkles } from "lucide-react";
-import { memo, useState } from "react";
+import { memo, useState, useEffect } from "react";
+import TagBadge from "../tags/TagBadge";
 
 interface KanbanCardProps {
     task: Task;
@@ -56,12 +57,32 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
         }
     };
 
+    // Track if we're in a drag operation
+    const [wasDragging, setWasDragging] = useState(false);
+
     const handleCardClick = (e: React.MouseEvent) => {
+        // Don't trigger if dragging or just finished dragging
+        if (isDragging || wasDragging) {
+            setWasDragging(false);
+            return;
+        }
+        
+        // Don't trigger if clicking on interactive elements (buttons)
+        const target = e.target as HTMLElement;
+        if (
+            target.closest('button') || 
+            target.closest('a')
+        ) {
+            return;
+        }
+
         if (isSelectionMode) {
             e.preventDefault();
             e.stopPropagation();
             onToggleSelection?.(task.id);
         } else {
+            e.preventDefault();
+            e.stopPropagation();
             onClick?.(task);
         }
     };
@@ -98,6 +119,17 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
         );
     }
 
+    // Track drag state changes
+    useEffect(() => {
+        if (isDragging) {
+            setWasDragging(true);
+        } else if (wasDragging) {
+            // Reset after a short delay to prevent click after drag
+            const timer = setTimeout(() => setWasDragging(false), 100);
+            return () => clearTimeout(timer);
+        }
+    }, [isDragging, wasDragging]);
+
     if (isDragging) {
         return (
             <div
@@ -114,29 +146,31 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
             style={style}
             {...(!isSelectionMode ? attributes : {})}
             {...(!isSelectionMode ? listeners : {})}
-            onClick={isSelectionMode ? handleCardClick : () => onClick?.(task)}
+            onClick={handleCardClick}
             id={`task-item-${task.id}`}
             className={`
-        group relative p-3 rounded-xl 
-        bg-zinc-900/40 
+        group relative p-3.5 rounded-2xl 
+        bg-gradient-to-br from-zinc-900/50 via-zinc-900/40 to-zinc-800/30
+        backdrop-blur-sm
         border 
-        transition-all duration-200
+        transition-all duration-300 ease-out
         ${isSelectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}
         ${isSelected
-                    ? 'border-indigo-500 bg-indigo-500/10'
+                    ? 'border-indigo-500/80 bg-indigo-500/15 shadow-lg shadow-indigo-500/20 ring-2 ring-indigo-500/30'
                     : isKeyboardSelected
-                        ? 'border-indigo-400/60 bg-indigo-500/5 ring-2 ring-indigo-400/30'
-                        : 'border-white/5 hover:border-white/10'}
+                        ? 'border-indigo-400/60 bg-indigo-500/8 ring-2 ring-indigo-400/25 shadow-md shadow-indigo-500/10'
+                        : 'border-white/5 hover:border-white/15 hover:bg-zinc-900/60'}
         ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
-        hover:scale-[1.02] active:scale-[0.98]
+        hover:scale-[1.02] hover:shadow-xl hover:shadow-black/20 active:scale-[0.98]
       `}
         >
             <div className="flex justify-between items-start mb-1.5">
                 <span className={`
-            px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider
-            ${task.priority === 'high' ? 'bg-rose-500/10 text-rose-400' :
-                        task.priority === 'medium' ? 'bg-amber-500/10 text-amber-400' :
-                            'bg-emerald-500/10 text-emerald-400'}
+            px-2.5 py-1 rounded-lg text-[10px] font-semibold uppercase tracking-wider
+            backdrop-blur-sm
+            ${task.priority === 'high' ? 'bg-gradient-to-r from-rose-500/20 to-rose-600/10 text-rose-300 border border-rose-500/30' :
+                        task.priority === 'medium' ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/10 text-amber-300 border border-amber-500/30' :
+                            'bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 text-emerald-300 border border-emerald-500/30'}
         `}>
                     {task.priority}
                 </span>
@@ -154,13 +188,29 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
                     <div className="flex items-center gap-1">
                         <button
                             onClick={handleDelete}
-                            onPointerDown={(e) => e.stopPropagation()}
+                            onMouseDown={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                            }}
+                            onPointerDown={(e) => {
+                                e.stopPropagation();
+                            }}
                             className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-500 hover:text-red-400 transition-opacity duration-200 z-50 cursor-pointer"
                             title="Delete task"
                         >
                             <Trash2 size={14} />
                         </button>
-                        <div className="text-zinc-600 p-1.5">
+                        <div 
+                            className="text-zinc-600 p-1.5 cursor-grab active:cursor-grabbing"
+                            onMouseDown={(e) => {
+                                // Prevent card click when clicking grip
+                                e.stopPropagation();
+                            }}
+                            onPointerDown={(e) => {
+                                // Prevent card click when clicking grip
+                                e.stopPropagation();
+                            }}
+                        >
                             <GripVertical size={14} />
                         </div>
                     </div>
@@ -182,6 +232,23 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
                 <p className="text-xs text-zinc-500 line-clamp-2 select-none">
                     {task.description}
                 </p>
+            )}
+
+            {task.tags && task.tags.length > 0 && !isSelectionMode && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                    {task.tags.slice(0, 3).map(tag => (
+                        <TagBadge
+                            key={tag.id}
+                            tag={{ name: tag.name, color: tag.color || 'blue' }}
+                            size="sm"
+                        />
+                    ))}
+                    {task.tags.length > 3 && (
+                        <span className="text-[9px] text-zinc-500 px-1.5 py-0.5">
+                            +{task.tags.length - 3}
+                        </span>
+                    )}
+                </div>
             )}
         </div>
     );
