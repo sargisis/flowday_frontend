@@ -4,7 +4,7 @@ import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
 import EmptyState from "../components/state/EmptyState";
-import { KanbanBoardSkeleton } from "../components/SkeletonLoader";
+import { KanbanColumnSkeleton } from "../components/skeletons/KanbanColumnSkeleton";
 import { CheckSquare, LayoutList, Activity, CheckCircle2, AlertCircle, Filter, Trash2, FileText, Keyboard } from "lucide-react";
 import useSound from "../hooks/useSound";
 import SavedViewsDropdown from "../components/saved-views/SavedViewsDropdown";
@@ -456,7 +456,15 @@ export default function TasksPage() {
 
             <div className="flex-1 overflow-hidden min-h-0 bg-transparent rounded-xl">
                 {isLoading ? (
-                    <KanbanBoardSkeleton />
+                    <div className="h-full w-full overflow-hidden p-2">
+                        <div className="grid grid-cols-2 gap-6 w-full h-full" style={{ gridTemplateRows: '1fr 1fr' }}>
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="min-h-0 h-full flex flex-col">
+                                    <KanbanColumnSkeleton />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 ) : tasks.length === 0 ? (
                     <EmptyState
                         icon={CheckSquare}

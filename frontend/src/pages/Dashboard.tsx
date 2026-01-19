@@ -23,6 +23,7 @@ export default function Dashboard() {
     const { user } = useUser();
     const navigate = useNavigate();
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [mounted, setMounted] = useState(false);
 
     // Custom Hooks
@@ -31,7 +32,12 @@ export default function Dashboard() {
     useEffect(() => {
         setMounted(true);
         if (activeProjectId) {
-            getTasksByProject(activeProjectId).then(setTasks);
+            setIsLoading(true);
+            getTasksByProject(activeProjectId)
+                .then(setTasks)
+                .finally(() => setIsLoading(false));
+        } else {
+            setIsLoading(false);
         }
     }, [activeProjectId, refreshTrigger]);
 
@@ -72,7 +78,7 @@ export default function Dashboard() {
         );
     }
 
-    if (!mounted && totalTasks === 0) return <DashboardSkeleton />;
+    if (isLoading || (!mounted && totalTasks === 0)) return <DashboardSkeleton />;
 
     return (
         <div className={`min-h-screen p-4 lg:p-6 space-y-4 transition-opacity duration-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
