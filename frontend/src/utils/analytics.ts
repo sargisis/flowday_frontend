@@ -39,7 +39,9 @@ export function initAnalytics() {
   // Initialize dataLayer
   window.dataLayer = window.dataLayer || []
   window.gtag = function gtag() {
-    window.dataLayer.push(arguments)
+    if (window.dataLayer) {
+      window.dataLayer.push(arguments)
+    }
   }
   window.gtag('js', new Date())
   window.gtag('config', GA4_MEASUREMENT_ID, {

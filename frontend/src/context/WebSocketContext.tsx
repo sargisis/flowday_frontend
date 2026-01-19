@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
 import { useWebSocket, type WebSocketMessage, type WebSocketMessageType } from '../hooks/useWebSocket';
 
 interface WebSocketContextType {
@@ -18,7 +18,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<Error | null>(null);
   const handlersRef = useRef(messageHandlers);
 
-  const { isConnected: wsConnected, error: wsError, sendMessage, connect, disconnect } = useWebSocket({
+  const { isConnected: wsConnected, error: wsError, sendMessage, connect } = useWebSocket({
     autoConnect: false, // Manual control
     onMessage: (message) => {
       // Broadcast to all handlers for this message type

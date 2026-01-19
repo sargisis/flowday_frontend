@@ -34,7 +34,7 @@ export default function SettingsPage() {
 
     // Email and Slack notification preferences - loaded from user data
     const [emailNotifications, setEmailNotifications] = useState<boolean>(false);
-    const [slackWebhookURL, setSlackWebhookURL] = useState<string>(""); // Legacy webhook support
+    const [_slackWebhookURL, setSlackWebhookURL] = useState<string>(""); // Legacy webhook support (unused but kept for future)
     const [isSavingNotifications, setIsSavingNotifications] = useState(false);
     const [isSlackModalOpen, setIsSlackModalOpen] = useState(false);
     const [slackWebhookInput, setSlackWebhookInput] = useState<string>("");
