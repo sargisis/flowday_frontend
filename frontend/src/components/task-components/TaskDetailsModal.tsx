@@ -17,6 +17,7 @@ import TaskDependencies from "../task-dependencies/TaskDependencies";
 import { DependencyGraph } from "../task-dependencies/DependencyGraph";
 import { getTaskDependencies, type TaskDependency } from "../../api/taskDependencies";
 import MentionAutocomplete from "../mentions/MentionAutocomplete";
+import SubtasksList from "../subtasks/SubtasksList";
 
 interface TaskDetailsModalProps {
     task: Task | null;
@@ -353,11 +354,11 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     };
 
         return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-            <div className="w-full max-w-3xl bg-gradient-to-br from-white via-white to-zinc-50 dark:from-zinc-900/98 dark:via-zinc-900/95 dark:to-zinc-950/98 border border-zinc-200/80 dark:border-zinc-700/50 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-2xl ring-1 ring-white/5 dark:ring-white/10">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
+            <div className="w-full h-full sm:h-auto sm:max-w-3xl bg-gradient-to-br from-white via-white to-zinc-50 dark:from-zinc-900/98 dark:via-zinc-900/95 dark:to-zinc-950/98 border-0 sm:border border-zinc-200/80 dark:border-zinc-700/50 rounded-none sm:rounded-3xl shadow-2xl overflow-hidden backdrop-blur-2xl ring-0 sm:ring-1 ring-white/5 dark:ring-white/10 flex flex-col sm:block">
                 {/* Header */}
-                <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-200/60 dark:border-zinc-800/40 bg-gradient-to-r from-zinc-50/80 to-transparent dark:from-zinc-900/40 dark:to-transparent backdrop-blur-sm">
-                    <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Task Details</h2>
+                <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200/60 dark:border-zinc-800/40 bg-gradient-to-r from-zinc-50/80 to-transparent dark:from-zinc-900/40 dark:to-transparent backdrop-blur-sm shrink-0">
+                    <h2 className="text-lg sm:text-xl font-semibold text-zinc-900 dark:text-white">Task Details</h2>
                     <div className="flex items-center gap-1">
                         {/* Undo/Redo buttons */}
                         <div className="flex items-center gap-1 mr-2 border-r border-zinc-300 dark:border-zinc-700 pr-2">
@@ -540,7 +541,15 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <a
-                                                        href={attachment.url.startsWith('http') ? attachment.url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'}${attachment.url}`}
+                                                        href={attachment.url.startsWith('http') ? attachment.url : (() => {
+                                                            const envUrl = import.meta.env.VITE_FILE_UPLOAD_BASE_URL;
+                                                            if (envUrl) return `${envUrl}${attachment.url}`;
+                                                            const hostname = window.location.hostname;
+                                                            const baseUrl = (hostname !== 'localhost' && hostname !== '127.0.0.1') 
+                                                                ? `http://${hostname}:8080` 
+                                                                : 'http://localhost:8080';
+                                                            return `${baseUrl}${attachment.url}`;
+                                                        })()}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="block text-sm font-medium text-zinc-900 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 truncate transition-colors"
@@ -568,6 +577,18 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                         No attachments yet
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Subtasks Section */}
+                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <CheckSquare size={16} className="text-zinc-600 dark:text-zinc-400" />
+                                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Subtasks</h3>
+                                </div>
+                                <SubtasksList
+                                    subtasks={subtasks}
+                                    onUpdate={setSubtasks}
+                                />
                             </div>
 
                             {/* Time Tracking Section */}
@@ -770,7 +791,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-gradient-to-t from-zinc-900/60 via-zinc-900/40 to-transparent border-t border-zinc-800/40 backdrop-blur-sm flex justify-end gap-3">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-t from-zinc-900/60 via-zinc-900/40 to-transparent border-t border-zinc-800/40 backdrop-blur-sm flex justify-end gap-2 sm:gap-3 shrink-0">
                     <button
                         onClick={onClose}
                         className="px-5 py-2.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/60 text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95"

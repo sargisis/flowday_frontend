@@ -65,11 +65,11 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="w-full max-w-md bg-zinc-900/95 border border-zinc-800/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+            <div className="w-full h-full sm:h-auto sm:max-w-md bg-zinc-900/95 border-0 sm:border border-zinc-800/50 rounded-none sm:rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl flex flex-col">
                 {/* Header */}
-                <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-800/50 bg-zinc-900/50">
-                    <h2 className="text-xl font-semibold text-white">New Task</h2>
+                <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-800/50 bg-zinc-900/50 shrink-0">
+                    <h2 className="text-lg sm:text-xl font-semibold text-white">New Task</h2>
                     <button 
                         onClick={onClose} 
                         className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
@@ -78,8 +78,8 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="p-6 space-y-5">
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                    <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 flex-1 overflow-y-auto">
                         <div>
                             <label className="block text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wide">
                                 Task Title
@@ -104,7 +104,7 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
                                         key={p}
                                         type="button"
                                         onClick={() => setPriority(p)}
-                                        className={`flex-1 px-2.5 py-2 rounded-md text-[11px] font-bold uppercase tracking-wide transition-all ${
+                                        className={`flex-1 px-3 py-3 sm:py-2 rounded-lg sm:rounded-md text-xs sm:text-[11px] font-bold uppercase tracking-wide transition-all touch-manipulation ${
                                             priority === p
                                                 ? p === 'high' 
                                                     ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
@@ -137,19 +137,19 @@ export default function CreateTaskModal({ isOpen, onClose, onCreate, initialDate
                     </div>
 
                     {/* Footer */}
-                    <div className="px-6 py-4 bg-zinc-900/50 border-t border-zinc-800/50 flex justify-end gap-3">
+                    <div className="px-4 sm:px-6 py-3 sm:py-4 bg-zinc-900/50 border-t border-zinc-800/50 flex justify-end gap-2 sm:gap-3 shrink-0">
                         <button
                             type="button"
                             onClick={() => {
                                 onClose();
                             }}
-                            className="px-5 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 text-sm font-medium transition-colors"
+                            className="px-4 sm:px-5 py-2.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 text-sm font-medium transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all"
+                            className="px-5 sm:px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all"
                         >
                             Create Task
                         </button>

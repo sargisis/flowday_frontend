@@ -18,3 +18,6 @@ export const ActivityItemSkeleton = () => {
         </div>
     );
 };
+
+
+export default ActivityItemSkeleton;

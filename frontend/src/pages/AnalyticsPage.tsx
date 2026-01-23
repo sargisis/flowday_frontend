@@ -8,6 +8,7 @@ import { FlowScoreCard } from '../components/analytics/FlowScoreCard';
 import { ActivityHeatmap } from '../components/analytics/ActivityHeatmap';
 import { TrendChart } from '../components/analytics/TrendChart';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { CardSkeleton } from '../components/skeletons';
 import type { Task } from '../api/tasks';
 import { format, subDays } from 'date-fns';
 
@@ -206,8 +207,27 @@ export default function AnalyticsPage() {
 
     if (isLoading) {
         return (
-            <div className="h-full flex items-center justify-center">
-                <LoadingSpinner size="lg" text="Loading analytics..." />
+            <div className="min-h-screen p-4 lg:p-6 space-y-6">
+                {/* Header Skeleton */}
+                <div className="animate-pulse">
+                    <div className="h-8 bg-zinc-800/50 rounded w-48 mb-2" />
+                    <div className="h-4 bg-zinc-800/30 rounded w-64" />
+                </div>
+
+                {/* Cards Skeleton */}
+                <CardSkeleton count={3} columns={3} />
+
+                {/* Heatmap Skeleton */}
+                <div className="bg-zinc-900/50 rounded-2xl border border-zinc-800/50 p-6 animate-pulse">
+                    <div className="h-6 bg-zinc-800/50 rounded w-40 mb-6" />
+                    <div className="h-48 bg-zinc-800/30 rounded" />
+                </div>
+
+                {/* Chart Skeleton */}
+                <div className="bg-zinc-900/50 rounded-2xl border border-zinc-800/50 p-6 animate-pulse">
+                    <div className="h-6 bg-zinc-800/50 rounded w-32 mb-6" />
+                    <div className="h-64 bg-zinc-800/30 rounded" />
+                </div>
             </div>
         );
     }

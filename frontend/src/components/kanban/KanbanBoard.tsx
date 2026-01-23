@@ -266,13 +266,13 @@ function KanbanBoard({
             }}
         >
             <div className="h-full w-full overflow-hidden p-2">
-                {/* 2x2 Grid Layout - Fixed height with equal rows */}
+                {/* Responsive Grid: Horizontal scroll on mobile, 2x2 grid on desktop */}
                 <div 
-                    className="grid grid-cols-2 gap-6 w-full h-full mx-auto pb-4 min-h-0"
+                    className="flex md:grid md:grid-cols-2 gap-3 sm:gap-6 w-full h-full mx-auto pb-4 min-h-0 overflow-x-auto md:overflow-x-hidden"
                     style={{ gridTemplateRows: '1fr 1fr' }}
                 >
                     {/* Row 1 */}
-                    <div className="min-h-0 h-full flex flex-col">
+                    <div className="min-h-0 h-full flex flex-col min-w-[280px] md:min-w-0">
                         <KanbanColumn
                             id="Todo"
                             title="To Do"
@@ -286,7 +286,7 @@ function KanbanBoard({
                             isDragOver={overColumnId === 'Todo' && activeId !== null}
                         />
                     </div>
-                    <div className="min-h-0 h-full flex flex-col">
+                    <div className="min-h-0 h-full flex flex-col min-w-[280px] md:min-w-0">
                         <KanbanColumn
                             id="In_Progress"
                             title="In Progress"
@@ -302,7 +302,7 @@ function KanbanBoard({
                     </div>
 
                     {/* Row 2 */}
-                    <div className="min-h-0 h-full flex flex-col">
+                    <div className="min-h-0 h-full flex flex-col min-w-[280px] md:min-w-0">
                         <KanbanColumn
                             id="Blocked"
                             title="Blocked"
@@ -316,7 +316,7 @@ function KanbanBoard({
                             isDragOver={overColumnId === 'Blocked' && activeId !== null}
                         />
                     </div>
-                    <div className="min-h-0 h-full flex flex-col">
+                    <div className="min-h-0 h-full flex flex-col min-w-[280px] md:min-w-0">
                         <KanbanColumn
                             id="Done"
                             title="Done"

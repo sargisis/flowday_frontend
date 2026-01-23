@@ -3,6 +3,263 @@
 
 @import "tailwindcss";
 
+/* ========================================= */
+/*         PAGE TRANSITIONS & ANIMATIONS      */
+/* ========================================= */
+
+/* Smooth page transitions */
+.page-transition {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+
+.page-transition.fadeIn {
+  animation-name: pageEnter;
+}
+
+.page-transition.fadeOut {
+  animation-name: pageExit;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pageExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+@layer base {
+  * {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+  
+  /* Faster transitions for hover states */
+  button, a, [role="button"] {
+    transition-duration: 200ms;
+  }
+  
+  /* Slower transitions for layout changes */
+  .layout-transition {
+    transition-duration: 300ms;
+  }
+}
+
+/* Micro-interactions for buttons */
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+button:not(:disabled):hover,
+[role="button"]:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Slide in from right animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Scale in animation */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Pulse animation for notifications */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+.pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* ========================================= */
+/*         NOTIFICATION STYLES (Sonner)       */
+/* ========================================= */
+
+/* Success toast */
+:where([data-sonner-toast][data-type="success"]),
+:where([data-sonner-toast].success-toast) {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Error toast */
+:where([data-sonner-toast][data-type="error"]),
+:where([data-sonner-toast].error-toast) {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Warning toast */
+:where([data-sonner-toast][data-type="warning"]),
+:where([data-sonner-toast].warning-toast) {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Info toast */
+:where([data-sonner-toast][data-type="info"]),
+:where([data-sonner-toast].info-toast) {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Loading toast */
+:where([data-sonner-toast][data-type="loading"]),
+:where([data-sonner-toast].loading-toast) {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.1) 100%) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Special toast */
+:where([data-sonner-toast].special-toast) {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(126, 34, 206, 0.1) 100%) !important;
+  border: 1px solid rgba(168, 85, 247, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2) !important;
+}
+
+/* Toast animations */
+:where([data-sonner-toast]) {
+  backdrop-filter: blur(12px) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+:where([data-sonner-toast]:hover) {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Toast enter animation */
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+:where([data-sonner-toast][data-mounted="true"]) {
+  animation: toast-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================= */
+/*         TOUCH & MOBILE IMPROVEMENTS        */
+/* ========================================= */
+
+/* Better touch targets on mobile */
+@media (max-width: 768px) {
+  /* Minimum touch target size: 44x44px (Apple HIG) or 48x48px (Material Design) */
+  button, a, [role="button"], input[type="checkbox"], input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent text selection on touch */
+  .touch-manipulation {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Improve scrolling on mobile */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, textarea, select {
+    font-size: 16px !important; /* Prevents iOS zoom */
+  }
+  
+  /* Larger click areas for small icons */
+  .icon-touch {
+    padding: 12px;
+  }
+}
+
 /* Base styles for light and dark mode */
 html {
   @apply bg-white text-zinc-900;
@@ -372,6 +629,14 @@ html.dark {
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
+  }
+  
+  /* Thinner scrollbar on mobile */
+  @media (max-width: 768px) {
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
   }
 
   ::-webkit-scrollbar-track {
@@ -980,6 +1245,24 @@ html.dark {
   border-right: 1px solid var(--glass-border);
   box-shadow: 20px 0 40px -10px rgba(0, 0, 0, 0.3);
   z-index: 50;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mobile Sidebar */
+@media (max-width: 1024px) {
+  .sidebar-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    transform: translateX(-100%);
+    z-index: 50;
+    width: 280px;
+    box-shadow: 20px 0 60px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar-container.mobile-open {
+    transform: translateX(0);
+  }
 }
 
 .light .sidebar-container {
@@ -1062,6 +1345,8 @@ html.dark {
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   text-decoration: none;
   border: 1px solid transparent;
 }
@@ -1125,6 +1410,9 @@ html.dark {
   cursor: pointer;
   transition: all 0.15s;
   border: 1px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 44px;
 }
 
 .project-item:hover {
@@ -1172,6 +1460,9 @@ html.dark {
   background: transparent;
   border: 1px dashed rgba(255, 255, 255, 0.2);
   border-radius: 10px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: 44px;
   cursor: pointer;
   transition: all 0.2s;
   width: 100%;

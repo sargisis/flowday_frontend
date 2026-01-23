@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { createProject } from "../api/projects";
 import { useProject } from "../context/ProjectContext";
 import { toast } from "sonner";
@@ -14,7 +14,9 @@ import {
     Hexagon,
     Bell,
     MessageSquare,
-    BarChart3
+    BarChart3,
+    Menu,
+    X
 } from "lucide-react";
 
 // Prefetch routes on hover for faster navigation
@@ -26,9 +28,11 @@ const prefetchRoute = (path: string) => {
 
 function Sidebar() {
     const { projects, activeProjectId, setActiveProjectId, refreshProjects } = useProject();
+    const location = useLocation();
     const [isCreating, setIsCreating] = useState(false);
     const [newProjectName, setNewProjectName] = useState("");
     const [permissionGranted, setPermissionGranted] = useState(false);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     useEffect(() => {
         // Request permission on load
@@ -112,13 +116,43 @@ function Sidebar() {
         { label: "Settings", path: "/app/v1/settings", icon: Settings },
     ];
 
+    // Close mobile menu when route changes
+    useEffect(() => {
+        setIsMobileOpen(false);
+    }, [location.pathname]);
+
     return (
-        <aside className="sidebar-container">
-            {/* Brand Header */}
-            <div className="app-logo">
-                <Hexagon className="logo-icon logo-animate" size={24} strokeWidth={2.5} />
-                <span>Flowday</span>
-            </div>
+        <>
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setIsMobileOpen(!isMobileOpen)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-zinc-900/90 backdrop-blur-sm border border-zinc-800/50 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/90 transition-all shadow-lg"
+                aria-label="Toggle menu"
+            >
+                {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+
+            {/* Mobile Overlay */}
+            {isMobileOpen && (
+                <div
+                    className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                    onClick={() => setIsMobileOpen(false)}
+                />
+            )}
+
+            <aside className={`sidebar-container ${isMobileOpen ? 'mobile-open' : ''}`}>
+                {/* Brand Header */}
+                <div className="app-logo">
+                    <Hexagon className="logo-icon logo-animate" size={24} strokeWidth={2.5} />
+                    <span>Flowday</span>
+                    <button
+                        onClick={() => setIsMobileOpen(false)}
+                        className="lg:hidden ml-auto p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+                        aria-label="Close menu"
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
 
             {/* Main Navigation */}
             <h4 className="nav-section-title">Menu</h4>
@@ -128,6 +162,7 @@ function Sidebar() {
                         key={item.path}
                         to={item.path}
                         onMouseEnter={() => prefetchRoute(item.path)}
+                        onClick={() => setIsMobileOpen(false)}
                         className={({ isActive }) =>
                             `nav-item ${isActive ? "active-nav" : ""} `
                         }
@@ -200,6 +235,7 @@ function Sidebar() {
                 )}
             </div>
         </aside>
+        </>
     );
 }
 

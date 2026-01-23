@@ -43,10 +43,10 @@ function TopBar() {
 
     return (
         <>
-            <div className="flex items-center justify-between py-4 px-8 border-b border-zinc-200 dark:border-white/5 bg-white/80 dark:bg-background/80 sticky top-0 z-40 backdrop-blur-md">
+            <div className="flex items-center justify-between py-3 lg:py-4 px-4 lg:px-8 border-b border-zinc-200 dark:border-white/5 bg-white/80 dark:bg-background/80 sticky top-0 z-40 backdrop-blur-md">
                 {/* Search Bar */}
                 <div
-                    className="relative group max-w-xl w-full cursor-pointer"
+                    className="relative group max-w-xl w-full cursor-pointer hidden sm:block"
                     onClick={() => setIsSearchOpen(true)}
                 >
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -60,19 +60,28 @@ function TopBar() {
                     </div>
                 </div>
 
+                {/* Mobile Search Button */}
+                <button
+                    onClick={() => setIsSearchOpen(true)}
+                    className="sm:hidden p-2.5 bg-zinc-100 dark:bg-zinc-900/50 border border-zinc-300 dark:border-white/10 rounded-xl text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-900 transition-all"
+                    aria-label="Search"
+                >
+                    <Search className="h-5 w-5" />
+                </button>
+
                 {/* Right Section */}
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3 lg:gap-6">
                     {/* Notification Dropdown */}
                     <NotificationDropdown />
 
                     {/* Profile Pill */}
-                    <div className="flex items-center gap-3 pl-4 border-l border-zinc-300 dark:border-white/10">
-                        <div className="text-right hidden sm:block">
+                    <div className="flex items-center gap-2 lg:gap-3 pl-2 lg:pl-4 border-l border-zinc-300 dark:border-white/10">
+                        <div className="text-right hidden md:block">
                             <p className="text-sm font-medium text-zinc-900 dark:text-zinc-200">{user?.name || user?.email || "User"}</p>
                             <p className="text-xs font-bold text-blue-600 dark:text-indigo-400 tracking-wider">{displayRole}</p>
                         </div>
 
-                        <button className="relative h-10 w-10 rounded-xl overflow-hidden ring-2 ring-zinc-300 dark:ring-white/10 hover:ring-blue-500/50 dark:hover:ring-indigo-500/50 transition-all flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                        <button className="relative h-9 w-9 lg:h-10 lg:w-10 rounded-xl overflow-hidden ring-2 ring-zinc-300 dark:ring-white/10 hover:ring-blue-500/50 dark:hover:ring-indigo-500/50 transition-all flex items-center justify-center bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
                             {user?.avatar_url ? (
                                 <img
                                     src={getAvatarUrl(user.avatar_url) || ""}

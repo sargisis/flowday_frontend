@@ -2,8 +2,29 @@ import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
 // Get API base URL from environment variables
-// Fallback to localhost for development if not set
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+// Auto-detect IP for mobile devices if accessing from network
+function getApiBaseUrl(): string {
+    const envUrl = import.meta.env.VITE_API_BASE_URL;
+    if (envUrl) {
+        if (import.meta.env.DEV) console.log('🔗 Using API URL from env:', envUrl);
+        return envUrl;
+    }
+    
+    // If accessing from network (not localhost), use the same host for API
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+        const apiUrl = `http://${hostname}:8080/api/v1`;
+        if (import.meta.env.DEV) console.log('🔗 Auto-detected API URL for mobile:', apiUrl);
+        return apiUrl;
+    }
+    
+    // Default fallback for localhost
+    const localUrl = "http://localhost:8080/api/v1";
+    if (import.meta.env.DEV) console.log('🔗 Using localhost API URL:', localUrl);
+    return localUrl;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
     baseURL: API_BASE_URL,
