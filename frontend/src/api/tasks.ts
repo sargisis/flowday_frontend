@@ -64,12 +64,12 @@ export const bulkDeleteTasks = async (ids: string[]) => {
     return res.data;
 };
 
-export const bulkUpdateTasksStatus = async (ids: string[], status: string) => {
+export const bulkUpdateTasksStatus = async (ids: string[], status: string): Promise<{ message: string; updated_count: number }> => {
     const res = await api.post("/tasks/bulk-update-status", { task_ids: ids, status });
     return res.data;
 };
 
-export const bulkUpdateTasksPriority = async (ids: string[], priority: string) => {
+export const bulkUpdateTasksPriority = async (ids: string[], priority: string): Promise<{ message: string; updated_count: number }> => {
     const res = await api.post("/tasks/bulk-update-priority", { task_ids: ids, priority });
     return res.data;
 };
