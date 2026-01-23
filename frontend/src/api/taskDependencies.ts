@@ -37,3 +37,13 @@ export async function getTaskDependencies(
   const response = await api.get(`/tasks/${taskId}/dependencies`);
   return response.data;
 }
+
+// Get dependencies for multiple tasks in one request (batch)
+export async function getBatchTaskDependencies(
+  taskIds: string[]
+): Promise<Record<string, TaskDependency>> {
+  const response = await api.post("/tasks/batch-dependencies", {
+    task_ids: taskIds,
+  });
+  return response.data;
+}

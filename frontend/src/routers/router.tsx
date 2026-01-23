@@ -202,26 +202,6 @@ export const router = createBrowserRouter([
                 )
             },
             { 
-                path: "focus", 
-                element: (
-                    <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                            <FocusMode />
-                        </Suspense>
-                    </ErrorBoundary>
-                )
-            },
-            { 
-                path: "focus/:taskId", 
-                element: (
-                    <ErrorBoundary>
-                        <Suspense fallback={<PageLoader />}>
-                            <FocusMode />
-                        </Suspense>
-                    </ErrorBoundary>
-                )
-            },
-            { 
                 path: "focus/history", 
                 element: (
                     <ErrorBoundary>
@@ -252,6 +232,51 @@ export const router = createBrowserRouter([
                 )
             },
         ]
+    },
+    // ✅ FIX: FocusMode routes outside DashboardLayout for fullscreen display
+    {
+        path: "/app/v1/focus",
+        element: (
+            <ProtectedRoute>
+                <UserProvider>
+                    <WebSocketProvider>
+                        <ProjectProvider>
+                            <FocusProvider>
+                                <TaskProvider>
+                                    <ErrorBoundary>
+                                        <Suspense fallback={<PageLoader />}>
+                                            <FocusMode />
+                                        </Suspense>
+                                    </ErrorBoundary>
+                                </TaskProvider>
+                            </FocusProvider>
+                        </ProjectProvider>
+                    </WebSocketProvider>
+                </UserProvider>
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: "/app/v1/focus/:taskId",
+        element: (
+            <ProtectedRoute>
+                <UserProvider>
+                    <WebSocketProvider>
+                        <ProjectProvider>
+                            <FocusProvider>
+                                <TaskProvider>
+                                    <ErrorBoundary>
+                                        <Suspense fallback={<PageLoader />}>
+                                            <FocusMode />
+                                        </Suspense>
+                                    </ErrorBoundary>
+                                </TaskProvider>
+                            </FocusProvider>
+                        </ProjectProvider>
+                    </WebSocketProvider>
+                </UserProvider>
+            </ProtectedRoute>
+        )
     },
 
 ]);

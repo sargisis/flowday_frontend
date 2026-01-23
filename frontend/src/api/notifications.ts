@@ -24,3 +24,24 @@ export const getNotifications = async (): Promise<Notification[]> => {
 export const markNotificationRead = async (id: string): Promise<void> => {
     await api.patch(`/notifications/${id}/read`);
 };
+
+// ✅ ENHANCED: Batch notification operations
+export const markNotificationsRead = async (ids: string[]): Promise<{ modified_count: number }> => {
+    const res = await api.post("/notifications/batch-read", { notification_ids: ids });
+    return res.data;
+};
+
+export const markAllNotificationsRead = async (): Promise<{ modified_count: number }> => {
+    const res = await api.post("/notifications/mark-all-read");
+    return res.data;
+};
+
+export const getUnreadCount = async (): Promise<{ count: number }> => {
+    const res = await api.get("/notifications/unread-count");
+    return res.data;
+};
+
+export const deleteOldNotifications = async (daysOld: number = 30): Promise<{ deleted_count: number }> => {
+    const res = await api.delete(`/notifications/old?days=${daysOld}`);
+    return res.data;
+};

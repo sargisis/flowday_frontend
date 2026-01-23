@@ -133,3 +133,57 @@ export const getTaskAttachments = async (taskId: string): Promise<Attachment[]> 
 export const deleteTaskAttachment = async (taskId: string, attachmentId: string): Promise<void> => {
     await api.delete(`/tasks/${taskId}/attachments/${attachmentId}`);
 };
+
+// ✅ ENHANCED: Advanced Search with filters
+export interface SearchTasksParams {
+    q?: string; // Search query
+    project_id?: string;
+    status?: string;
+    priority?: string;
+    has_due_date?: boolean;
+    assignee_id?: string;
+    tag?: string;
+    created_after?: string; // YYYY-MM-DD
+    created_before?: string; // YYYY-MM-DD
+    updated_after?: string; // YYYY-MM-DD
+    updated_before?: string; // YYYY-MM-DD
+    sort?: string;
+    order?: 'asc' | 'desc';
+    sort_by_relevance?: boolean;
+    page?: number;
+    limit?: number;
+}
+
+export interface SearchTasksResponse {
+    data: Task[];
+    meta: {
+        total: number;
+        page: number;
+        limit: number;
+        total_pages: number;
+    };
+}
+
+export const searchTasks = async (params: SearchTasksParams): Promise<SearchTasksResponse> => {
+    const queryParams = new URLSearchParams();
+    
+    if (params.q) queryParams.append('q', params.q);
+    if (params.project_id) queryParams.append('project_id', params.project_id);
+    if (params.status) queryParams.append('status', params.status);
+    if (params.priority) queryParams.append('priority', params.priority);
+    if (params.has_due_date !== undefined) queryParams.append('has_due_date', String(params.has_due_date));
+    if (params.assignee_id) queryParams.append('assignee_id', params.assignee_id);
+    if (params.tag) queryParams.append('tag', params.tag);
+    if (params.created_after) queryParams.append('created_after', params.created_after);
+    if (params.created_before) queryParams.append('created_before', params.created_before);
+    if (params.updated_after) queryParams.append('updated_after', params.updated_after);
+    if (params.updated_before) queryParams.append('updated_before', params.updated_before);
+    if (params.sort) queryParams.append('sort', params.sort);
+    if (params.order) queryParams.append('order', params.order);
+    if (params.sort_by_relevance) queryParams.append('sort_by_relevance', 'true');
+    if (params.page) queryParams.append('page', String(params.page));
+    if (params.limit) queryParams.append('limit', String(params.limit));
+
+    const res = await api.get(`/tasks/search?${queryParams.toString()}`);
+    return res.data;
+};

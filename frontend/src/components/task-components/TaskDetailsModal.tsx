@@ -15,7 +15,7 @@ import TaskComments from "./TaskComments";
 import TimeTracker from "../time-tracking/TimeTracker";
 import TaskDependencies from "../task-dependencies/TaskDependencies";
 import { DependencyGraph } from "../task-dependencies/DependencyGraph";
-import { getTaskDependencies, type TaskDependency } from "../../api/taskDependencies";
+import { getTaskDependencies, getBatchTaskDependencies, type TaskDependency } from "../../api/taskDependencies";
 import MentionAutocomplete from "../mentions/MentionAutocomplete";
 import SubtasksList from "../subtasks/SubtasksList";
 
@@ -187,24 +187,42 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         setIsLoadingDependencies(true);
         try {
             const tasks = await getTasksByProject(projectId);
-            const depsMap = new Map<string, TaskDependency>();
+            
+            if (tasks.length === 0) {
+                setDependenciesMap(new Map());
+                return;
+            }
 
-            // Load dependencies for all tasks
-            await Promise.all(
-                tasks.map(async (t) => {
-                    try {
-                        const deps = await getTaskDependencies(t.id);
-                        depsMap.set(t.id, deps);
-                    } catch (err) {
-                        // Task might not have dependencies endpoint yet
-                        console.warn(`Failed to load dependencies for task ${t.id}:`, err);
-                    }
-                })
-            );
+            // Use batch endpoint to load all dependencies in one request
+            const taskIds = tasks.map(t => t.id);
+            const batchDeps = await getBatchTaskDependencies(taskIds);
+            
+            const depsMap = new Map<string, TaskDependency>();
+            for (const [taskId, deps] of Object.entries(batchDeps)) {
+                depsMap.set(taskId, deps as TaskDependency);
+            }
 
             setDependenciesMap(depsMap);
         } catch (error) {
             console.error('Failed to load dependencies:', error);
+            // Fallback to individual requests if batch fails
+            try {
+                const tasks = await getTasksByProject(projectId);
+                const depsMap = new Map<string, TaskDependency>();
+                await Promise.all(
+                    tasks.map(async (t) => {
+                        try {
+                            const deps = await getTaskDependencies(t.id);
+                            depsMap.set(t.id, deps);
+                        } catch (err) {
+                            console.warn(`Failed to load dependencies for task ${t.id}:`, err);
+                        }
+                    })
+                );
+                setDependenciesMap(depsMap);
+            } catch (fallbackError) {
+                console.error('Fallback dependency loading also failed:', fallbackError);
+            }
         } finally {
             setIsLoadingDependencies(false);
         }
@@ -244,14 +262,37 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         const file = e.target.files?.[0];
         if (!file || !task) return;
 
+        // ✅ ENHANCED: Client-side validation
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            toast.error(`File size exceeds maximum allowed size (10MB). Current size: ${(file.size / (1024 * 1024)).toFixed(2)} MB`);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
+        if (file.size < 1) {
+            toast.error("File is empty or too small");
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
+        }
+
         setIsUploading(true);
         try {
             const attachment = await uploadTaskAttachment(task.id, file);
             setAttachments([...attachments, attachment]);
             toast.success("File uploaded successfully");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to upload file", error);
-            toast.error("Failed to upload file");
+            // ✅ ENHANCED: Handle structured errors from backend
+            const errorData = error?.response?.data?.error;
+            if (errorData && typeof errorData === 'object') {
+                // Structured error with code and message
+                toast.error(errorData.message || "Failed to upload file");
+            } else {
+                // Fallback to simple error message
+                const errorMessage = errorData || error?.message || "Failed to upload file";
+                toast.error(errorMessage);
+            }
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
