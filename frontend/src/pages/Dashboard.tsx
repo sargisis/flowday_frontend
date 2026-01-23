@@ -121,14 +121,14 @@ export default function Dashboard() {
             </header>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-in slide-in-from-top-5 duration-700">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 animate-in slide-in-from-top-5 duration-700">
                 <StatsCard title="Total Tasks" value={totalTasks} icon={LayoutList} color="text-blue-400" bg="from-blue-500/[0.15] to-blue-500/[0.02]" border="border-blue-500/20" shadow="shadow-blue-500/10" animation="pulse" />
                 <StatsCard title="In Progress" value={inProgressTasks} icon={Activity} color="text-amber-400" bg="from-amber-500/[0.15] to-amber-500/[0.02]" border="border-amber-500/20" shadow="shadow-amber-500/10" animation="pulse" />
                 <StatsCard title="Completed" value={completedTasks} icon={CheckCircle2} color="text-emerald-400" bg="from-emerald-500/[0.15] to-emerald-500/[0.02]" border="border-emerald-500/20" shadow="shadow-emerald-500/10" animation="pulse" />
                 <StatsCard title="Blocked" value={blockedTasks} icon={AlertCircle} color="text-rose-400" bg="from-rose-500/[0.15] to-rose-500/[0.02]" border="border-rose-500/20" shadow="shadow-rose-500/10" animation="pulse" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-in slide-in-from-top-10 duration-700 delay-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 animate-in slide-in-from-top-10 duration-700 delay-100">
                 <div className="col-span-1">
                     <StreakCounter refreshTrigger={refreshTrigger} />
                 </div>
@@ -141,7 +141,7 @@ export default function Dashboard() {
             </div>
 
             {/* Main Content Grid: AI Coach, Priority Pipeline & Activity Feed */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 animate-in slide-in-from-bottom-5 duration-700 delay-200 fill-mode-backwards">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 animate-in slide-in-from-bottom-5 duration-700 delay-200 fill-mode-backwards">
                 <AiFlowCoach tasks={tasks} />
                 <PriorityPipeline />
                 <ActivityFeed />

@@ -87,8 +87,22 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     }
 
     // Get WebSocket URL from environment or use default
+    // Auto-detect IP for mobile devices if accessing from network
+    function getApiBaseUrl(): string {
+        const envUrl = import.meta.env.VITE_API_BASE_URL;
+        if (envUrl) return envUrl;
+        
+        const hostname = window.location.hostname;
+        if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+            // Use backend port (8080), not frontend port (5173)
+            return `http://${hostname}:8080/api/v1`;
+        }
+        
+        return 'http://localhost:8080/api/v1';
+    }
+    
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+    const apiBaseUrl = getApiBaseUrl();
     const wsHost = apiBaseUrl.replace(/^https?:\/\//, '').replace(/\/api\/v1$/, '');
     const wsUrl = `${wsProtocol}//${wsHost}/ws/connect?token=${encodeURIComponent(token)}`;
 

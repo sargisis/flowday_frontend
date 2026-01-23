@@ -20,3 +20,6 @@ export function KanbanColumnSkeleton() {
         </div>
     );
 }
+
+
+export default KanbanColumnSkeleton;

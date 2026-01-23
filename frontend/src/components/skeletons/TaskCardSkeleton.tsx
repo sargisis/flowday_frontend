@@ -20,3 +20,6 @@ export const TaskCardSkeleton = () => {
         </div>
     );
 };
+
+
+export default TaskCardSkeleton;

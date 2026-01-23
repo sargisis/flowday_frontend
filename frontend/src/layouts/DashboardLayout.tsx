@@ -15,6 +15,7 @@ import FlowBotWidget from "../components/ai/FlowBotWidget";
 import CreateTaskModal from "../components/create-task-components/CreateTaskModal";
 import TaskDetailsModal from "../components/task-components/TaskDetailsModal";
 import { OfflineBanner } from "../components/error/OfflineBanner";
+import PageTransition from "../components/PageTransition";
 
 export default function DashboardLayout() {
     const navigate = useNavigate();
@@ -128,11 +129,13 @@ export default function DashboardLayout() {
             <AnalyticsTracker />
             <TacticalOverlay />
             <Sidebar />
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
                 <TopBar />
-                <main className="flex-1 overflow-y-auto p-0 scroll-smooth">
-                    <div className="max-w-[1800px] mx-auto">
-                        <Outlet />
+                <main className="flex-1 overflow-y-auto p-0 scroll-smooth lg:pl-0">
+                    <div className="max-w-[1800px] mx-auto px-4 lg:px-6 py-4 lg:py-6">
+                        <PageTransition>
+                            <Outlet />
+                        </PageTransition>
                     </div>
                 </main>
             </div>
