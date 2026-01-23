@@ -75,13 +75,13 @@ function KanbanBoard({
     const handleDragStart = useCallback((event: DragStartEvent) => {
         const draggedId = event.active.id as string;
         setActiveId(draggedId);
-        
+
         // If in selection mode and this task is selected, we'll handle multi-drag
         if (isSelectionMode && selectedTaskIds?.has(draggedId)) {
             // Multi-select drag - we'll handle all selected tasks
             // For now, just drag the active one, but we can enhance this
         }
-        
+
         // Add haptic feedback if available
         if ('vibrate' in navigator) {
             navigator.vibrate(50);
@@ -103,7 +103,7 @@ function KanbanBoard({
 
             // Determine column ID
             let columnId: string | null = null;
-            
+
             if (overData?.type === 'Column' || overData?.columnId) {
                 columnId = overData.columnId || overId;
             } else {
@@ -140,7 +140,7 @@ function KanbanBoard({
 
         // Find the final column ID
         let finalStatus: string | null = null;
-        
+
         // Strategy 1: Check if overId is a column ID directly
         const columnIds = ['Todo', 'In_Progress', 'Blocked', 'Done'];
         if (columnIds.includes(overId)) {
@@ -169,7 +169,7 @@ function KanbanBoard({
                     'blocked': 'Blocked',
                     'done': 'Done'
                 };
-                
+
                 if (columnMap[overIdLower]) {
                     finalStatus = columnMap[overIdLower];
                     console.log('✅ Dropped on column (mapped from overId):', finalStatus);
@@ -247,6 +247,17 @@ function KanbanBoard({
 
     const activeTask = useMemo(() => tasks.find(t => t.id === activeId), [tasks, activeId]);
 
+    // ✅ MOBILE: Active column state
+    const [activeMobileColumn, setActiveMobileColumn] = useState<'Todo' | 'In_Progress' | 'Blocked' | 'Done'>('Todo');
+
+    // Column definitions for mapping
+    const columns = [
+        { id: 'Todo', title: 'To Do', tasks: todoTasks, color: 'blue' },
+        { id: 'In_Progress', title: 'In Progress', tasks: inProgressTasks, color: 'amber' },
+        { id: 'Blocked', title: 'Blocked', tasks: blockedTasks, color: 'rose' },
+        { id: 'Done', title: 'Done', tasks: doneTasks, color: 'emerald' }
+    ] as const;
+
     return (
         <DndContext
             sensors={sensors}
@@ -268,75 +279,56 @@ function KanbanBoard({
                 },
             }}
         >
-            <div className="h-full w-full overflow-hidden p-2">
-                {/* Responsive Grid: Horizontal scroll on mobile, 2x2 grid on desktop */}
-                <div 
-                    className="flex md:grid md:grid-cols-2 gap-3 sm:gap-6 w-full h-full mx-auto pb-4 min-h-0 overflow-x-auto md:overflow-x-hidden"
-                    style={{ gridTemplateRows: '1fr 1fr' }}
-                >
-                    {/* Row 1 */}
-                    <div className="min-h-0 h-full flex flex-col min-w-[280px] md:min-w-0">
-                        <KanbanColumn
-                            id="Todo"
-                            title="To Do"
-                            tasks={todoTasks}
-                            onDelete={onTaskDelete}
-                            onTaskClick={onTaskClick}
-                            isSelectionMode={isSelectionMode}
-                            selectedTaskIds={selectedTaskIds}
-                            onToggleTaskSelection={onToggleTaskSelection}
-                            keyboardSelectedTaskId={keyboardSelectedTaskId}
-                            isDragOver={overColumnId === 'Todo' && activeId !== null}
-                        />
-                    </div>
-                    <div className="min-h-0 h-full flex flex-col min-w-[280px] md:min-w-0">
-                        <KanbanColumn
-                            id="In_Progress"
-                            title="In Progress"
-                            tasks={inProgressTasks}
-                            onDelete={onTaskDelete}
-                            onTaskClick={onTaskClick}
-                            isSelectionMode={isSelectionMode}
-                            selectedTaskIds={selectedTaskIds}
-                            onToggleTaskSelection={onToggleTaskSelection}
-                            keyboardSelectedTaskId={keyboardSelectedTaskId}
-                            isDragOver={overColumnId === 'In_Progress' && activeId !== null}
-                        />
-                    </div>
+            <div className="h-full w-full overflow-hidden p-2 flex flex-col">
+                {/* ✅ MOBILE: Tab Bar */}
+                <div className="md:hidden flex items-center justify-between bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-lg mb-4 shrink-0 overflow-x-auto no-scrollbar">
+                    {columns.map((col) => (
+                        <button
+                            key={col.id}
+                            onClick={() => setActiveMobileColumn(col.id)}
+                            className={`flex-1 py-2 px-3 text-xs font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap ${activeMobileColumn === col.id
+                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+                                }`}
+                        >
+                            {col.title}
+                            <span className="ml-1.5 opacity-60 text-[10px]">{col.tasks.length}</span>
+                        </button>
+                    ))}
+                </div>
 
-                    {/* Row 2 */}
-                    <div className="min-h-0 h-full flex flex-col min-w-[280px] md:min-w-0">
-                        <KanbanColumn
-                            id="Blocked"
-                            title="Blocked"
-                            tasks={blockedTasks}
-                            onDelete={onTaskDelete}
-                            onTaskClick={onTaskClick}
-                            isSelectionMode={isSelectionMode}
-                            selectedTaskIds={selectedTaskIds}
-                            onToggleTaskSelection={onToggleTaskSelection}
-                            keyboardSelectedTaskId={keyboardSelectedTaskId}
-                            isDragOver={overColumnId === 'Blocked' && activeId !== null}
-                        />
-                    </div>
-                    <div className="min-h-0 h-full flex flex-col min-w-[280px] md:min-w-0">
-                        <KanbanColumn
-                            id="Done"
-                            title="Done"
-                            tasks={doneTasks}
-                            onDelete={onTaskDelete}
-                            onTaskClick={onTaskClick}
-                            isSelectionMode={isSelectionMode}
-                            selectedTaskIds={selectedTaskIds}
-                            onToggleTaskSelection={onToggleTaskSelection}
-                            keyboardSelectedTaskId={keyboardSelectedTaskId}
-                            isDragOver={overColumnId === 'Done' && activeId !== null}
-                        />
-                    </div>
+                {/* Responsive Grid: Single column on mobile, 2x2 grid on desktop */}
+                <div
+                    className="flex-1 md:grid md:grid-cols-2 gap-3 sm:gap-6 w-full h-full mx-auto pb-4 min-h-0"
+                    style={window.innerWidth >= 768 ? { gridTemplateRows: '1fr 1fr' } : {}}
+                >
+                    {columns.map((col) => (
+                        <div
+                            key={col.id}
+                            className={`min-h-0 h-full flex-col ${
+                                // Mobile: Show only active column
+                                // Desktop: Show all columns
+                                activeMobileColumn === col.id ? 'flex' : 'hidden md:flex'
+                                } min-w-0`}
+                        >
+                            <KanbanColumn
+                                id={col.id}
+                                title={col.title}
+                                tasks={col.tasks}
+                                onDelete={onTaskDelete}
+                                onTaskClick={onTaskClick}
+                                isSelectionMode={isSelectionMode}
+                                selectedTaskIds={selectedTaskIds}
+                                onToggleTaskSelection={onToggleTaskSelection}
+                                keyboardSelectedTaskId={keyboardSelectedTaskId}
+                                isDragOver={overColumnId === col.id && activeId !== null}
+                            />
+                        </div>
+                    ))}
                 </div>
             </div>
 
-            <DragOverlay 
+            <DragOverlay
                 dropAnimation={dropAnimation}
                 style={{ cursor: 'grabbing' }}
             >

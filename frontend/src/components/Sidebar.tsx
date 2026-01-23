@@ -140,7 +140,7 @@ function Sidebar() {
                 />
             )}
 
-            <aside className={`sidebar-container ${isMobileOpen ? 'mobile-open' : ''}`}>
+            <aside className={`sidebar-container dark:bg-black ${isMobileOpen ? 'mobile-open' : ''}`}>
                 {/* Brand Header */}
                 <div className="app-logo">
                     <Hexagon className="logo-icon logo-animate" size={24} strokeWidth={2.5} />
@@ -154,87 +154,87 @@ function Sidebar() {
                     </button>
                 </div>
 
-            {/* Main Navigation */}
-            <h4 className="nav-section-title">Menu</h4>
-            <nav style={{ display: "flex", flexDirection: "column" }}>
-                {navItems.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        onMouseEnter={() => prefetchRoute(item.path)}
-                        onClick={() => setIsMobileOpen(false)}
-                        className={({ isActive }) =>
-                            `nav-item ${isActive ? "active-nav" : ""} `
-                        }
-                    >
-                        <item.icon className="nav-icon" />
-                        <span>{item.label}</span>
-                        {(item as any).badge ? (
-                            <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                                {(item as any).badge}
-                            </span>
-                        ) : null}
-                    </NavLink>
-                ))}
-            </nav>
-
-            {/* Projects List */}
-            <div className="project-list">
-                <h4 className="nav-section-title" style={{ marginTop: "1.5rem" }}>
-                    Projects
-                </h4>
-
-                {projects.map((p) => (
-                    <div
-                        key={p.id}
-                        onClick={() => setActiveProjectId(p.id)}
-                        className={`project-item ${p.id === activeProjectId ? "active-project" : ""} `}
-                    >
-                        <div className="project-color-dot" />
-                        <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {p.name}
-                        </span>
-                    </div>
-                ))}
-
-                {!permissionGranted && (
-                    <div className="mt-8 px-4 pb-4">
-                        <button
-                            onClick={async () => {
-                                const { notificationManager } = await import("../utils/notificationManager");
-                                const granted = await notificationManager.requestPermission();
-                                setPermissionGranted(granted);
-                            }}
-                            className="w-full text-xs text-zinc-500 hover:text-indigo-400 flex items-center justify-center gap-2 py-2 border border-dashed border-zinc-800 rounded-lg hover:bg-white/5 transition-all"
+                {/* Main Navigation */}
+                <h4 className="nav-section-title">Menu</h4>
+                <nav style={{ display: "flex", flexDirection: "column" }}>
+                    {navItems.map((item) => (
+                        <NavLink
+                            key={item.path}
+                            to={item.path}
+                            onMouseEnter={() => prefetchRoute(item.path)}
+                            onClick={() => setIsMobileOpen(false)}
+                            className={({ isActive }) =>
+                                `nav-item ${isActive ? "active-nav" : ""} `
+                            }
                         >
-                            <Bell size={12} /> Enable Alerts
-                        </button>
-                    </div>
-                )}
+                            <item.icon className="nav-icon" />
+                            <span>{item.label}</span>
+                            {(item as any).badge ? (
+                                <span className="ml-auto bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                    {(item as any).badge}
+                                </span>
+                            ) : null}
+                        </NavLink>
+                    ))}
+                </nav>
 
-                {isCreating ? (
-                    <form onSubmit={handleCreate} style={{ marginTop: "0.5rem" }}>
-                        <input
-                            autoFocus
-                            className="input-field"
-                            style={{ fontSize: "0.85rem", padding: "0.5rem" }}
-                            placeholder="Project name..."
-                            value={newProjectName}
-                            onChange={(e) => setNewProjectName(e.target.value)}
-                            onBlur={() => !newProjectName && setIsCreating(false)}
-                        />
-                    </form>
-                ) : (
-                    <button
-                        onClick={() => setIsCreating(true)}
-                        className="create-project-btn"
-                    >
-                        <Plus size={16} />
-                        <span>Create Project</span>
-                    </button>
-                )}
-            </div>
-        </aside>
+                {/* Projects List */}
+                <div className="project-list">
+                    <h4 className="nav-section-title" style={{ marginTop: "1.5rem" }}>
+                        Projects
+                    </h4>
+
+                    {projects.map((p) => (
+                        <div
+                            key={p.id}
+                            onClick={() => setActiveProjectId(p.id)}
+                            className={`project-item ${p.id === activeProjectId ? "active-project" : ""} `}
+                        >
+                            <div className="project-color-dot" />
+                            <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {p.name}
+                            </span>
+                        </div>
+                    ))}
+
+                    {!permissionGranted && (
+                        <div className="mt-8 px-4 pb-4">
+                            <button
+                                onClick={async () => {
+                                    const { notificationManager } = await import("../utils/notificationManager");
+                                    const granted = await notificationManager.requestPermission();
+                                    setPermissionGranted(granted);
+                                }}
+                                className="w-full text-xs text-zinc-500 hover:text-indigo-400 flex items-center justify-center gap-2 py-2 border border-dashed border-zinc-800 rounded-lg hover:bg-white/5 transition-all"
+                            >
+                                <Bell size={12} /> Enable Alerts
+                            </button>
+                        </div>
+                    )}
+
+                    {isCreating ? (
+                        <form onSubmit={handleCreate} style={{ marginTop: "0.5rem" }}>
+                            <input
+                                autoFocus
+                                className="input-field"
+                                style={{ fontSize: "0.85rem", padding: "0.5rem" }}
+                                placeholder="Project name..."
+                                value={newProjectName}
+                                onChange={(e) => setNewProjectName(e.target.value)}
+                                onBlur={() => !newProjectName && setIsCreating(false)}
+                            />
+                        </form>
+                    ) : (
+                        <button
+                            onClick={() => setIsCreating(true)}
+                            className="create-project-btn"
+                        >
+                            <Plus size={16} />
+                            <span>Create Project</span>
+                        </button>
+                    )}
+                </div>
+            </aside>
         </>
     );
 }
