@@ -1,10 +1,9 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
-type Theme = "dark" | "light";
+type Theme = "dark";
 
 interface ThemeContextType {
     theme: Theme;
-    setTheme: (theme: Theme) => void;
     compactView: boolean;
     setCompactView: (compact: boolean) => void;
 }
@@ -12,8 +11,8 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-    // Always use dark theme - light theme support removed
-    const [theme, setThemeState] = useState<Theme>(() => "dark");
+    // Always use dark theme
+    const theme: Theme = "dark";
 
     const [compactView, setCompactViewState] = useState<boolean>(() => {
         const saved = localStorage.getItem("compactView");
@@ -47,16 +46,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("compactView", String(compactView));
     }, [compactView]);
 
-    const setTheme = (newTheme: Theme) => {
-        setThemeState(newTheme);
-    };
-
     const setCompactView = (compact: boolean) => {
         setCompactViewState(compact);
     };
 
     return (
-        <ThemeContext.Provider value={{ theme, setTheme, compactView, setCompactView }}>
+        <ThemeContext.Provider value={{ theme, compactView, setCompactView }}>
             {children}
         </ThemeContext.Provider>
     );

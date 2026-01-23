@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Simple debounce function
 function debounce<T extends (...args: any[]) => any>(
@@ -6,19 +6,19 @@ function debounce<T extends (...args: any[]) => any>(
     wait: number
 ): T & { cancel: () => void } {
     let timeout: ReturnType<typeof setTimeout> | null = null;
-    
+
     const debounced = ((...args: Parameters<T>) => {
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(() => func(...args), wait);
     }) as T & { cancel: () => void };
-    
+
     debounced.cancel = () => {
         if (timeout) {
             clearTimeout(timeout);
             timeout = null;
         }
     };
-    
+
     return debounced;
 }
 
@@ -32,22 +32,27 @@ interface UseAutoSaveOptions<T> {
     deserialize?: (str: string) => T;
 }
 
-export function useAutoSave<T>({ 
-    data, 
-    onSave, 
+export function useAutoSave<T>({
+    data,
+    onSave,
     storageKey,
-    delay = 2000, 
+    delay = 2000,
     enabled = true,
     serialize = JSON.stringify,
     deserialize = JSON.parse,
 }: UseAutoSaveOptions<T>) {
     const isInitialMount = useRef(true);
     const previousDataRef = useRef<T>(data);
+    const [isSaving, setIsSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
     const debouncedSave = useRef(
         debounce(async (dataToSave: T) => {
+            setIsSaving(true);
             try {
                 await onSave(dataToSave);
-                
+                setLastSaved(new Date());
+
                 // Save to localStorage if storageKey provided
                 if (storageKey) {
                     try {
@@ -58,6 +63,8 @@ export function useAutoSave<T>({
                 }
             } catch (error) {
                 console.error('Auto-save failed:', error);
+            } finally {
+                setIsSaving(false);
             }
         }, delay)
     ).current;
@@ -86,7 +93,7 @@ export function useAutoSave<T>({
 
     useEffect(() => {
         if (!enabled) return;
-        
+
         // Skip on initial mount
         if (isInitialMount.current) {
             isInitialMount.current = false;
@@ -112,5 +119,5 @@ export function useAutoSave<T>({
         }
     };
 
-    return { clearDraft };
+    return { clearDraft, isSaving, lastSaved };
 }

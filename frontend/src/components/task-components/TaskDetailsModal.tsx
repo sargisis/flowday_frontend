@@ -76,14 +76,14 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     useEffect(() => {
         if (!isUpdatingFromUndoRedo.current) {
             // Only update if data actually changed
-            const hasChanged = 
+            const hasChanged =
                 prevTaskDataRef.current.title !== taskData.title ||
                 prevTaskDataRef.current.description !== taskData.description ||
                 JSON.stringify(prevTaskDataRef.current.subtasks) !== JSON.stringify(taskData.subtasks) ||
                 prevTaskDataRef.current.status !== taskData.status ||
                 prevTaskDataRef.current.priority !== taskData.priority ||
                 prevTaskDataRef.current.dueDate !== taskData.dueDate;
-            
+
             if (hasChanged) {
                 prevTaskDataRef.current = taskData;
                 setUndoRedoValue(taskData, true);
@@ -91,11 +91,20 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         }
     }, [taskData, setUndoRedoValue]);
 
-    // Auto-save draft
-    useAutoSave({
+    // Auto-save draft & sync to backend
+    const { isSaving: isAutoSaving, lastSaved } = useAutoSave({
         data: taskData,
-        onSave: async () => {
-            // Auto-save is handled by localStorage via storageKey
+        onSave: async (data) => {
+            // Sync to backend
+            if (!task) return;
+            await onUpdate(task.id, {
+                title: data.title,
+                description: data.description,
+                subtasks: data.subtasks,
+                status: data.status,
+                priority: data.priority,
+                due_date: data.dueDate,
+            });
         },
         storageKey: task ? `task-draft-${task.id}` : undefined,
         delay: 2000,
@@ -119,7 +128,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
 
         const handleKeyDown = (e: KeyboardEvent) => {
             const isMod = e.metaKey || e.ctrlKey;
-            
+
             // Don't trigger if typing in input/textarea
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
                 if (!isMod) return;
@@ -148,7 +157,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 priority: task.priority || "medium",
                 dueDate: task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : "",
             };
-            
+
             setTitle(initialData.title);
             setDescription(initialData.description);
             setSubtasks(initialData.subtasks);
@@ -160,10 +169,10 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 name: t.name,
                 color: t.color || 'blue',
             })));
-            
+
             // Reset undo/redo history with initial data
             resetUndoRedo(initialData);
-            
+
             // Load attachments
             loadAttachments();
             // Load all tasks for dependencies
@@ -179,7 +188,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         try {
             const tasks = await getTasksByProject(projectId);
             const depsMap = new Map<string, TaskDependency>();
-            
+
             // Load dependencies for all tasks
             await Promise.all(
                 tasks.map(async (t) => {
@@ -192,7 +201,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                     }
                 })
             );
-            
+
             setDependenciesMap(depsMap);
         } catch (error) {
             console.error('Failed to load dependencies:', error);
@@ -353,12 +362,26 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         return Math.round((completed / subtasks.length) * 100);
     };
 
-        return (
+    return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
             <div className="w-full h-full sm:h-auto sm:max-w-3xl bg-gradient-to-br from-white via-white to-zinc-50 dark:from-zinc-900/98 dark:via-zinc-900/95 dark:to-zinc-950/98 border-0 sm:border border-zinc-200/80 dark:border-zinc-700/50 rounded-none sm:rounded-3xl shadow-2xl overflow-hidden backdrop-blur-2xl ring-0 sm:ring-1 ring-white/5 dark:ring-white/10 flex flex-col sm:block">
                 {/* Header */}
                 <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200/60 dark:border-zinc-800/40 bg-gradient-to-r from-zinc-50/80 to-transparent dark:from-zinc-900/40 dark:to-transparent backdrop-blur-sm shrink-0">
-                    <h2 className="text-lg sm:text-xl font-semibold text-zinc-900 dark:text-white">Task Details</h2>
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-lg sm:text-xl font-semibold text-zinc-900 dark:text-white">Task Details</h2>
+                        {isAutoSaving && (
+                            <span className="text-xs text-zinc-500 animate-pulse flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                Saving...
+                            </span>
+                        )}
+                        {!isAutoSaving && lastSaved && (
+                            <span className="text-xs text-zinc-400 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500/50"></span>
+                                Saved
+                            </span>
+                        )}
+                    </div>
                     <div className="flex items-center gap-1">
                         {/* Undo/Redo buttons */}
                         <div className="flex items-center gap-1 mr-2 border-r border-zinc-300 dark:border-zinc-700 pr-2">
@@ -393,8 +416,8 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                         >
                             <Trash2 size={18} strokeWidth={2.5} />
                         </button>
-                        <button 
-                            onClick={onClose} 
+                        <button
+                            onClick={onClose}
                             className="p-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
                         >
                             <X size={18} strokeWidth={2.5} />
@@ -435,11 +458,10 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                             <div
                                                 key={subtask.id || index}
                                                 onClick={() => toggleSubtask(index)}
-                                                className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                                                    subtask.completed
-                                                        ? "bg-green-500/10 border-green-500/30"
-                                                        : "bg-white dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:border-zinc-400 dark:hover:border-zinc-600/50"
-                                                }`}
+                                                className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${subtask.completed
+                                                    ? "bg-green-500/10 border-green-500/30"
+                                                    : "bg-white dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:border-zinc-400 dark:hover:border-zinc-600/50"
+                                                    }`}
                                             >
                                                 <div className={`mt-0.5 transition-colors ${subtask.completed ? "text-green-600 dark:text-green-400" : "text-zinc-500 dark:text-zinc-500"}`}>
                                                     {subtask.completed ? <CheckSquare size={16} /> : <Square size={16} />}
@@ -545,8 +567,8 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                                             const envUrl = import.meta.env.VITE_FILE_UPLOAD_BASE_URL;
                                                             if (envUrl) return `${envUrl}${attachment.url}`;
                                                             const hostname = window.location.hostname;
-                                                            const baseUrl = (hostname !== 'localhost' && hostname !== '127.0.0.1') 
-                                                                ? `http://${hostname}:8080` 
+                                                            const baseUrl = (hostname !== 'localhost' && hostname !== '127.0.0.1')
+                                                                ? `http://${hostname}:8080`
                                                                 : 'http://localhost:8080';
                                                             return `${baseUrl}${attachment.url}`;
                                                         })()}
@@ -610,22 +632,20 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                     <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-1">
                                         <button
                                             onClick={() => setDependencyViewMode('list')}
-                                            className={`px-3 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
-                                                dependencyViewMode === 'list'
-                                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                                                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300'
-                                            }`}
+                                            className={`px-3 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${dependencyViewMode === 'list'
+                                                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                                                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300'
+                                                }`}
                                         >
                                             <List size={14} />
                                             List
                                         </button>
                                         <button
                                             onClick={() => setDependencyViewMode('graph')}
-                                            className={`px-3 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${
-                                                dependencyViewMode === 'graph'
-                                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                                                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300'
-                                            }`}
+                                            className={`px-3 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${dependencyViewMode === 'graph'
+                                                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                                                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300'
+                                                }`}
                                         >
                                             <Network size={14} />
                                             Graph
@@ -731,15 +751,14 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                             key={p}
                                             type="button"
                                             onClick={() => setPriority(p)}
-                                            className={`flex-1 px-2.5 py-2 rounded-md text-[11px] font-bold uppercase tracking-wide transition-all ${
-                                                priority === p
-                                                    ? p === 'high' 
-                                                        ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
-                                                        : p === 'medium' 
-                                                            ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                                                            : 'bg-green-500 text-white shadow-md shadow-green-500/20'
-                                                    : 'bg-zinc-700/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
-                                            }`}
+                                            className={`flex-1 px-2.5 py-2 rounded-md text-[11px] font-bold uppercase tracking-wide transition-all ${priority === p
+                                                ? p === 'high'
+                                                    ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
+                                                    : p === 'medium'
+                                                        ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                                                        : 'bg-green-500 text-white shadow-md shadow-green-500/20'
+                                                : 'bg-zinc-700/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
+                                                }`}
                                         >
                                             {p}
                                         </button>
