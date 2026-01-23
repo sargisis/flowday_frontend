@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { type Task, getTasksByProject, bulkDeleteTasks } from "../api/tasks";
+import { type Task, getTasksByProject, bulkDeleteTasks, bulkUpdateTasksStatus, bulkUpdateTasksPriority } from "../api/tasks";
 import { useProject } from "../context/ProjectContext";
 import { useTasks } from "../context/TaskContext";
 import KanbanBoard from "../components/kanban/KanbanBoard";
@@ -20,6 +20,7 @@ import GroupingSelector from "../components/filters/GroupingSelector";
 import { DEFAULT_PRESETS, type GroupBy, type GroupingOptions } from "../types/filters";
 import { useTaskGrouping } from "../hooks/useTaskGrouping";
 import GlobalSearch from "../components/search/GlobalSearch";
+import BulkActionsBar from "../components/bulk/BulkActionsBar";
 
 export default function TasksPage() {
     const { activeProjectId } = useProject();
@@ -128,12 +129,7 @@ export default function TasksPage() {
 
         setIsLoading(true);
         try {
-            // Update all selected tasks
-            await Promise.all(
-                Array.from(selectedTaskIds).map(taskId =>
-                    handleUpdateTask(taskId, { status: newStatus })
-                )
-            );
+            await bulkUpdateTasksStatus(Array.from(selectedTaskIds), newStatus);
             
             // Refresh tasks
             if (activeProjectId) {
@@ -142,6 +138,7 @@ export default function TasksPage() {
             }
             
             toast.success(`Updated ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''} to ${newStatus}`);
+            playSuccess();
             setIsSelectionMode(false);
             setSelectedTaskIds(new Set());
         } catch (error) {
@@ -150,7 +147,32 @@ export default function TasksPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [selectedTaskIds, activeProjectId, handleUpdateTask]);
+    }, [selectedTaskIds, activeProjectId, playSuccess]);
+
+    const handleBulkPriorityChange = useCallback(async (newPriority: string) => {
+        if (selectedTaskIds.size === 0) return;
+
+        setIsLoading(true);
+        try {
+            await bulkUpdateTasksPriority(Array.from(selectedTaskIds), newPriority);
+            
+            // Refresh tasks
+            if (activeProjectId) {
+                const data = await getTasksByProject(activeProjectId);
+                setTasks(data);
+            }
+            
+            toast.success(`Updated ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''} priority to ${newPriority}`);
+            playSuccess();
+            setIsSelectionMode(false);
+            setSelectedTaskIds(new Set());
+        } catch (error) {
+            console.error("Failed to bulk update priority", error);
+            toast.error("Failed to update task priority");
+        } finally {
+            setIsLoading(false);
+        }
+    }, [selectedTaskIds, activeProjectId, playSuccess]);
 
     // ✅ NEW: Enhanced Keyboard Shortcuts
     useKeyboardShortcuts(
@@ -780,6 +802,21 @@ export default function TasksPage() {
                 isOpen={showGlobalSearch}
                 onClose={() => setShowGlobalSearch(false)}
             />
+
+            {/* ✅ NEW: Bulk Actions Bar */}
+            {isSelectionMode && selectedTaskIds.size > 0 && (
+                <BulkActionsBar
+                    selectedCount={selectedTaskIds.size}
+                    onClose={() => {
+                        setIsSelectionMode(false);
+                        setSelectedTaskIds(new Set());
+                    }}
+                    onChangeStatus={handleBulkStatusChange}
+                    onChangePriority={handleBulkPriorityChange}
+                    onDelete={handleBulkDelete}
+                    onClearSelection={() => setSelectedTaskIds(new Set())}
+                />
+            )}
         </div>
     );
 }

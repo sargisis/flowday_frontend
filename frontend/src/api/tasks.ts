@@ -17,7 +17,7 @@ export interface Task {
     project_id: string; // MongoDB ObjectID
     description?: string;
     subtasks?: { id: string; title: string; completed: boolean }[];
-    due_date?: string;
+    due_date?: string | null;
     created_at?: string;
     attachments?: Attachment[];
     tags?: Array<{ id: string; name: string; color: string }>;
@@ -48,7 +48,7 @@ export const createTask = async (data: {
     priority: string;
     project_id: string;
     description?: string;
-    due_date?: string;
+    due_date?: string | null;
 }) => {
     const res = await api.post("/tasks", data);
     return res.data;
@@ -61,6 +61,16 @@ export const deleteTask = async (id: string) => {
 
 export const bulkDeleteTasks = async (ids: string[]) => {
     const res = await api.post("/tasks/bulk-delete", { task_ids: ids });
+    return res.data;
+};
+
+export const bulkUpdateTasksStatus = async (ids: string[], status: string) => {
+    const res = await api.post("/tasks/bulk-update-status", { task_ids: ids, status });
+    return res.data;
+};
+
+export const bulkUpdateTasksPriority = async (ids: string[], priority: string) => {
+    const res = await api.post("/tasks/bulk-update-priority", { task_ids: ids, priority });
     return res.data;
 };
 

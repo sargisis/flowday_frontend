@@ -61,7 +61,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
                 title,
                 priority,
                 project_id: activeProjectId,
-                due_date: dueDate ? new Date(dueDate).toISOString() : undefined
+                due_date: dueDate ? new Date(dueDate).toISOString() : null
             });
             triggerRefresh();
         } catch (error) {

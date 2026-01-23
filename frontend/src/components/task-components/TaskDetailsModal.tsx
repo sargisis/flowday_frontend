@@ -287,7 +287,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 subtasks,
                 status,
                 priority,
-                due_date: dueDate ? new Date(dueDate).toISOString() : undefined,
+                due_date: dueDate ? new Date(dueDate).toISOString() : null,
                 tags: tags.map(t => ({ id: t.id, name: t.name, color: t.color })),
             });
             onClose();
