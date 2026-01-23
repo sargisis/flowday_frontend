@@ -33,11 +33,11 @@ function KanbanColumn({ id, title, tasks, onDelete, onTaskClick, isSelectionMode
     return (
         <div
             ref={setNodeRef}
-            className={`flex flex-col bg-zinc-900/40 border-2 rounded-2xl p-4 h-full min-h-0 transition-all duration-200 ${
+            className={`flex flex-col bg-zinc-900/40 border-2 rounded-2xl p-4 h-full min-h-0 ${
                 isDragOver 
-                    ? "border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/20 scale-[1.02]" 
+                    ? "border-indigo-500 bg-indigo-500/15 shadow-xl shadow-indigo-500/30 transition-colors duration-150" 
                     : isOver 
-                        ? "border-indigo-500/50 bg-indigo-500/5" 
+                        ? "border-indigo-500/60 bg-indigo-500/8 shadow-md shadow-indigo-500/10 transition-colors duration-150" 
                         : "border-white/5"
             }`}
         >

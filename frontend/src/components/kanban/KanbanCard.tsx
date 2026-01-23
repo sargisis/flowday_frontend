@@ -37,7 +37,8 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
 
     const style = {
         transform: overlay ? undefined : CSS.Transform.toString(transform),
-        transition: overlay ? undefined : transition,
+        transition: overlay || isDragging ? 'none' : transition, // No transition when dragging
+        willChange: isDragging ? 'transform' : 'auto', // Optimize for dragging
     };
 
     const handleDelete = async (e: React.MouseEvent) => {
@@ -91,13 +92,14 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
         return (
             <div
                 className={`
-            p-3 rounded-xl 
-            bg-gradient-to-br from-zinc-800 to-zinc-900
-            border-2 border-indigo-500/50
-            shadow-2xl cursor-grabbing
+            p-3.5 rounded-2xl 
+            bg-gradient-to-br from-zinc-900/50 via-zinc-900/40 to-zinc-800/30
+            border-2 border-indigo-500/60
+            shadow-2xl
             w-full
             backdrop-blur-sm
           `}
+                style={{ willChange: 'transform' }}
             >
                 <div className="flex justify-between items-start mb-1.5">
                     <span className={`
@@ -134,8 +136,13 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
         return (
             <div
                 ref={setNodeRef}
-                style={style}
-                className="opacity-20 bg-zinc-800/50 p-3 rounded-xl border-2 border-dashed border-indigo-500/30 h-[80px] animate-pulse"
+                style={{
+                    ...style,
+                    opacity: 0.3,
+                    transition: 'none',
+                    willChange: 'transform',
+                }}
+                className="bg-zinc-800/40 p-3.5 rounded-xl border-2 border-dashed border-indigo-500/40 h-[90px]"
             />
         );
     }
@@ -153,7 +160,6 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
         bg-gradient-to-br from-zinc-900/50 via-zinc-900/40 to-zinc-800/30
         backdrop-blur-sm
         border 
-        transition-all duration-300 ease-out
         ${isSelectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}
         ${isSelected
                     ? 'border-indigo-500/80 bg-indigo-500/15 shadow-lg shadow-indigo-500/20 ring-2 ring-indigo-500/30'
@@ -161,7 +167,7 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
                         ? 'border-indigo-400/60 bg-indigo-500/8 ring-2 ring-indigo-400/25 shadow-md shadow-indigo-500/10'
                         : 'border-white/5 hover:border-white/15 hover:bg-zinc-900/60'}
         ${isDeleting ? 'opacity-50 pointer-events-none' : ''}
-        hover:scale-[1.02] hover:shadow-xl hover:shadow-black/20 active:scale-[0.98]
+        ${!isDragging ? 'transition-colors duration-150 hover:shadow-xl hover:shadow-black/20' : 'transition-none'}
       `}
         >
             <div className="flex justify-between items-start mb-1.5">
@@ -201,7 +207,7 @@ function KanbanCard({ task, overlay, onDelete, onClick, isSelectionMode, isSelec
                             <Trash2 size={14} />
                         </button>
                         <div 
-                            className="text-zinc-600 p-1.5 cursor-grab active:cursor-grabbing"
+                            className="text-zinc-600 p-1.5 hover:text-zinc-400 hover:bg-zinc-800/50 rounded transition-all"
                             onMouseDown={(e) => {
                                 // Prevent card click when clicking grip
                                 e.stopPropagation();
