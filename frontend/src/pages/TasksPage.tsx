@@ -129,7 +129,7 @@ export default function TasksPage() {
 
         setIsLoading(true);
         try {
-            await bulkUpdateTasksStatus(Array.from(selectedTaskIds), newStatus);
+            const response = await bulkUpdateTasksStatus(Array.from(selectedTaskIds), newStatus);
             
             // Refresh tasks
             if (activeProjectId) {
@@ -137,13 +137,15 @@ export default function TasksPage() {
                 setTasks(data);
             }
             
-            toast.success(`Updated ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''} to ${newStatus}`);
+            const updatedCount = response?.updated_count || selectedTaskIds.size;
+            toast.success(`Updated ${updatedCount} task${updatedCount > 1 ? 's' : ''} to ${newStatus}`);
             playSuccess();
             setIsSelectionMode(false);
             setSelectedTaskIds(new Set());
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to bulk update", error);
-            toast.error("Failed to update tasks");
+            const errorMessage = error?.response?.data?.error || error?.message || "Failed to update tasks";
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -154,7 +156,7 @@ export default function TasksPage() {
 
         setIsLoading(true);
         try {
-            await bulkUpdateTasksPriority(Array.from(selectedTaskIds), newPriority);
+            const response = await bulkUpdateTasksPriority(Array.from(selectedTaskIds), newPriority);
             
             // Refresh tasks
             if (activeProjectId) {
@@ -162,13 +164,15 @@ export default function TasksPage() {
                 setTasks(data);
             }
             
-            toast.success(`Updated ${selectedTaskIds.size} task${selectedTaskIds.size > 1 ? 's' : ''} priority to ${newPriority}`);
+            const updatedCount = response?.updated_count || selectedTaskIds.size;
+            toast.success(`Updated ${updatedCount} task${updatedCount > 1 ? 's' : ''} priority to ${newPriority}`);
             playSuccess();
             setIsSelectionMode(false);
             setSelectedTaskIds(new Set());
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to bulk update priority", error);
-            toast.error("Failed to update task priority");
+            const errorMessage = error?.response?.data?.error || error?.message || "Failed to update task priority";
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
