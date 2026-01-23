@@ -7,7 +7,6 @@ import { calculateFlowScore } from '../utils/flowScore';
 import { FlowScoreCard } from '../components/analytics/FlowScoreCard';
 import { ActivityHeatmap } from '../components/analytics/ActivityHeatmap';
 import { TrendChart } from '../components/analytics/TrendChart';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { CardSkeleton } from '../components/skeletons';
 import type { Task } from '../api/tasks';
 import { format, subDays } from 'date-fns';

@@ -30,12 +30,12 @@ interface KanbanBoardProps {
 }
 
 const dropAnimation: DropAnimation = {
-    duration: 200,
-    easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+    duration: 150,
+    easing: 'ease-out', // Simple easing for smooth drop
     sideEffects: defaultDropAnimationSideEffects({
         styles: {
             active: {
-                opacity: '0.4',
+                opacity: '0.3',
             },
         },
     }),
@@ -89,36 +89,39 @@ function KanbanBoard({
     }, [isSelectionMode, selectedTaskIds]);
 
     // Track which column we're hovering over for visual feedback
+    // Use requestAnimationFrame to batch updates and prevent jank
     const handleDragOver = useCallback((event: DragOverEvent) => {
-        const { over } = event;
-        if (!over) {
-            setOverColumnId(null);
-            return;
-        }
+        requestAnimationFrame(() => {
+            const { over } = event;
+            if (!over) {
+                setOverColumnId(null);
+                return;
+            }
 
-        const overData = over.data.current;
-        const overId = over.id as string;
+            const overData = over.data.current;
+            const overId = over.id as string;
 
-        // Determine column ID
-        let columnId: string | null = null;
-        
-        if (overData?.type === 'Column' || overData?.columnId) {
-            columnId = overData.columnId || overId;
-        } else {
-            // Check if overId is a column ID
-            const columnIds = ['Todo', 'In_Progress', 'Blocked', 'Done'];
-            if (columnIds.includes(overId)) {
-                columnId = overId;
+            // Determine column ID
+            let columnId: string | null = null;
+            
+            if (overData?.type === 'Column' || overData?.columnId) {
+                columnId = overData.columnId || overId;
             } else {
-                // Check if dropped on a task - find its column
-                const overTask = tasks.find(t => t.id === overId);
-                if (overTask) {
-                    columnId = overTask.status;
+                // Check if overId is a column ID
+                const columnIds = ['Todo', 'In_Progress', 'Blocked', 'Done'];
+                if (columnIds.includes(overId)) {
+                    columnId = overId;
+                } else {
+                    // Check if dropped on a task - find its column
+                    const overTask = tasks.find(t => t.id === overId);
+                    if (overTask) {
+                        columnId = overTask.status;
+                    }
                 }
             }
-        }
 
-        setOverColumnId(columnId);
+            setOverColumnId(columnId);
+        });
     }, [tasks]);
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
@@ -254,14 +257,14 @@ function KanbanBoard({
             autoScroll={{
                 threshold: {
                     x: 0,
-                    y: 0.25, // Start scrolling within top/bottom 25% area
+                    y: 0.15, // Start scrolling within top/bottom 15% area
                 },
-                acceleration: 60, // Much stronger acceleration (was 20)
-                interval: 4,      // Slightly faster updates (was 5)
+                acceleration: 20, // Lower acceleration for smoother scrolling
+                interval: 16,     // Match 60fps (16ms per frame)
             }}
             measuring={{
                 droppable: {
-                    strategy: 0,
+                    strategy: 0, // Use default strategy for better accuracy
                 },
             }}
         >
@@ -333,22 +336,13 @@ function KanbanBoard({
                 </div>
             </div>
 
-            <DragOverlay dropAnimation={dropAnimation}>
+            <DragOverlay 
+                dropAnimation={dropAnimation}
+                style={{ cursor: 'grabbing' }}
+            >
                 {activeId && activeTask ? (
-                    <div className="cursor-grabbing w-[300px] shadow-2xl relative z-50 transform rotate-2 scale-105">
-                        <div className="relative">
-                            <KanbanCard task={activeTask} overlay={true} />
-                            {/* Additional info in drag preview */}
-                            <div className="absolute -top-2 -right-2 bg-indigo-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
-                                {isSelectionMode && selectedTaskIds && selectedTaskIds.size > 1 ? (
-                                    <>
-                                        <span>{selectedTaskIds.size} tasks</span>
-                                    </>
-                                ) : (
-                                    <span>Moving...</span>
-                                )}
-                            </div>
-                        </div>
+                    <div className="w-[300px] shadow-2xl relative z-50" style={{ willChange: 'transform' }}>
+                        <KanbanCard task={activeTask} overlay={true} />
                     </div>
                 ) : null}
             </DragOverlay>
