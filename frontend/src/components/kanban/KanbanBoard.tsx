@@ -4,7 +4,8 @@ import {
     DragOverlay,
     closestCorners,
     KeyboardSensor,
-    PointerSensor,
+    MouseSensor,
+    TouchSensor,
     useSensor,
     useSensors,
     type DragStartEvent,
@@ -13,10 +14,12 @@ import {
     defaultDropAnimationSideEffects,
     type DropAnimation,
 } from "@dnd-kit/core";
+import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import type { Task } from "../../api/tasks";
 import KanbanColumn from "./KanbanColumn";
 import KanbanCard from "./KanbanCard";
+import { toast } from "sonner";
 
 interface KanbanBoardProps {
     tasks: Task[];
@@ -30,12 +33,12 @@ interface KanbanBoardProps {
 }
 
 const dropAnimation: DropAnimation = {
-    duration: 150,
-    easing: 'ease-out', // Simple easing for smooth drop
+    duration: 250, // Slightly longer for a more natural feel
+    easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)', // Soft bounce easing
     sideEffects: defaultDropAnimationSideEffects({
         styles: {
             active: {
-                opacity: '0.3',
+                opacity: '0.5',
             },
         },
     }),
@@ -62,9 +65,17 @@ function KanbanBoard({
     }, [initialTasks]);
 
     const sensors = useSensors(
-        useSensor(PointerSensor, {
+        useSensor(MouseSensor, {
+            // Lower distance for immediate response
             activationConstraint: {
-                distance: 5, // Distance in pixels before drag starts
+                distance: 3,
+            },
+        }),
+        useSensor(TouchSensor, {
+            // Touch sensor for mobile devices
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
             },
         }),
         useSensor(KeyboardSensor, {
@@ -124,115 +135,6 @@ function KanbanBoard({
         });
     }, [tasks]);
 
-    const handleDragEnd = useCallback((event: DragEndEvent) => {
-        const { active, over } = event;
-        setActiveId(null);
-        setOverColumnId(null);
-
-        if (!over) return;
-
-        const activeId = active.id as string;
-        const overId = over.id as string;
-        const overData = over.data.current;
-
-        // Debug logging
-        console.log('Drag end:', { activeId, overId, overData });
-
-        // Find the final column ID
-        let finalStatus: string | null = null;
-
-        // Strategy 1: Check if overId is a column ID directly
-        const columnIds = ['Todo', 'In_Progress', 'Blocked', 'Done'];
-        if (columnIds.includes(overId)) {
-            finalStatus = overId;
-            console.log('✅ Dropped directly on column:', finalStatus);
-        }
-        // Strategy 2: Check if over.data indicates a Column
-        else if (overData?.type === 'Column' || overData?.columnId) {
-            finalStatus = overData.columnId || overId;
-            console.log('✅ Dropped on column (from data):', finalStatus);
-        }
-        // Strategy 3: Dropped on a task - find which column that task belongs to
-        else {
-            const overTask = tasks.find(t => t.id === overId);
-            if (overTask) {
-                // Use the task's current status as the target column
-                finalStatus = overTask.status;
-                console.log('✅ Dropped on task, using task status:', finalStatus);
-            } else {
-                // Strategy 4: Last resort - check if overId looks like a column ID (case-insensitive)
-                const overIdLower = overId.toLowerCase();
-                const columnMap: Record<string, string> = {
-                    'todo': 'Todo',
-                    'in_progress': 'In_Progress',
-                    'in progress': 'In_Progress',
-                    'blocked': 'Blocked',
-                    'done': 'Done'
-                };
-
-                if (columnMap[overIdLower]) {
-                    finalStatus = columnMap[overIdLower];
-                    console.log('✅ Dropped on column (mapped from overId):', finalStatus);
-                } else {
-                    console.warn('❌ Unknown drop target:', { overId, overData });
-                    // Don't update if we can't determine the column
-                    return;
-                }
-            }
-        }
-
-        if (!finalStatus) {
-            console.warn('❌ Could not determine target column');
-            return;
-        }
-
-        // Normalize status - handle both column IDs (In_Progress) and task statuses (in_progress)
-        const s = finalStatus.toLowerCase();
-        let normalizedStatus: string;
-
-        // Map all possible status formats to normalized format
-        if (finalStatus === 'In_Progress' || s === 'in_progress' || s === 'in progress' || s === 'review') {
-            normalizedStatus = 'In_Progress';
-        } else if (finalStatus === 'Todo' || s === 'todo') {
-            normalizedStatus = 'Todo';
-        } else if (finalStatus === 'Done' || s === 'done') {
-            normalizedStatus = 'Done';
-        } else if (finalStatus === 'Blocked' || s === 'blocked') {
-            normalizedStatus = 'Blocked';
-        } else {
-            // Fallback: use original status (shouldn't happen, but just in case)
-            console.warn('⚠️ Unknown status format:', finalStatus);
-            normalizedStatus = finalStatus;
-        }
-
-        console.log('📤 Updating task:', { taskId: activeId, from: tasks.find(t => t.id === activeId)?.status, to: normalizedStatus });
-
-        // Only update if status actually changed
-        const currentTask = tasks.find(t => t.id === activeId);
-        if (currentTask && currentTask.status === normalizedStatus) {
-            console.log('ℹ️ Status unchanged, skipping update');
-            return;
-        }
-
-        // Multi-select drag: if in selection mode and multiple tasks selected, update all
-        if (isSelectionMode && selectedTaskIds && selectedTaskIds.size > 1 && selectedTaskIds.has(activeId)) {
-            // Update all selected tasks
-            const tasksToUpdate = Array.from(selectedTaskIds);
-            tasksToUpdate.forEach(taskId => {
-                const task = tasks.find(t => t.id === taskId);
-                if (task && task.status !== normalizedStatus) {
-                    onTaskUpdate(taskId, normalizedStatus);
-                }
-            });
-        } else {
-            // Single task drag
-            onTaskUpdate(activeId, normalizedStatus);
-        }
-
-        // Re-sync local state to be safe (in case backend fails or returns slightly diff data)
-        // Actually, preventing flicker: we leave local state as is, and let the useEffect above sync it when next props come in.
-    }, [tasks, onTaskUpdate, isSelectionMode, selectedTaskIds]);
-
     // Filter tasks for columns (Case-insensitive)
     const todoTasks = useMemo(() => tasks.filter(t => t.status.toLowerCase() === "todo"), [tasks]);
 
@@ -245,18 +147,90 @@ function KanbanBoard({
 
     const doneTasks = useMemo(() => tasks.filter(t => t.status.toLowerCase() === "done"), [tasks]);
 
-    const activeTask = useMemo(() => tasks.find(t => t.id === activeId), [tasks, activeId]);
-
-    // ✅ MOBILE: Active column state
-    const [activeMobileColumn, setActiveMobileColumn] = useState<'Todo' | 'In_Progress' | 'Blocked' | 'Done'>('Todo');
-
-    // Column definitions for mapping
-    const columns = [
+    // Column definitions
+    const columns = useMemo(() => [
         { id: 'Todo', title: 'To Do', tasks: todoTasks, color: 'blue' },
         { id: 'In_Progress', title: 'In Progress', tasks: inProgressTasks, color: 'amber' },
         { id: 'Blocked', title: 'Blocked', tasks: blockedTasks, color: 'rose' },
         { id: 'Done', title: 'Done', tasks: doneTasks, color: 'emerald' }
-    ] as const;
+    ] as const, [todoTasks, inProgressTasks, blockedTasks, doneTasks]);
+
+    const handleDragEnd = useCallback((event: DragEndEvent) => {
+        const { active, over } = event;
+        setActiveId(null);
+        setOverColumnId(null);
+
+        if (!over) return;
+
+        const activeId = active.id as string;
+        const overId = over.id as string;
+        const overData = over.data.current;
+
+        // Determine target column with simplified logic
+        let targetColumnId: string | null = null;
+
+        // Check 1: Is it a column ID?
+        if (columns.some(col => col.id === overId)) {
+            targetColumnId = overId;
+        }
+        // Check 2: Does over.data contain column info?
+        else if (overData?.columnId) {
+            targetColumnId = overData.columnId;
+        }
+        // Check 3: Dropped on a task - use that task's column
+        else {
+            const targetTask = tasks.find(t => t.id === overId);
+            if (targetTask) {
+                targetColumnId = targetTask.status;
+            }
+        }
+
+        // Validate and report errors
+        if (!targetColumnId) {
+            console.error('Drop target could not be determined:', { overId, overData });
+            toast.error('Could not move task. Please try again.');
+            return;
+        }
+
+        // Validate column ID
+        if (!columns.some(col => col.id === targetColumnId)) {
+            console.error('Invalid column ID:', targetColumnId);
+            toast.error('Invalid destination. Please try again.');
+            return;
+        }
+
+        // Check if status actually changed
+        const currentTask = tasks.find(t => t.id === activeId);
+        if (!currentTask) {
+            console.error('Task not found:', activeId);
+            return;
+        }
+
+        if (currentTask.status === targetColumnId) {
+            // Status unchanged, no need to update
+            return;
+        }
+
+        // Multi-select drag
+        if (isSelectionMode && selectedTaskIds && selectedTaskIds.size > 1 && selectedTaskIds.has(activeId)) {
+            const tasksToUpdate = Array.from(selectedTaskIds);
+            tasksToUpdate.forEach(taskId => {
+                const task = tasks.find(t => t.id === taskId);
+                if (task && task.status !== targetColumnId) {
+                    onTaskUpdate(taskId, targetColumnId);
+                }
+            });
+            toast.success(`Moved ${tasksToUpdate.length} tasks to ${columns.find(c => c.id === targetColumnId)?.title}`);
+        } else {
+            // Single task drag
+            onTaskUpdate(activeId, targetColumnId);
+        }
+    }, [tasks, onTaskUpdate, isSelectionMode, selectedTaskIds, columns]);
+
+    const activeTask = useMemo(() => tasks.find(t => t.id === activeId), [tasks, activeId]);
+
+    // ✅ MOBILE: Active column state
+    const [activeMobileColumn, setActiveMobileColumn] = useState<'Todo' | 'In_Progress' | 'Blocked' | 'Done'>('Todo');
 
     return (
         <DndContext
@@ -265,21 +239,22 @@ function KanbanBoard({
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
+            modifiers={[restrictToWindowEdges]}
             autoScroll={{
                 threshold: {
                     x: 0,
-                    y: 0.15, // Start scrolling within top/bottom 15% area
+                    y: 0.1, // Tighter threshold
                 },
-                acceleration: 20, // Lower acceleration for smoother scrolling
-                interval: 16,     // Match 60fps (16ms per frame)
+                acceleration: 10, // Slower, more controlled scroll
+                interval: 10,     // More frequent updates for smoothness
             }}
             measuring={{
                 droppable: {
-                    strategy: 0, // Use default strategy for better accuracy
+                    strategy: 1, // Always measure for accuracy
                 },
             }}
         >
-            <div className="h-full w-full overflow-hidden p-2 flex flex-col">
+            <div className="h-full w-full overflow-hidden p-2 flex flex-col relative" id="kanban-board-container">
                 {/* ✅ MOBILE: Tab Bar */}
                 <div className="md:hidden flex items-center justify-between bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-lg mb-4 shrink-0 overflow-x-auto no-scrollbar">
                     {columns.map((col) => (
@@ -287,8 +262,8 @@ function KanbanBoard({
                             key={col.id}
                             onClick={() => setActiveMobileColumn(col.id)}
                             className={`flex-1 py-2 px-3 text-xs font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap ${activeMobileColumn === col.id
-                                    ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                                    : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+                                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
                                 }`}
                         >
                             {col.title}
