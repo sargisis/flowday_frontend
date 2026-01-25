@@ -58,16 +58,19 @@ export const confirmEmailChange = async (newEmail: string, code: string) => {
 // Get file upload base URL from environment variables
 // Auto-detect IP for mobile devices if accessing from network
 function getFileBaseUrl(): string {
-    const envUrl = import.meta.env.VITE_FILE_UPLOAD_BASE_URL;
-    if (envUrl) return envUrl;
-    
-    const hostname = window.location.hostname;
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        // Use backend port (8080), not frontend port (5173)
-        return `http://${hostname}:8080`;
-    }
-    
-    return "http://localhost:8080";
+  const envUrl = import.meta.env.VITE_FILE_UPLOAD_BASE_URL;
+  if (envUrl) return envUrl;
+
+  // Get port from environment or use default (matches axios.ts)
+  const apiPort = import.meta.env.VITE_API_PORT || '8080';
+  const hostname = window.location.hostname;
+
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    // Use backend port, not frontend port (5173)
+    return `http://${hostname}:${apiPort}`;
+  }
+
+  return `http://localhost:${apiPort}`;
 }
 
 const FILE_BASE_URL = getFileBaseUrl();
@@ -94,8 +97,8 @@ export const refreshAccessToken = async () => {
   return res.data.token;
 };
 
-export const updateNotificationSettings = async (data: { 
-  email_notifications?: boolean; 
+export const updateNotificationSettings = async (data: {
+  email_notifications?: boolean;
   slack_webhook_url?: string;
 }) => {
   const res = await api.patch("/users/notifications", data);

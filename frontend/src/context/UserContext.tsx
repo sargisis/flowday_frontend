@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getMe } from "../api/auth";
+import { useNavigate } from "react-router-dom";
 
 // User Interface Definition
 export interface User {
@@ -28,13 +29,18 @@ interface UserContextType {
     user: User | null;
     loading: boolean;
     reloadUser: () => Promise<void>;
+    logout: () => void;
 }
+
+// Custom event for auth failures (fired from axios interceptor)
+export const AUTH_LOGOUT_EVENT = 'auth:logout';
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const reloadUser = async () => {
         try {
@@ -52,12 +58,28 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const logout = () => {
+        localStorage.removeItem("token");
+        setUser(null);
+        navigate("/app/v1/login", { replace: true });
+    };
+
+    // Listen for logout events from axios interceptor
+    useEffect(() => {
+        const handleAuthLogout = () => {
+            logout();
+        };
+
+        window.addEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout);
+        return () => window.removeEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout);
+    }, [navigate]);
+
     useEffect(() => {
         reloadUser();
     }, []);
 
     return (
-        <UserContext.Provider value={{ user, loading, reloadUser }}>
+        <UserContext.Provider value={{ user, loading, reloadUser, logout }}>
             {children}
         </UserContext.Provider>
     );
