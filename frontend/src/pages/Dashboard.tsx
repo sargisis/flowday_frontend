@@ -15,7 +15,9 @@ import { getAvatarUrl } from "../api/auth";
 import { useFocusTrend } from "../hooks/useFocusTrend";
 import LevelCard from "../components/dashboard/LevelCard";
 import FocusTrendCard from "../components/dashboard/FocusTrendCard";
+import ProductivityChart from "../components/dashboard/ProductivityChart";
 import { DashboardSkeleton } from "../components/skeletons/DashboardSkeleton";
+import { getAnalyticsData } from "../api/analytics";
 
 export default function Dashboard() {
     const { activeProjectId } = useProject();
@@ -23,6 +25,7 @@ export default function Dashboard() {
     const { user } = useUser();
     const navigate = useNavigate();
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [analytics, setAnalytics] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [mounted, setMounted] = useState(false);
 
@@ -33,13 +36,26 @@ export default function Dashboard() {
         setMounted(true);
         if (activeProjectId) {
             setIsLoading(true);
-            getTasksByProject(activeProjectId)
-                .then(setTasks)
-                .finally(() => setIsLoading(false));
+
+            // Parallel fetching
+            Promise.all([
+                getTasksByProject(activeProjectId),
+                getAnalyticsData(activeProjectId)
+            ]).then(([tasksData, analyticsData]) => {
+                setTasks(tasksData);
+                setAnalytics(analyticsData);
+            }).finally(() => setIsLoading(false));
         } else {
             setIsLoading(false);
         }
     }, [activeProjectId, refreshTrigger]);
+
+    // Format data for chart
+    const chartData = analytics?.task_trends?.map((t: any) => ({
+        date: new Date(t.date).toLocaleDateString('en-US', { weekday: 'short' }),
+        completed: t.completed,
+        efficiency: t.created > 0 ? Math.round((t.completed / t.created) * 100) : 0
+    })) || [];
 
     // Calculate Stats
     const totalTasks = tasks.length;
@@ -138,6 +154,8 @@ export default function Dashboard() {
 
                 {/* Focus Velocity Card */}
                 <FocusTrendCard data={focusData} />
+
+                <ProductivityChart data={chartData} />
             </div>
 
             {/* Main Content Grid: AI Coach, Priority Pipeline & Activity Feed */}
