@@ -92,7 +92,7 @@ api.interceptors.response.use(
 
         // Handle different HTTP status codes
         switch (status) {
-            case 401:
+            case 401: {
                 // Unauthorized - handle token expiration with automatic refresh
                 const isLoginRequest = originalRequest?.url?.includes("/auth/login");
                 const isRefreshRequest = originalRequest?.url?.includes("/auth/refresh");
@@ -143,6 +143,7 @@ api.interceptors.response.use(
                 toast.error("Session expired. Please log in again.");
                 window.dispatchEvent(new Event('auth:logout'));
                 break;
+            }
 
             case 403:
                 // Forbidden

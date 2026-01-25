@@ -83,7 +83,7 @@ export function ActivityHeatmap({ data, tasks, startDate, endDate }: ActivityHea
         let currentWeek: Date[] = [];
         
         // Find the first Sunday before or on start date
-        let currentDay = new Date(defaultStart);
+        const currentDay = new Date(defaultStart);
         const dayOfWeek = currentDay.getDay();
         if (dayOfWeek !== 0) {
             currentDay.setDate(currentDay.getDate() - dayOfWeek);

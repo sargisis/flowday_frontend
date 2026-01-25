@@ -131,7 +131,7 @@ export default function MessagesPage() {
             };
 
             // Get current user ID - reload if not available
-            let currentUserId = currentUser?.id;
+            const currentUserId = currentUser?.id;
             console.log('[MessagesPage] Current user ID:', currentUserId, 'Current user:', currentUser, 'WS Connected:', wsConnected);
             
             // If current user not loaded, try to reload and process message after
