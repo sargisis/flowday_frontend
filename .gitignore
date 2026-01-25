@@ -1,48 +1,27 @@
+# macOS
 .DS_Store
+
+# IDE
 .vscode
-STARTUP_READINESS_ASSESSMENT.md
-АНАЛИЗ_ДИЗАЙНА_ДАШБОРДА.md
-ДИЗАЙН_И_ДЕСКТОП_РЕКОМЕНДАЦИИ.md 
-КРИТИЧЕСКИЕ_ИСПРАВЛЕНИЯ_ВЫПОЛНЕНО.md
-ОЦЕНКА_ГОТОВНОСТИ_К_ЗАПУСКУ.md
-ПЛАН_ОПТИМИЗАЦИИ_ПРОИЗВОДИТЕЛЬНОСТИ.md
-ПЛАН_РАБОТЫ_НА_СЕГОДНЯ.md
-УЛУЧШЕНИЯ_ДАШБОРДА_ВЫПОЛНЕНО.md
-ИТОГИ_ОПТИМИЗАЦИИ.md
-ОПТИМИЗАЦИЯ_ВЫПОЛНЕНО.md
-TODAYS_ACHIEVEMENTS.md
-ПОЛНЫЙ_АНАЛИЗ_ПРОЕКТА.md
 .cursor
-ВЫПОЛНЕНО_КРИТИЧЕСКИЕ_УЛУЧШЕНИЯ.md
-СЛЕДУЮЩИЕ_ШАГИ.md
-PWA_НАСТРОЙКА_ВЫПОЛНЕНО.md
-ПЛАН_РАБОТЫ_ДАЛЬШЕ.md
-HOW_TO_GET_GA4_ID.md
-BACKEND_SECURITY_ANALYSIS.md
-flowday.code-workspace
-ВЫПОЛНЕНО_КРИТИЧЕСКИЕ_УЛУЧШЕНИЯ.md
-PROJECT_STATUS_ANALYSIS.md
+*.code-workspace
+
+# Backend directory (should be in separate repo)
+Flowday/
 /Flowday/
-PRODUCT_ROADMAP.md
-QUICK_START.md
-IMPLEMENTATION_GUIDE.md
-frontend/MOBILE_DEBUG.md
-NEXT_STEPS.md
-QUICK_WINS.md
-QUICK_FEATURES.md
-BACKEND_TASKS.md
-PHASE1_TEST_RESULTS.md
-BACKEND_PHASE1_COMPLETE.md
-.gitignore
-BACKEND_ROADMAP.md
-PHASE2_TEST_RESULTS.md
-BACKEND_PHASE2_COMPLETE.md
-FOCUS_MODE_FIX.md
-BACKEND_PHASE4_COMPLETE.md
-.gitignore
-ALL_PHASES_COMPLETE.md
-.gitignore
-FRONTEND_INTEGRATION_COMPLETE.md
-PHASE3_TEST_RESULTS.md
-.gitignore
-BACKEND_PHASE3_COMPLETE.md
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary and backup files
+*.tmp
+*.bak
+*~
