@@ -25,8 +25,17 @@ export const chatWithAI = async (message: string): Promise<{ reply: string }> =>
     return res.data;
 };
 
+// Function for streaming will be used directly in the component with fetch/EventSource or similar
+// because axios doesn't support SSE well out of the box
+
+
 export const getChatHistory = async (): Promise<{ history: Message[] }> => {
     const res = await api.get("/ai/history");
+    return res.data;
+};
+
+export const clearChatHistory = async (): Promise<{ message: string }> => {
+    const res = await api.delete("/ai/history");
     return res.data;
 };
 

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
-import { MessageCircle, X, Send, Sparkles, Zap, Lock, ChevronDown, Bot } from "lucide-react";
+import { MessageCircle, X, Send, Sparkles, Zap, Lock, ChevronDown, Bot, RotateCcw } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
-import { chatWithAI, getChatHistory, getQuotaStatus, type Message } from "../../api/ai";
+import { getChatHistory, getQuotaStatus, clearChatHistory, type Message } from "../../api/ai";
 import { toast } from "sonner";
 
 // Lazy load ReactMarkdown (heavy library)
@@ -56,26 +56,92 @@ export default function FlowBotWidget() {
         e?.preventDefault();
         if (!inputValue.trim() || isLoading) return;
 
-        // Optimistic Update
         const userMsg: Message = { role: "user", content: inputValue, timestamp: new Date().toISOString() };
         setMessages(prev => [...prev, userMsg]);
         setInputValue("");
         setIsLoading(true);
 
         try {
-            const res = await chatWithAI(userMsg.content);
-            const aiMsg: Message = { role: "assistant", content: res.reply, timestamp: new Date().toISOString() };
-            setMessages(prev => [...prev, aiMsg]);
-            checkQuota(); // Update quota after message
+            const token = localStorage.getItem("token");
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'}/ai/chat/stream`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ message: userMsg.content })
+            });
+
+            if (!response.ok) {
+                if (response.status === 429) throw new Error("quota_exceeded");
+                throw new Error("failed_to_send");
+            }
+
+            const reader = response.body?.getReader();
+            if (!reader) throw new Error("no_reader");
+
+            const decoder = new TextDecoder();
+            let accumulatedReply = "";
+
+            // Create a placeholder for the assistant message
+            setMessages(prev => [...prev, { role: "assistant", content: "", timestamp: new Date().toISOString() }]);
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data:')) {
+                        try {
+                            const data = JSON.parse(line.substring(5));
+                            if (data.content) {
+                                accumulatedReply += data.content;
+                                setMessages(prev => {
+                                    const next = [...prev];
+                                    next[next.length - 1] = {
+                                        ...next[next.length - 1],
+                                        content: accumulatedReply
+                                    };
+                                    return next;
+                                });
+                            }
+                        } catch (e) {
+                            // Skip invalid JSON
+                        }
+                    } else if (line.startsWith('event:done')) {
+                        break;
+                    }
+                }
+            }
+
+            checkQuota();
         } catch (err: any) {
-            if (err.response?.status === 429) {
+            if (err.message === "quota_exceeded") {
                 toast.error("Daily usage limit reached");
-                checkQuota(); // Refresh to ensure UI shows limit state
             } else {
                 toast.error("Failed to send message");
             }
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleNewChat = async () => {
+        if (messages.length === 0) return;
+
+        const ok = confirm("Are you sure you want to clear chat history and start a new conversation?");
+        if (!ok) return;
+
+        try {
+            await clearChatHistory();
+            setMessages([]);
+            toast.success("Chat history cleared");
+            checkQuota();
+        } catch (err) {
+            toast.error("Failed to clear chat history");
         }
     };
 
@@ -118,6 +184,13 @@ export default function FlowBotWidget() {
                                     {isQuotaExceeded ? '0/10' : `${quota.remaining}/10`}
                                 </div>
                             )}
+                            <button
+                                onClick={handleNewChat}
+                                className="h-8 w-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+                                title="Reset Chat"
+                            >
+                                <RotateCcw size={16} />
+                            </button>
                             <button
                                 onClick={() => setIsOpen(false)}
                                 className="h-8 w-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
@@ -163,7 +236,7 @@ export default function FlowBotWidget() {
                                             <Suspense fallback={<div className="text-zinc-400 italic">Loading...</div>}>
                                                 <ReactMarkdown>{msg.content}</ReactMarkdown>
                                             </Suspense>
-                                          </div>
+                                        </div>
                                         : msg.content
                                     }
                                 </div>
