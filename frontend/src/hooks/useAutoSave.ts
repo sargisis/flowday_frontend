@@ -28,6 +28,7 @@ interface UseAutoSaveOptions<T> {
     storageKey?: string; // Key for localStorage
     delay?: number; // Debounce delay in ms
     enabled?: boolean;
+    flushOnUnmount?: boolean; // Force save on component unmount
     serialize?: (data: T) => string;
     deserialize?: (str: string) => T;
 }
@@ -38,6 +39,7 @@ export function useAutoSave<T>({
     storageKey,
     delay = 2000,
     enabled = true,
+    flushOnUnmount = true, // Default to true to prevent data loss
     serialize = JSON.stringify,
     deserialize = JSON.parse,
 }: UseAutoSaveOptions<T>) {
@@ -106,11 +108,26 @@ export function useAutoSave<T>({
             previousDataRef.current = data;
             debouncedSave(data);
         }
-
-        return () => {
-            debouncedSave.cancel();
-        };
     }, [data, enabled, debouncedSave]);
+
+    // Flush pending saves on unmount to prevent data loss
+    useEffect(() => {
+        return () => {
+            if (flushOnUnmount && enabled) {
+                // Cancel debounced save and execute immediately
+                debouncedSave.cancel();
+
+                // Execute save synchronously if possible
+                const result = onSave(previousDataRef.current);
+                if (result instanceof Promise) {
+                    // For async saves, we can't wait but at least trigger it
+                    result.catch(err => {
+                        console.error('Failed to flush autosave on unmount:', err);
+                    });
+                }
+            }
+        };
+    }, [flushOnUnmount, enabled, onSave]);
 
     // Clear localStorage when component unmounts (optional - can be controlled)
     const clearDraft = () => {

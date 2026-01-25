@@ -9,17 +9,20 @@ function getApiBaseUrl(): string {
         if (import.meta.env.DEV) console.log('🔗 Using API URL from env:', envUrl);
         return envUrl;
     }
-    
-    // If accessing from network (not localhost), use the same host for API
+
+    // Get port from environment or use default
+    const apiPort = import.meta.env.VITE_API_PORT || '8080';
     const hostname = window.location.hostname;
+
+    // If accessing from network (not localhost), use the same host for API
     if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-        const apiUrl = `http://${hostname}:8080/api/v1`;
+        const apiUrl = `http://${hostname}:${apiPort}/api/v1`;
         if (import.meta.env.DEV) console.log('🔗 Auto-detected API URL for mobile:', apiUrl);
         return apiUrl;
     }
-    
+
     // Default fallback for localhost
-    const localUrl = "http://localhost:8080/api/v1";
+    const localUrl = `http://localhost:${apiPort}/api/v1`;
     if (import.meta.env.DEV) console.log('🔗 Using localhost API URL:', localUrl);
     return localUrl;
 }
@@ -126,18 +129,19 @@ api.interceptors.response.use(
                             headers: originalRequest.headers,
                         });
                     } catch (refreshError) {
-                        // Refresh failed - user needs to log in again
+                        // Refresh failed - dispatch logout event instead of hard redirect
                         localStorage.removeItem("token");
                         toast.error("Session expired. Please log in again.");
-                        window.location.href = "/app/v1/login";
+
+                        // Dispatch custom event for UserContext to handle
+                        window.dispatchEvent(new Event('auth:logout'));
                         return Promise.reject(refreshError);
                     }
                 }
 
-                // If we get here, refresh already failed
-                localStorage.removeItem("token");
+                // If we get here, refresh already failed - dispatch logout event
                 toast.error("Session expired. Please log in again.");
-                window.location.href = "/app/v1/login";
+                window.dispatchEvent(new Event('auth:logout'));
                 break;
 
             case 403:
