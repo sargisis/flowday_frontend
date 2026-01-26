@@ -1,12 +1,8 @@
-import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
-import { X, Calendar, Trash2, Sparkles, Edit3, Eye, CheckSquare, Square, Copy, Paperclip, Image as ImageIcon, File, Upload, Clock, Undo2, Redo2, List, Network, Hash } from "lucide-react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Paperclip, Image as ImageIcon, File, Upload, Clock, List, Network, Sparkles, Edit3, Trash2 } from "lucide-react";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import { useAutoSave } from "../../hooks/useAutoSave";
-import TagInput from "../tags/TagInput";
 import type { Tag } from "../../types/tags";
-
-// Lazy load ReactMarkdown (heavy library)
-const ReactMarkdown = lazy(() => import("react-markdown"));
 import type { Task, Attachment } from "../../api/tasks";
 import { duplicateTask, uploadTaskAttachment, getTaskAttachments, deleteTaskAttachment, getTasksByProject } from "../../api/tasks";
 import { useTasks } from "../../context/TaskContext";
@@ -16,8 +12,10 @@ import TimeTracker from "../time-tracking/TimeTracker";
 import TaskDependencies from "../task-dependencies/TaskDependencies";
 import { DependencyGraph } from "../task-dependencies/DependencyGraph";
 import { getTaskDependencies, getBatchTaskDependencies, type TaskDependency } from "../../api/taskDependencies";
-import MentionAutocomplete from "../mentions/MentionAutocomplete";
-import SubtasksList from "../subtasks/SubtasksList";
+import { TaskModalHeader } from "./task-details/TaskModalHeader";
+import { TaskModalSidebar } from "./task-details/TaskModalSidebar";
+import { TaskDescriptionTab } from "./task-details/TaskDescriptionTab";
+import { TaskSubtasksTab } from "./task-details/TaskSubtasksTab";
 
 interface TaskDetailsModalProps {
     task: Task | null;
@@ -387,12 +385,6 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         }
     };
 
-    const toggleSubtask = (index: number) => {
-        const newSubtasks = [...subtasks];
-        newSubtasks[index].completed = !newSubtasks[index].completed;
-        setSubtasks(newSubtasks);
-    };
-
     const handleDuplicate = async () => {
         if (!task) return;
         try {
@@ -407,12 +399,6 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         }
     };
 
-    const calculateProgress = () => {
-        if (subtasks.length === 0) return 0;
-        const completed = subtasks.filter(s => s.completed).length;
-        return Math.round((completed / subtasks.length) * 100);
-    };
-
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
             <div className={`
@@ -420,149 +406,32 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                 ${dependencyViewMode === 'graph' ? 'sm:max-w-6xl' : 'sm:max-w-3xl'}
             `}>
                 {/* Header */}
-                <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200/60 dark:border-zinc-800/40 bg-gradient-to-r from-zinc-50/80 to-transparent dark:from-zinc-900/40 dark:to-transparent backdrop-blur-sm shrink-0">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-lg sm:text-xl font-semibold text-zinc-900 dark:text-white">Task Details</h2>
-                        {isAutoSaving && (
-                            <span className="text-xs text-zinc-500 animate-pulse flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                Saving...
-                            </span>
-                        )}
-                        {!isAutoSaving && lastSaved && (
-                            <span className="text-xs text-zinc-400 flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500/50"></span>
-                                Saved
-                            </span>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                        {/* Undo/Redo buttons */}
-                        <div className="flex items-center gap-1 mr-2 border-r border-zinc-300 dark:border-zinc-700 pr-2">
-                            <button
-                                onClick={handleUndo}
-                                disabled={!canUndo}
-                                className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Undo (Ctrl+Z)"
-                            >
-                                <Undo2 size={18} />
-                            </button>
-                            <button
-                                onClick={handleRedo}
-                                disabled={!canRedo}
-                                className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Redo (Ctrl+Y)"
-                            >
-                                <Redo2 size={18} />
-                            </button>
-                        </div>
-                        <button
-                            onClick={handleDuplicate}
-                            className="p-2.5 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                            title="Duplicate Task"
-                        >
-                            <Copy size={18} strokeWidth={2.5} />
-                        </button>
-                        <button
-                            onClick={handleDelete}
-                            className="p-2.5 text-zinc-600 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                            title="Delete Task"
-                        >
-                            <Trash2 size={18} strokeWidth={2.5} />
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="p-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
-                        >
-                            <X size={18} strokeWidth={2.5} />
-                        </button>
-                    </div>
-                </div>
+                <TaskModalHeader
+                    isAutoSaving={isAutoSaving}
+                    lastSaved={lastSaved}
+                    onUndo={handleUndo}
+                    canUndo={canUndo}
+                    onRedo={handleRedo}
+                    canRedo={canRedo}
+                    onDuplicate={handleDuplicate}
+                    onDelete={handleDelete}
+                    onClose={onClose}
+                />
 
                 <div className={`p-6 transition-all ${dependencyViewMode === 'graph' ? 'h-[85vh] overflow-hidden' : 'max-h-[70vh] overflow-y-auto'}`}>
                     <div className={`grid grid-cols-1 ${dependencyViewMode === 'graph' ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-6 h-full`}>
                         {/* Main Content */}
                         <div className={`${dependencyViewMode === 'graph' ? 'md:col-span-3' : 'md:col-span-2'} space-y-5 h-full`}>
-                            <div>
-                                <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide">
-                                    Title
-                                </label>
-                                <input
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    className="w-full bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-300 dark:border-zinc-700/50 rounded-lg px-4 py-3 text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-base font-medium transition-all"
-                                    placeholder="Enter task title..."
-                                />
-                            </div>
-
-                            {/* Subtasks / Magic Checklist Section */}
-                            {subtasks.length > 0 && dependencyViewMode !== 'graph' && (
-                                <div className="bg-zinc-50 dark:bg-zinc-800/30 rounded-xl p-4 border border-zinc-200 dark:border-zinc-700/50">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
-                                            Checklist
-                                        </label>
-                                        <span className="text-xs font-medium text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full">
-                                            {calculateProgress()}% Done
-                                        </span>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {subtasks.map((subtask, index) => (
-                                            <div
-                                                key={subtask.id || index}
-                                                onClick={() => toggleSubtask(index)}
-                                                className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${subtask.completed
-                                                    ? "bg-green-500/10 border-green-500/30"
-                                                    : "bg-white dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700/50 hover:bg-zinc-100 dark:hover:bg-zinc-800/70 hover:border-zinc-400 dark:hover:border-zinc-600/50"
-                                                    }`}
-                                            >
-                                                <div className={`mt-0.5 transition-colors ${subtask.completed ? "text-green-600 dark:text-green-400" : "text-zinc-500 dark:text-zinc-500"}`}>
-                                                    {subtask.completed ? <CheckSquare size={16} /> : <Square size={16} />}
-                                                </div>
-                                                <span className={`text-sm flex-1 ${subtask.completed ? "text-zinc-500 dark:text-zinc-500 line-through" : "text-zinc-900 dark:text-zinc-200"}`}>
-                                                    {subtask.title}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
                             {dependencyViewMode !== 'graph' && (
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
-                                            Description
-                                        </label>
-                                        <button
-                                            onClick={() => setIsPreview(!isPreview)}
-                                            className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-blue-500/10 transition-colors"
-                                        >
-                                            {isPreview ? <Edit3 size={12} /> : <Eye size={12} />}
-                                            {isPreview ? "Edit" : "Preview"}
-                                        </button>
-                                    </div>
-
-                                    <div className="min-h-[140px] bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700/50 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500/50 transition-all">
-                                        {isPreview ? (
-                                            <div className="p-4 text-sm text-zinc-900 dark:text-zinc-200 leading-relaxed overflow-y-auto max-h-[300px] prose dark:prose-invert prose-sm max-w-none">
-                                                <Suspense fallback={<div className="text-zinc-500 italic">Loading markdown...</div>}>
-                                                    <ReactMarkdown>{description || "*No description yet.*"}</ReactMarkdown>
-                                                </Suspense>
-                                            </div>
-                                        ) : (
-                                            <MentionAutocomplete
-                                                value={description}
-                                                onChange={setDescription}
-                                                projectId={activeProjectId || undefined}
-                                                placeholder="Add more details about this task... (Type @ to mention someone)"
-                                                className="w-full bg-transparent p-4 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-600 focus:outline-none resize-none text-sm leading-relaxed"
-                                                rows={6}
-                                            />
-                                        )}
-                                    </div>
-                                </div>
+                                <TaskDescriptionTab
+                                    title={title}
+                                    onTitleChange={setTitle}
+                                    description={description}
+                                    onDescriptionChange={setDescription}
+                                    isPreview={isPreview}
+                                    onTogglePreview={() => setIsPreview(!isPreview)}
+                                    activeProjectId={activeProjectId || undefined}
+                                />
                             )}
 
                             {/* Attachments Section */}
@@ -661,16 +530,10 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
 
                             {/* Subtasks Section */}
                             {dependencyViewMode !== 'graph' && (
-                                <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <CheckSquare size={16} className="text-zinc-600 dark:text-zinc-400" />
-                                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Subtasks</h3>
-                                    </div>
-                                    <SubtasksList
-                                        subtasks={subtasks}
-                                        onUpdate={setSubtasks}
-                                    />
-                                </div>
+                                <TaskSubtasksTab
+                                    subtasks={subtasks}
+                                    onUpdate={setSubtasks}
+                                />
                             )}
 
                             {/* Time Tracking Section */}
@@ -800,139 +663,23 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                             )}
                         </div>
 
+
                         {/* Sidebar info / Graph Inspector */}
-                        <div className="space-y-4">
-                            {dependencyViewMode === 'graph' ? (
-                                <div className="h-full bg-zinc-800/40 rounded-3xl p-6 border border-zinc-700/30 backdrop-blur-3xl flex flex-col gap-6">
-                                    {(() => {
-                                        const inspectorTask = allTasks.find(t => String(t.id) === String(selectedTaskId || task.id));
-                                        if (!inspectorTask) return <div className="text-zinc-500 italic text-sm">Select a task on the graph to view details.</div>;
-                                        return (
-                                            <>
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-indigo-400 mb-1.5 uppercase tracking-widest">Selected Task</label>
-                                                    <h4 className="text-base font-bold text-white leading-tight">{inspectorTask.title}</h4>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="bg-black/20 rounded-2xl p-3 border border-white/5 text-center">
-                                                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Status</p>
-                                                        <span className="text-xs font-bold text-zinc-200">{inspectorTask.status}</span>
-                                                    </div>
-                                                    <div className="bg-black/20 rounded-2xl p-3 border border-white/5 text-center">
-                                                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Priority</p>
-                                                        <span className={`text-xs font-bold uppercase ${inspectorTask.priority === 'high' ? 'text-rose-400' : inspectorTask.priority === 'medium' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                                                            {inspectorTask.priority}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                {inspectorTask.description && (
-                                                    <div>
-                                                        <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase tracking-widest">Description</label>
-                                                        <p className="text-[11px] text-zinc-400 line-clamp-6 leading-relaxed bg-black/10 p-3 rounded-xl">
-                                                            {inspectorTask.description}
-                                                        </p>
-                                                    </div>
-                                                )}
-                                                <div className="mt-auto pt-6 border-t border-white/5">
-                                                    <button
-                                                        onClick={() => setSelectedTaskId(null)}
-                                                        className="w-full py-2.5 text-xs font-bold text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all"
-                                                    >
-                                                        Focus Root Task
-                                                    </button>
-                                                </div>
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {/* Status Card */}
-                                    <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
-                                        <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
-                                            Status
-                                        </label>
-                                        <select
-                                            value={status}
-                                            onChange={(e) => setStatus(e.target.value)}
-                                            className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-md px-3 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 cursor-pointer transition-all appearance-none"
-                                        >
-                                            <option value="Todo">To Do</option>
-                                            <option value="In_Progress">In Progress</option>
-                                            <option value="Review">Review</option>
-                                            <option value="Blocked">Blocked</option>
-                                            <option value="Done">Done</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Priority Card */}
-                                    <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
-                                        <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
-                                            Priority
-                                        </label>
-                                        <div className="flex gap-1.5">
-                                            {['low', 'medium', 'high'].map((p) => (
-                                                <button
-                                                    key={p}
-                                                    type="button"
-                                                    onClick={() => setPriority(p)}
-                                                    className={`flex-1 px-2.5 py-2 rounded-md text-[11px] font-bold uppercase tracking-wide transition-all ${priority === p
-                                                        ? p === 'high'
-                                                            ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
-                                                            : p === 'medium'
-                                                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                                                                : 'bg-green-500 text-white shadow-md shadow-green-500/20'
-                                                        : 'bg-zinc-700/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
-                                                        }`}
-                                                >
-                                                    {p}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Due Date Card */}
-                                    <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
-                                        <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
-                                            Due Date
-                                        </label>
-                                        <div className="space-y-2">
-                                            <div className="relative">
-                                                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
-                                                <input
-                                                    type="date"
-                                                    value={dueDate}
-                                                    onChange={(e) => setDueDate(e.target.value)}
-                                                    className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-md pl-9 pr-2.5 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 [color-scheme:dark] transition-all"
-                                                />
-                                            </div>
-                                            {dueDate && (
-                                                <button
-                                                    onClick={() => setDueDate("")}
-                                                    className="w-full py-2 text-xs font-medium text-zinc-500 hover:text-zinc-400 bg-zinc-700/40 hover:bg-zinc-700/60 rounded-md border border-zinc-600/40 hover:border-zinc-600/60 transition-all"
-                                                >
-                                                    Remove Deadline
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Tags Card */}
-                                    <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
-                                        <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider flex items-center gap-1.5">
-                                            <Hash size={12} />
-                                            Tags
-                                        </label>
-                                        <TagInput
-                                            tags={tags}
-                                            availableTags={[]} // Can be enhanced to load from project
-                                            onTagsChange={setTags}
-                                            placeholder="Add tags..."
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <TaskModalSidebar
+                            task={task}
+                            status={status}
+                            onStatusChange={setStatus}
+                            priority={priority}
+                            onPriorityChange={setPriority}
+                            dueDate={dueDate}
+                            onDueDateChange={setDueDate}
+                            tags={tags}
+                            onTagsChange={setTags}
+                            dependencyViewMode={dependencyViewMode}
+                            allTasks={allTasks}
+                            selectedTaskId={selectedTaskId}
+                            onSelectTask={setSelectedTaskId}
+                        />
                     </div>
                 </div>
 
