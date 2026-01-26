@@ -5,7 +5,7 @@ import { getTasksByProject } from '../api/tasks';
 import { getFocusSessions, getActivityData } from '../api/analytics';
 import { calculateFlowScore } from '../utils/flowScore';
 import { FlowScoreCard } from '../components/analytics/FlowScoreCard';
-import { ActivityHeatmap } from '../components/analytics/ActivityHeatmap';
+import ActivityHeatmap from '../components/dashboard/ActivityHeatmap';
 import { TrendChart } from '../components/analytics/TrendChart';
 import { CardSkeleton } from '../components/skeletons';
 import type { Task } from '../api/tasks';
@@ -35,7 +35,7 @@ export default function AnalyticsPage() {
                 // Load focus sessions
                 const end = new Date();
                 const start = subDays(end, period === '7d' ? 7 : period === '30d' ? 30 : period === '90d' ? 90 : 365);
-                
+
                 try {
                     const sessions = await getFocusSessions(
                         format(start, 'yyyy-MM-dd'),
@@ -57,14 +57,14 @@ export default function AnalyticsPage() {
                     // Calculate activity from tasks if API not available
                     const activityMap = new Map<string, number>();
                     const completedTasks = tasksData.filter(t => t.status.toLowerCase() === 'done');
-                    
+
                     tasksData.forEach(task => {
                         if (task.created_at) {
                             const date = format(new Date(task.created_at), 'yyyy-MM-dd');
                             activityMap.set(date, (activityMap.get(date) || 0) + 1);
                         }
                     });
-                    
+
                     // For completed tasks, distribute activity across the period
                     // This creates a better visualization when all tasks completed on same day
                     if (completedTasks.length > 0) {
@@ -74,7 +74,7 @@ export default function AnalyticsPage() {
                         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                             allDates.push(format(d, 'yyyy-MM-dd'));
                         }
-                        
+
                         // Distribute completed tasks across dates
                         completedTasks.forEach((_, index) => {
                             const dateIndex = Math.floor((index / completedTasks.length) * allDates.length);
@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
                             activityMap.set(targetDate, (activityMap.get(targetDate) || 0) + 1);
                         });
                     }
-                    
+
                     setActivityData(Array.from(activityMap.entries()).map(([date, count]) => ({ date, count })));
                 }
             } catch (error) {
@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
         const previousDays = period === '7d' ? 7 : period === '30d' ? 30 : period === '90d' ? 90 : 365;
         const previousStart = subDays(new Date(), previousDays * 2);
         const previousEnd = subDays(new Date(), previousDays);
-        
+
         const previousTasks = tasks.filter(task => {
             if (!task.created_at) return false;
             const created = new Date(task.created_at);
@@ -118,7 +118,7 @@ export default function AnalyticsPage() {
         });
 
         if (previousTasks.length === 0) return undefined;
-        
+
         return calculateFlowScore(previousTasks, previousSessions, previousDays).score;
     }, [tasks, focusSessions, period]);
 
@@ -127,9 +127,9 @@ export default function AnalyticsPage() {
         const end = new Date();
         const start = subDays(end, period === '7d' ? 7 : period === '30d' ? 30 : period === '90d' ? 90 : 365);
         const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-        
+
         const trendMap = new Map<string, { created: number; completed: number }>();
-        
+
         // Initialize all days
         for (let i = 0; i < days; i++) {
             const date = subDays(end, days - i - 1);
@@ -162,28 +162,28 @@ export default function AnalyticsPage() {
                 }
             }
         });
-        
+
         // If all tasks completed on same day, distribute them across the period for better visualization
         const allCompletedOnSameDay = tasks.filter(t => t.status.toLowerCase() === 'done').length > 0 &&
             new Set(tasks.filter(t => t.status.toLowerCase() === 'done' && t.created_at)
                 .map(t => format(new Date(t.created_at!), 'yyyy-MM-dd'))).size === 1;
-        
+
         if (allCompletedOnSameDay) {
             const completedTasks = tasks.filter(t => t.status.toLowerCase() === 'done');
             const dates = Array.from(trendMap.keys()).filter(d => {
                 const date = new Date(d);
                 return date >= start && date <= end;
             }).sort();
-            
-                        // Distribute completed tasks across available dates
-                        completedTasks.forEach((_, index) => {
-                            const dateIndex = Math.floor((index / completedTasks.length) * dates.length);
-                            const targetDate = dates[dateIndex];
-                            const data = trendMap.get(targetDate);
-                            if (data && !data.completed) {
-                                data.completed = 1;
-                            }
-                        });
+
+            // Distribute completed tasks across available dates
+            completedTasks.forEach((_, index) => {
+                const dateIndex = Math.floor((index / completedTasks.length) * dates.length);
+                const targetDate = dates[dateIndex];
+                const data = trendMap.get(targetDate);
+                if (data && !data.completed) {
+                    data.completed = 1;
+                }
+            });
         }
 
         return Array.from(trendMap.entries()).map(([date, data]) => ({
@@ -254,11 +254,10 @@ export default function AnalyticsPage() {
                         <button
                             key={p}
                             onClick={() => setPeriod(p)}
-                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                                period === p
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${period === p
                                     ? 'bg-indigo-600 text-white'
                                     : 'bg-zinc-100 dark:bg-white/[0.03] text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-white/[0.08]'
-                            }`}
+                                }`}
                         >
                             {p.toUpperCase()}
                         </button>
@@ -336,9 +335,9 @@ export default function AnalyticsPage() {
                         <Calendar size={20} className="text-indigo-400" />
                         <h3 className="text-lg font-bold text-white">Activity Heatmap</h3>
                     </div>
-                    <ActivityHeatmap 
-                        data={activityData.length > 0 ? activityData : undefined}
-                        tasks={tasks.filter(t => t.status.toLowerCase() === 'done')}
+                    <ActivityHeatmap
+                        data={activityData}
+                        isLoading={isLoading}
                     />
                 </div>
 
