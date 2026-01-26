@@ -30,7 +30,7 @@ interface TaskDetailsModalProps {
 import { toast } from "sonner";
 
 export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDelete }: TaskDetailsModalProps) {
-    const { handleEnrichTask } = useTasks();
+    const { handleEnrichTask, handleDecomposeTask } = useTasks();
     const { activeProjectId } = useProject();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -41,6 +41,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const [tags, setTags] = useState<Tag[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [isEnriching, setIsEnriching] = useState(false);
+    const [isDecomposing, setIsDecomposing] = useState(false);
     const [isPreview, setIsPreview] = useState(false);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -48,6 +49,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const [dependenciesMap, setDependenciesMap] = useState<Map<string, TaskDependency>>(new Map());
     const [dependencyViewMode, setDependencyViewMode] = useState<'list' | 'graph'>('list');
     const [isLoadingDependencies, setIsLoadingDependencies] = useState(false);
+    const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Undo/Redo functionality
@@ -187,7 +189,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         setIsLoadingDependencies(true);
         try {
             const tasks = await getTasksByProject(projectId);
-            
+
             if (tasks.length === 0) {
                 setDependenciesMap(new Map());
                 return;
@@ -196,7 +198,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
             // Use batch endpoint to load all dependencies in one request
             const taskIds = tasks.map(t => t.id);
             const batchDeps = await getBatchTaskDependencies(taskIds);
-            
+
             const depsMap = new Map<string, TaskDependency>();
             for (const [taskId, deps] of Object.entries(batchDeps)) {
                 depsMap.set(taskId, deps as TaskDependency);
@@ -238,14 +240,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     };
 
     const handleTaskClickInGraph = (taskId: string) => {
-        // Could navigate to task or show details
-        const clickedTask = allTasks.find(t => String(t.id) === String(taskId));
-        if (clickedTask) {
-            // Update current task to show clicked task
-            // This would require a callback to parent component
-            // For now, just show a toast
-            toast.info(`Task: ${clickedTask.title}`);
-        }
+        setSelectedTaskId(taskId);
     };
 
     const loadAttachments = async () => {
@@ -377,6 +372,21 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         }
     };
 
+    const handleDecompose = async () => {
+        if (!task) return;
+        setIsDecomposing(true);
+        try {
+            await handleDecomposeTask(task.id);
+            toast.success("Task successfully decomposed into separate cards!");
+            onClose(); // Close modal to see the new tasks on the board
+        } catch (error) {
+            console.error("AI Decomposition failed", error);
+            toast.error("AI Decomposition failed. Check backend logs.");
+        } finally {
+            setIsDecomposing(false);
+        }
+    };
+
     const toggleSubtask = (index: number) => {
         const newSubtasks = [...subtasks];
         newSubtasks[index].completed = !newSubtasks[index].completed;
@@ -405,7 +415,10 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-md p-0 sm:p-4">
-            <div className="w-full h-full sm:h-auto sm:max-w-3xl bg-gradient-to-br from-white via-white to-zinc-50 dark:from-zinc-900/98 dark:via-zinc-900/95 dark:to-zinc-950/98 border-0 sm:border border-zinc-200/80 dark:border-zinc-700/50 rounded-none sm:rounded-3xl shadow-2xl overflow-hidden backdrop-blur-2xl ring-0 sm:ring-1 ring-white/5 dark:ring-white/10 flex flex-col sm:block">
+            <div className={`
+                w-full h-full sm:h-auto bg-gradient-to-br from-white via-white to-zinc-50 dark:from-zinc-900/98 dark:via-zinc-900/95 dark:to-zinc-950/98 border-0 sm:border border-zinc-200/80 dark:border-zinc-700/50 rounded-none sm:rounded-3xl shadow-2xl overflow-hidden backdrop-blur-2xl ring-0 sm:ring-1 ring-white/5 dark:ring-white/10 flex flex-col sm:block transition-all duration-500
+                ${dependencyViewMode === 'graph' ? 'sm:max-w-6xl' : 'sm:max-w-3xl'}
+            `}>
                 {/* Header */}
                 <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-zinc-200/60 dark:border-zinc-800/40 bg-gradient-to-r from-zinc-50/80 to-transparent dark:from-zinc-900/40 dark:to-transparent backdrop-blur-sm shrink-0">
                     <div className="flex items-center gap-3">
@@ -466,10 +479,10 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                     </div>
                 </div>
 
-                <div className="p-6 max-h-[70vh] overflow-y-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className={`p-6 transition-all ${dependencyViewMode === 'graph' ? 'h-[85vh] overflow-hidden' : 'max-h-[70vh] overflow-y-auto'}`}>
+                    <div className={`grid grid-cols-1 ${dependencyViewMode === 'graph' ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-6 h-full`}>
                         {/* Main Content */}
-                        <div className="md:col-span-2 space-y-5">
+                        <div className={`${dependencyViewMode === 'graph' ? 'md:col-span-3' : 'md:col-span-2'} space-y-5 h-full`}>
                             <div>
                                 <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide">
                                     Title
@@ -484,7 +497,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                             </div>
 
                             {/* Subtasks / Magic Checklist Section */}
-                            {subtasks.length > 0 && (
+                            {subtasks.length > 0 && dependencyViewMode !== 'graph' && (
                                 <div className="bg-zinc-50 dark:bg-zinc-800/30 rounded-xl p-4 border border-zinc-200 dark:border-zinc-700/50">
                                     <div className="flex items-center justify-between mb-3">
                                         <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
@@ -516,152 +529,160 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                 </div>
                             )}
 
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
-                                        Description
-                                    </label>
-                                    <button
-                                        onClick={() => setIsPreview(!isPreview)}
-                                        className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-blue-500/10 transition-colors"
-                                    >
-                                        {isPreview ? <Edit3 size={12} /> : <Eye size={12} />}
-                                        {isPreview ? "Edit" : "Preview"}
-                                    </button>
-                                </div>
+                            {dependencyViewMode !== 'graph' && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                                            Description
+                                        </label>
+                                        <button
+                                            onClick={() => setIsPreview(!isPreview)}
+                                            className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-blue-500/10 transition-colors"
+                                        >
+                                            {isPreview ? <Edit3 size={12} /> : <Eye size={12} />}
+                                            {isPreview ? "Edit" : "Preview"}
+                                        </button>
+                                    </div>
 
-                                <div className="min-h-[140px] bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700/50 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500/50 transition-all">
-                                    {isPreview ? (
-                                        <div className="p-4 text-sm text-zinc-900 dark:text-zinc-200 leading-relaxed overflow-y-auto max-h-[300px] prose dark:prose-invert prose-sm max-w-none">
-                                            <Suspense fallback={<div className="text-zinc-500 italic">Loading markdown...</div>}>
-                                                <ReactMarkdown>{description || "*No description yet.*"}</ReactMarkdown>
-                                            </Suspense>
-                                        </div>
-                                    ) : (
-                                        <MentionAutocomplete
-                                            value={description}
-                                            onChange={setDescription}
-                                            projectId={activeProjectId || undefined}
-                                            placeholder="Add more details about this task... (Type @ to mention someone)"
-                                            className="w-full bg-transparent p-4 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-600 focus:outline-none resize-none text-sm leading-relaxed"
-                                            rows={6}
-                                        />
-                                    )}
+                                    <div className="min-h-[140px] bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700/50 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500/50 transition-all">
+                                        {isPreview ? (
+                                            <div className="p-4 text-sm text-zinc-900 dark:text-zinc-200 leading-relaxed overflow-y-auto max-h-[300px] prose dark:prose-invert prose-sm max-w-none">
+                                                <Suspense fallback={<div className="text-zinc-500 italic">Loading markdown...</div>}>
+                                                    <ReactMarkdown>{description || "*No description yet.*"}</ReactMarkdown>
+                                                </Suspense>
+                                            </div>
+                                        ) : (
+                                            <MentionAutocomplete
+                                                value={description}
+                                                onChange={setDescription}
+                                                projectId={activeProjectId || undefined}
+                                                placeholder="Add more details about this task... (Type @ to mention someone)"
+                                                className="w-full bg-transparent p-4 text-zinc-900 dark:text-zinc-200 placeholder-zinc-500 dark:placeholder-zinc-600 focus:outline-none resize-none text-sm leading-relaxed"
+                                                rows={6}
+                                            />
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Attachments Section */}
-                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <Paperclip size={16} className="text-zinc-600 dark:text-zinc-400" />
-                                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Attachments</h3>
-                                        {attachments.length > 0 && (
-                                            <span className="text-xs text-zinc-600 dark:text-zinc-500 bg-zinc-200 dark:bg-zinc-800 px-2 py-0.5 rounded-full">
-                                                {attachments.length}
-                                            </span>
-                                        )}
+                            {dependencyViewMode !== 'graph' && (
+                                <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <Paperclip size={16} className="text-zinc-600 dark:text-zinc-400" />
+                                            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Attachments</h3>
+                                            {attachments.length > 0 && (
+                                                <span className="text-xs text-zinc-600 dark:text-zinc-500 bg-zinc-200 dark:bg-zinc-800 px-2 py-0.5 rounded-full">
+                                                    {attachments.length}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={isUploading}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg border border-blue-500/20 hover:border-blue-500/30 disabled:opacity-50 transition-all"
+                                        >
+                                            {isUploading ? (
+                                                <>
+                                                    <div className="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
+                                                    <span>Uploading...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Upload size={12} />
+                                                    Upload
+                                                </>
+                                            )}
+                                        </button>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            onChange={handleFileUpload}
+                                            className="hidden"
+                                            accept="image/*,.pdf,.doc,.docx,.txt,.zip"
+                                        />
                                     </div>
-                                    <button
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={isUploading}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg border border-blue-500/20 hover:border-blue-500/30 disabled:opacity-50 transition-all"
-                                    >
-                                        {isUploading ? (
-                                            <>
-                                                <div className="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
-                                                <span>Uploading...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Upload size={12} />
-                                                Upload
-                                            </>
-                                        )}
-                                    </button>
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        onChange={handleFileUpload}
-                                        className="hidden"
-                                        accept="image/*,.pdf,.doc,.docx,.txt,.zip"
-                                    />
-                                </div>
 
-                                {attachments.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {attachments.map((attachment) => (
-                                            <div
-                                                key={attachment.id}
-                                                className="group flex items-center gap-3 p-3 bg-white dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700/50 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/70 hover:border-zinc-400 dark:hover:border-zinc-600/50 transition-all"
-                                            >
-                                                <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg ${attachment.type === "image" ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-zinc-200 dark:bg-zinc-700/50 text-zinc-600 dark:text-zinc-400'}`}>
-                                                    {attachment.type === "image" ? (
-                                                        <ImageIcon size={16} />
-                                                    ) : (
-                                                        <File size={16} />
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <a
-                                                        href={attachment.url.startsWith('http') ? attachment.url : (() => {
-                                                            const envUrl = import.meta.env.VITE_FILE_UPLOAD_BASE_URL;
-                                                            if (envUrl) return `${envUrl}${attachment.url}`;
-                                                            const hostname = window.location.hostname;
-                                                            const baseUrl = (hostname !== 'localhost' && hostname !== '127.0.0.1')
-                                                                ? `http://${hostname}:8080`
-                                                                : 'http://localhost:8080';
-                                                            return `${baseUrl}${attachment.url}`;
-                                                        })()}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="block text-sm font-medium text-zinc-900 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 truncate transition-colors"
-                                                    >
-                                                        {attachment.filename}
-                                                    </a>
-                                                    <div className="flex items-center gap-1.5 mt-1">
-                                                        <span className="text-xs text-zinc-500 dark:text-zinc-500">{formatFileSize(attachment.size)}</span>
-                                                        <span className="text-zinc-400 dark:text-zinc-600">·</span>
-                                                        <span className="text-xs text-zinc-500 dark:text-zinc-500">{new Date(attachment.uploaded_at).toLocaleDateString()}</span>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => handleDeleteAttachment(attachment.id)}
-                                                    className="p-1.5 text-zinc-500 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                                    title="Delete attachment"
+                                    {attachments.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {attachments.map((attachment) => (
+                                                <div
+                                                    key={attachment.id}
+                                                    className="group flex items-center gap-3 p-3 bg-white dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700/50 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/70 hover:border-zinc-400 dark:hover:border-zinc-600/50 transition-all"
                                                 >
-                                                    <Trash2 size={14} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8 text-zinc-500 dark:text-zinc-500 text-sm bg-zinc-50 dark:bg-zinc-800/30 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700/50">
-                                        No attachments yet
-                                    </div>
-                                )}
-                            </div>
+                                                    <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg ${attachment.type === "image" ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-zinc-200 dark:bg-zinc-700/50 text-zinc-600 dark:text-zinc-400'}`}>
+                                                        {attachment.type === "image" ? (
+                                                            <ImageIcon size={16} />
+                                                        ) : (
+                                                            <File size={16} />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <a
+                                                            href={attachment.url.startsWith('http') ? attachment.url : (() => {
+                                                                const envUrl = import.meta.env.VITE_FILE_UPLOAD_BASE_URL;
+                                                                if (envUrl) return `${envUrl}${attachment.url}`;
+                                                                const hostname = window.location.hostname;
+                                                                const baseUrl = (hostname !== 'localhost' && hostname !== '127.0.0.1')
+                                                                    ? `http://${hostname}:8080`
+                                                                    : 'http://localhost:8080';
+                                                                return `${baseUrl}${attachment.url}`;
+                                                            })()}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="block text-sm font-medium text-zinc-900 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 truncate transition-colors"
+                                                        >
+                                                            {attachment.filename}
+                                                        </a>
+                                                        <div className="flex items-center gap-1.5 mt-1">
+                                                            <span className="text-xs text-zinc-500 dark:text-zinc-500">{formatFileSize(attachment.size)}</span>
+                                                            <span className="text-zinc-400 dark:text-zinc-600">·</span>
+                                                            <span className="text-xs text-zinc-500 dark:text-zinc-500">{new Date(attachment.uploaded_at).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteAttachment(attachment.id)}
+                                                        className="p-1.5 text-zinc-500 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                        title="Delete attachment"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 text-zinc-500 dark:text-zinc-500 text-sm bg-zinc-50 dark:bg-zinc-800/30 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700/50">
+                                            No attachments yet
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Subtasks Section */}
-                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <CheckSquare size={16} className="text-zinc-600 dark:text-zinc-400" />
-                                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Subtasks</h3>
+                            {dependencyViewMode !== 'graph' && (
+                                <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <CheckSquare size={16} className="text-zinc-600 dark:text-zinc-400" />
+                                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Subtasks</h3>
+                                    </div>
+                                    <SubtasksList
+                                        subtasks={subtasks}
+                                        onUpdate={setSubtasks}
+                                    />
                                 </div>
-                                <SubtasksList
-                                    subtasks={subtasks}
-                                    onUpdate={setSubtasks}
-                                />
-                            </div>
+                            )}
 
                             {/* Time Tracking Section */}
-                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Clock size={16} className="text-zinc-600 dark:text-zinc-400" />
-                                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Time Tracking</h3>
+                            {dependencyViewMode !== 'graph' && (
+                                <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Clock size={16} className="text-zinc-600 dark:text-zinc-400" />
+                                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Time Tracking</h3>
+                                    </div>
+                                    <TimeTracker taskId={task.id} />
                                 </div>
-                                <TimeTracker taskId={task.id} />
-                            </div>
+                            )}
 
                             {/* Task Dependencies Section */}
                             <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
@@ -715,6 +736,7 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                                                 tasks={allTasks}
                                                 dependenciesMap={dependenciesMap}
                                                 onTaskClick={handleTaskClickInGraph}
+                                                selectedTaskId={selectedTaskId}
                                             />
                                         )}
                                     </div>
@@ -722,130 +744,194 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                             </div>
 
                             {/* Comments Section */}
-                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
-                                <TaskComments taskId={task.id} />
-                            </div>
+                            {dependencyViewMode !== 'graph' && (
+                                <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
+                                    <TaskComments taskId={task.id} />
+                                </div>
+                            )}
 
                             {/* AI Plan Section */}
-                            <div className="p-5 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-transparent border border-purple-500/20 rounded-xl">
-                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
+                            {dependencyViewMode !== 'graph' && (
+                                <div className="p-5 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-transparent border border-purple-500/20 rounded-xl">
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-center gap-2">
                                             <div className="p-1.5 bg-purple-500/20 rounded-lg">
                                                 <Sparkles size={16} className="text-purple-400" />
                                             </div>
-                                            <h4 className="text-sm font-semibold text-white">AI Plan Generator</h4>
+                                            <div>
+                                                <h4 className="text-sm font-semibold text-white">AI Assistant</h4>
+                                                <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mt-0.5">Augment your workflow</p>
+                                            </div>
                                         </div>
-                                        <p className="text-xs text-zinc-400 leading-relaxed">
-                                            Generate an intelligent execution plan with AI in seconds.
-                                        </p>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <button
+                                                onClick={handleEnrich}
+                                                disabled={isEnriching || isDecomposing}
+                                                className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex flex-col gap-2 transition-all active:scale-[0.98] group"
+                                            >
+                                                <div className="flex items-center justify-between w-full">
+                                                    <Edit3 size={16} className="text-blue-400" />
+                                                    {isEnriching && <div className="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />}
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-white uppercase tracking-wider">Magic Plan</p>
+                                                    <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">Fills description & checklist items.</p>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                onClick={handleDecompose}
+                                                disabled={isEnriching || isDecomposing}
+                                                className="px-4 py-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl flex flex-col gap-2 transition-all active:scale-[0.98] group shadow-[0_10px_30px_rgba(168,85,247,0.1)]"
+                                            >
+                                                <div className="flex items-center justify-between w-full">
+                                                    <Network size={16} className="text-purple-400" />
+                                                    {isDecomposing && <div className="w-3 h-3 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />}
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="text-xs font-bold text-white uppercase tracking-wider">Magic Decompose</p>
+                                                    <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">Splits into separate project cards.</p>
+                                                </div>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <button
-                                        onClick={handleEnrich}
-                                        disabled={isEnriching}
-                                        className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-lg shadow-purple-500/20 transition-all"
-                                    >
-                                        {isEnriching ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                Generating...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sparkles size={14} />
-                                                Generate Plan
-                                            </>
-                                        )}
-                                    </button>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
-                        {/* Sidebar info */}
+                        {/* Sidebar info / Graph Inspector */}
                         <div className="space-y-4">
-                            {/* Status Card */}
-                            <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
-                                <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
-                                    Status
-                                </label>
-                                <select
-                                    value={status}
-                                    onChange={(e) => setStatus(e.target.value)}
-                                    className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-md px-3 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 cursor-pointer transition-all appearance-none"
-                                >
-                                    <option value="Todo">To Do</option>
-                                    <option value="In_Progress">In Progress</option>
-                                    <option value="Review">Review</option>
-                                    <option value="Blocked">Blocked</option>
-                                    <option value="Done">Done</option>
-                                </select>
-                            </div>
-
-                            {/* Priority Card */}
-                            <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
-                                <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
-                                    Priority
-                                </label>
-                                <div className="flex gap-1.5">
-                                    {['low', 'medium', 'high'].map((p) => (
-                                        <button
-                                            key={p}
-                                            type="button"
-                                            onClick={() => setPriority(p)}
-                                            className={`flex-1 px-2.5 py-2 rounded-md text-[11px] font-bold uppercase tracking-wide transition-all ${priority === p
-                                                ? p === 'high'
-                                                    ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
-                                                    : p === 'medium'
-                                                        ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                                                        : 'bg-green-500 text-white shadow-md shadow-green-500/20'
-                                                : 'bg-zinc-700/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
-                                                }`}
-                                        >
-                                            {p}
-                                        </button>
-                                    ))}
+                            {dependencyViewMode === 'graph' ? (
+                                <div className="h-full bg-zinc-800/40 rounded-3xl p-6 border border-zinc-700/30 backdrop-blur-3xl flex flex-col gap-6">
+                                    {(() => {
+                                        const inspectorTask = allTasks.find(t => String(t.id) === String(selectedTaskId || task.id));
+                                        if (!inspectorTask) return <div className="text-zinc-500 italic text-sm">Select a task on the graph to view details.</div>;
+                                        return (
+                                            <>
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-indigo-400 mb-1.5 uppercase tracking-widest">Selected Task</label>
+                                                    <h4 className="text-base font-bold text-white leading-tight">{inspectorTask.title}</h4>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="bg-black/20 rounded-2xl p-3 border border-white/5 text-center">
+                                                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Status</p>
+                                                        <span className="text-xs font-bold text-zinc-200">{inspectorTask.status}</span>
+                                                    </div>
+                                                    <div className="bg-black/20 rounded-2xl p-3 border border-white/5 text-center">
+                                                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Priority</p>
+                                                        <span className={`text-xs font-bold uppercase ${inspectorTask.priority === 'high' ? 'text-rose-400' : inspectorTask.priority === 'medium' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                            {inspectorTask.priority}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {inspectorTask.description && (
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-zinc-500 mb-1.5 uppercase tracking-widest">Description</label>
+                                                        <p className="text-[11px] text-zinc-400 line-clamp-6 leading-relaxed bg-black/10 p-3 rounded-xl">
+                                                            {inspectorTask.description}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                <div className="mt-auto pt-6 border-t border-white/5">
+                                                    <button
+                                                        onClick={() => setSelectedTaskId(null)}
+                                                        className="w-full py-2.5 text-xs font-bold text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+                                                    >
+                                                        Focus Root Task
+                                                    </button>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {/* Status Card */}
+                                    <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
+                                        <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
+                                            Status
+                                        </label>
+                                        <select
+                                            value={status}
+                                            onChange={(e) => setStatus(e.target.value)}
+                                            className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-md px-3 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 cursor-pointer transition-all appearance-none"
+                                        >
+                                            <option value="Todo">To Do</option>
+                                            <option value="In_Progress">In Progress</option>
+                                            <option value="Review">Review</option>
+                                            <option value="Blocked">Blocked</option>
+                                            <option value="Done">Done</option>
+                                        </select>
+                                    </div>
 
-                            {/* Due Date Card */}
-                            <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
-                                <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
-                                    Due Date
-                                </label>
-                                <div className="space-y-2">
-                                    <div className="relative">
-                                        <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
-                                        <input
-                                            type="date"
-                                            value={dueDate}
-                                            onChange={(e) => setDueDate(e.target.value)}
-                                            className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-md pl-9 pr-2.5 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 [color-scheme:dark] transition-all"
+                                    {/* Priority Card */}
+                                    <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
+                                        <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
+                                            Priority
+                                        </label>
+                                        <div className="flex gap-1.5">
+                                            {['low', 'medium', 'high'].map((p) => (
+                                                <button
+                                                    key={p}
+                                                    type="button"
+                                                    onClick={() => setPriority(p)}
+                                                    className={`flex-1 px-2.5 py-2 rounded-md text-[11px] font-bold uppercase tracking-wide transition-all ${priority === p
+                                                        ? p === 'high'
+                                                            ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
+                                                            : p === 'medium'
+                                                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                                                                : 'bg-green-500 text-white shadow-md shadow-green-500/20'
+                                                        : 'bg-zinc-700/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300'
+                                                        }`}
+                                                >
+                                                    {p}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Due Date Card */}
+                                    <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
+                                        <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider">
+                                            Due Date
+                                        </label>
+                                        <div className="space-y-2">
+                                            <div className="relative">
+                                                <Calendar size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                                                <input
+                                                    type="date"
+                                                    value={dueDate}
+                                                    onChange={(e) => setDueDate(e.target.value)}
+                                                    className="w-full bg-zinc-900/60 border border-zinc-700/40 rounded-md pl-9 pr-2.5 py-2.5 text-sm font-medium text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 [color-scheme:dark] transition-all"
+                                                />
+                                            </div>
+                                            {dueDate && (
+                                                <button
+                                                    onClick={() => setDueDate("")}
+                                                    className="w-full py-2 text-xs font-medium text-zinc-500 hover:text-zinc-400 bg-zinc-700/40 hover:bg-zinc-700/60 rounded-md border border-zinc-600/40 hover:border-zinc-600/60 transition-all"
+                                                >
+                                                    Remove Deadline
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Tags Card */}
+                                    <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
+                                        <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider flex items-center gap-1.5">
+                                            <Hash size={12} />
+                                            Tags
+                                        </label>
+                                        <TagInput
+                                            tags={tags}
+                                            availableTags={[]} // Can be enhanced to load from project
+                                            onTagsChange={setTags}
+                                            placeholder="Add tags..."
                                         />
                                     </div>
-                                    {dueDate && (
-                                        <button
-                                            onClick={() => setDueDate("")}
-                                            className="w-full py-2 text-xs font-medium text-zinc-500 hover:text-zinc-400 bg-zinc-700/40 hover:bg-zinc-700/60 rounded-md border border-zinc-600/40 hover:border-zinc-600/60 transition-all"
-                                        >
-                                            Remove Deadline
-                                        </button>
-                                    )}
                                 </div>
-                            </div>
-
-                            {/* Tags Card */}
-                            <div className="bg-zinc-800/40 rounded-lg p-4 border border-zinc-700/30">
-                                <label className="block text-[10px] font-bold text-zinc-500 mb-2.5 uppercase tracking-wider flex items-center gap-1.5">
-                                    <Hash size={12} />
-                                    Tags
-                                </label>
-                                <TagInput
-                                    tags={tags}
-                                    availableTags={[]} // Can be enhanced to load from project
-                                    onTagsChange={setTags}
-                                    placeholder="Add tags..."
-                                />
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
