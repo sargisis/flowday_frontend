@@ -193,8 +193,8 @@ function layoutNodes(nodes: GraphNode[]): void {
     });
 
     // Calculate positions
-    const nodeSpacing = 200;
-    const levelSpacing = 150;
+    const nodeSpacing = 380; // Reduced from 450
+    const levelSpacing = 280; // Reduced from 300
     const minLevel = Math.min(...nodes.map(n => n.level));
     const maxLevel = Math.max(...nodes.map(n => n.level));
 
@@ -211,6 +211,8 @@ function layoutNodes(nodes: GraphNode[]): void {
         if (level === rootLevel) continue;
 
         const levelNodes = levelGroups.get(level) || [];
+        // Sort nodes by title within level to make layout more stable
+        levelNodes.sort((a, b) => a.task.title.localeCompare(b.task.title));
         const y = (level - rootLevel) * levelSpacing;
 
         levelNodes.forEach((node, index) => {
