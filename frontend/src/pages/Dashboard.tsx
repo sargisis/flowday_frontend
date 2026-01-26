@@ -12,12 +12,12 @@ import StreakCounter from "../components/achievements/StreakCounter";
 import EmptyState from "../components/state/EmptyState";
 import { useNavigate } from "react-router-dom";
 import { getAvatarUrl } from "../api/auth";
-import { useFocusTrend } from "../hooks/useFocusTrend";
+import { getAnalyticsData } from "../api/analytics";
 import LevelCard from "../components/dashboard/LevelCard";
 import FocusTrendCard from "../components/dashboard/FocusTrendCard";
 import ProductivityChart from "../components/dashboard/ProductivityChart";
 import { DashboardSkeleton } from "../components/skeletons/DashboardSkeleton";
-import { getAnalyticsData } from "../api/analytics";
+import { useFocusTrend } from "../hooks/useFocusTrend";
 
 export default function Dashboard() {
     const { activeProjectId } = useProject();
@@ -76,9 +76,7 @@ export default function Dashboard() {
         );
     }
 
-    // Use Skeleton while loading if needed, or if no tasks but project selected (optional choice)
-    // But original logic showed EmptyState if 0 tasks.
-    if (totalTasks === 0 && mounted) { // Added mounted check to prevent flash
+    if (totalTasks === 0 && mounted) {
         return (
             <div className="h-full flex items-center justify-center p-8">
                 <EmptyState
