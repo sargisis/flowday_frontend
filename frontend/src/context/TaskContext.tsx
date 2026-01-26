@@ -54,7 +54,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         setSelectedTask(null);
     }, []);
 
-    const handleCreateTask = async (title: string, priority: string, dueDate?: string) => {
+    const handleCreateTask = useCallback(async (title: string, priority: string, dueDate?: string) => {
         if (!activeProjectId) return;
         try {
             await apiCreateTask({
@@ -68,9 +68,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
             console.error("Task creation failed", error);
             throw error;
         }
-    };
+    }, [activeProjectId]);
 
-    const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
+    const handleUpdateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
         try {
             await apiUpdateTask(taskId, updates);
             triggerRefresh();
@@ -82,11 +82,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
             // If task was completed, refresh user to update XP/Level
             if (updates.status?.toLowerCase() === 'done') {
-                // Await reloadUser instead of deferring with setTimeout
                 try {
                     await reloadUser();
                 } catch (err) {
-                    // Retry once on failure
                     console.warn("Failed to reload user after task completion, retrying...", err);
                     setTimeout(() => {
                         reloadUser().catch(retryErr => {
@@ -99,9 +97,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
             console.error("Task update failed", error);
             throw error;
         }
-    };
+    }, [selectedTask, reloadUser]);
 
-    const handleDeleteTask = async (taskId: string) => {
+    const handleDeleteTask = useCallback(async (taskId: string) => {
         try {
             await apiDeleteTask(taskId);
             triggerRefresh();
@@ -112,9 +110,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
             console.error("Task deletion failed", error);
             throw error;
         }
-    };
+    }, [selectedTask]);
 
-    const handleDecomposeTask = async (taskId: string) => {
+    const handleDecomposeTask = useCallback(async (taskId: string) => {
         try {
             await apiDecomposeTask(taskId);
             triggerRefresh();
@@ -122,19 +120,18 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
             console.error("Task decomposition failed", error);
             throw error;
         }
-    };
+    }, []);
 
-    const handleEnrichTask = async (taskId: string) => {
+    const handleEnrichTask = useCallback(async (taskId: string) => {
         try {
             const res = await apiEnrichTask(taskId);
             triggerRefresh();
-            // Return full result (supports both old string-only and new object format if API changes)
             return res;
         } catch (error) {
             console.error("Task enrichment failed", error);
             throw error;
         }
-    };
+    }, []);
 
     return (
         <TaskContext.Provider value={{

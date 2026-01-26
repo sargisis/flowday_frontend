@@ -48,11 +48,17 @@ export function useAutoSave<T>({
     const [isSaving, setIsSaving] = useState(false);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+    // Keep onSave stable to avoid redundant effect triggers
+    const onSaveRef = useRef(onSave);
+    useEffect(() => {
+        onSaveRef.current = onSave;
+    }, [onSave]);
+
     const debouncedSave = useRef(
         debounce(async (dataToSave: T) => {
             setIsSaving(true);
             try {
-                await onSave(dataToSave);
+                await onSaveRef.current(dataToSave);
                 setLastSaved(new Date());
 
                 // Save to localStorage if storageKey provided
@@ -80,8 +86,8 @@ export function useAutoSave<T>({
                     const parsed = deserialize(saved);
                     // Only restore if data is empty/default
                     if (JSON.stringify(data) === JSON.stringify(previousDataRef.current)) {
-                        // Call onSave with restored data
-                        const result = onSave(parsed);
+                        // Call onSaveRef.current with restored data
+                        const result = onSaveRef.current(parsed);
                         if (result instanceof Promise) {
                             result.catch(console.error);
                         }
@@ -91,7 +97,8 @@ export function useAutoSave<T>({
                 console.warn('Failed to load from localStorage:', err);
             }
         }
-    }, [storageKey]); // Only run once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [storageKey, enabled]); // Only run once when storageKey/enabled changes
 
     useEffect(() => {
         if (!enabled) return;
@@ -118,7 +125,7 @@ export function useAutoSave<T>({
                 debouncedSave.cancel();
 
                 // Execute save synchronously if possible
-                const result = onSave(previousDataRef.current);
+                const result = onSaveRef.current(previousDataRef.current);
                 if (result instanceof Promise) {
                     // For async saves, we can't wait but at least trigger it
                     result.catch(err => {
@@ -127,7 +134,9 @@ export function useAutoSave<T>({
                 }
             }
         };
-    }, [flushOnUnmount, enabled, onSave]);
+        // Explicitly excluding onSaveRef since it's a ref and we want to break the loop
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [flushOnUnmount, enabled, debouncedSave]);
 
     // Clear localStorage when component unmounts (optional - can be controlled)
     const clearDraft = () => {
