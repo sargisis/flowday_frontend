@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Paperclip, Image as ImageIcon, File, Upload, Clock, List, Network, Sparkles, Edit3, Trash2 } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import { useAutoSave } from "../../hooks/useAutoSave";
 import type { Tag } from "../../types/tags";
@@ -9,13 +9,15 @@ import { useTasks } from "../../context/TaskContext";
 import { useProject } from "../../context/ProjectContext";
 import TaskComments from "./TaskComments";
 import TimeTracker from "../time-tracking/TimeTracker";
-import TaskDependencies from "../task-dependencies/TaskDependencies";
-import { DependencyGraph } from "../task-dependencies/DependencyGraph";
-import { getTaskDependencies, getBatchTaskDependencies, type TaskDependency } from "../../api/taskDependencies";
+
 import { TaskModalHeader } from "./task-details/TaskModalHeader";
 import { TaskModalSidebar } from "./task-details/TaskModalSidebar";
 import { TaskDescriptionTab } from "./task-details/TaskDescriptionTab";
 import { TaskSubtasksTab } from "./task-details/TaskSubtasksTab";
+import { TaskAttachments } from "./task-details/TaskAttachments";
+import { TaskDependenciesSection } from "./task-details/TaskDependenciesSection";
+import { TaskAIAssistant } from "./task-details/TaskAIAssistant";
+import { getTaskDependencies, getBatchTaskDependencies, type TaskDependency } from "../../api/taskDependencies";
 
 interface TaskDetailsModalProps {
     task: Task | null;
@@ -48,7 +50,6 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
     const [dependencyViewMode, setDependencyViewMode] = useState<'list' | 'graph'>('list');
     const [isLoadingDependencies, setIsLoadingDependencies] = useState(false);
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Undo/Redo functionality
     const taskData = useMemo(() => ({ title, description, subtasks, status, priority, dueDate }), [title, description, subtasks, status, priority, dueDate]);
@@ -251,21 +252,18 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
         }
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file || !task) return;
+    const handleFileUpload = async (file: File) => {
+        if (!task) return;
 
         // ✅ ENHANCED: Client-side validation
         const maxSize = 10 * 1024 * 1024; // 10MB
         if (file.size > maxSize) {
             toast.error(`File size exceeds maximum allowed size (10MB). Current size: ${(file.size / (1024 * 1024)).toFixed(2)} MB`);
-            if (fileInputRef.current) fileInputRef.current.value = "";
             return;
         }
 
         if (file.size < 1) {
             toast.error("File is empty or too small");
-            if (fileInputRef.current) fileInputRef.current.value = "";
             return;
         }
 
@@ -288,7 +286,6 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
             }
         } finally {
             setIsUploading(false);
-            if (fileInputRef.current) fileInputRef.current.value = "";
         }
     };
 
@@ -302,12 +299,6 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
             console.error("Failed to delete attachment", error);
             toast.error("Failed to delete attachment");
         }
-    };
-
-    const formatFileSize = (bytes: number): string => {
-        if (bytes < 1024) return bytes + " B";
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
     };
 
     if (!isOpen || !task) return null;
@@ -436,96 +427,12 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
 
                             {/* Attachments Section */}
                             {dependencyViewMode !== 'graph' && (
-                                <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <Paperclip size={16} className="text-zinc-600 dark:text-zinc-400" />
-                                            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Attachments</h3>
-                                            {attachments.length > 0 && (
-                                                <span className="text-xs text-zinc-600 dark:text-zinc-500 bg-zinc-200 dark:bg-zinc-800 px-2 py-0.5 rounded-full">
-                                                    {attachments.length}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <button
-                                            onClick={() => fileInputRef.current?.click()}
-                                            disabled={isUploading}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg border border-blue-500/20 hover:border-blue-500/30 disabled:opacity-50 transition-all"
-                                        >
-                                            {isUploading ? (
-                                                <>
-                                                    <div className="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
-                                                    <span>Uploading...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Upload size={12} />
-                                                    Upload
-                                                </>
-                                            )}
-                                        </button>
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            onChange={handleFileUpload}
-                                            className="hidden"
-                                            accept="image/*,.pdf,.doc,.docx,.txt,.zip"
-                                        />
-                                    </div>
-
-                                    {attachments.length > 0 ? (
-                                        <div className="space-y-2">
-                                            {attachments.map((attachment) => (
-                                                <div
-                                                    key={attachment.id}
-                                                    className="group flex items-center gap-3 p-3 bg-white dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700/50 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/70 hover:border-zinc-400 dark:hover:border-zinc-600/50 transition-all"
-                                                >
-                                                    <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg ${attachment.type === "image" ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400' : 'bg-zinc-200 dark:bg-zinc-700/50 text-zinc-600 dark:text-zinc-400'}`}>
-                                                        {attachment.type === "image" ? (
-                                                            <ImageIcon size={16} />
-                                                        ) : (
-                                                            <File size={16} />
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <a
-                                                            href={attachment.url.startsWith('http') ? attachment.url : (() => {
-                                                                const envUrl = import.meta.env.VITE_FILE_UPLOAD_BASE_URL;
-                                                                if (envUrl) return `${envUrl}${attachment.url}`;
-                                                                const hostname = window.location.hostname;
-                                                                const baseUrl = (hostname !== 'localhost' && hostname !== '127.0.0.1')
-                                                                    ? `http://${hostname}:8080`
-                                                                    : 'http://localhost:8080';
-                                                                return `${baseUrl}${attachment.url}`;
-                                                            })()}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="block text-sm font-medium text-zinc-900 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 truncate transition-colors"
-                                                        >
-                                                            {attachment.filename}
-                                                        </a>
-                                                        <div className="flex items-center gap-1.5 mt-1">
-                                                            <span className="text-xs text-zinc-500 dark:text-zinc-500">{formatFileSize(attachment.size)}</span>
-                                                            <span className="text-zinc-400 dark:text-zinc-600">·</span>
-                                                            <span className="text-xs text-zinc-500 dark:text-zinc-500">{new Date(attachment.uploaded_at).toLocaleDateString()}</span>
-                                                        </div>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => handleDeleteAttachment(attachment.id)}
-                                                        className="p-1.5 text-zinc-500 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                                        title="Delete attachment"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-center py-8 text-zinc-500 dark:text-zinc-500 text-sm bg-zinc-50 dark:bg-zinc-800/30 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700/50">
-                                            No attachments yet
-                                        </div>
-                                    )}
-                                </div>
+                                <TaskAttachments
+                                    attachments={attachments}
+                                    isUploading={isUploading}
+                                    onUpload={handleFileUpload}
+                                    onDelete={handleDeleteAttachment}
+                                />
                             )}
 
                             {/* Subtasks Section */}
@@ -548,63 +455,17 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
                             )}
 
                             {/* Task Dependencies Section */}
-                            <div className="border-t border-zinc-200 dark:border-zinc-800/50 pt-5">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-2">
-                                        <Network size={16} className="text-zinc-600 dark:text-zinc-400" />
-                                        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-wide">Dependencies</h3>
-                                    </div>
-                                    <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-1">
-                                        <button
-                                            onClick={() => setDependencyViewMode('list')}
-                                            className={`px-3 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${dependencyViewMode === 'list'
-                                                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                                                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300'
-                                                }`}
-                                        >
-                                            <List size={14} />
-                                            List
-                                        </button>
-                                        <button
-                                            onClick={() => setDependencyViewMode('graph')}
-                                            className={`px-3 py-1.5 text-xs font-medium rounded transition-all flex items-center gap-1.5 ${dependencyViewMode === 'graph'
-                                                ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                                                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300'
-                                                }`}
-                                        >
-                                            <Network size={14} />
-                                            Graph
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {dependencyViewMode === 'list' ? (
-                                    <TaskDependencies
-                                        taskId={task.id}
-                                        allTasks={allTasks}
-                                        onUpdate={handleDependencyUpdate}
-                                    />
-                                ) : (
-                                    <div className="mt-4">
-                                        {isLoadingDependencies ? (
-                                            <div className="flex items-center justify-center h-64 text-zinc-500">
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <div className="w-6 h-6 border-2 border-zinc-400/30 border-t-zinc-400 rounded-full animate-spin" />
-                                                    <span className="text-sm">Loading dependencies...</span>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <DependencyGraph
-                                                rootTaskId={task.id}
-                                                tasks={allTasks}
-                                                dependenciesMap={dependenciesMap}
-                                                onTaskClick={handleTaskClickInGraph}
-                                                selectedTaskId={selectedTaskId}
-                                            />
-                                        )}
-                                    </div>
-                                )}
-                            </div>
+                            <TaskDependenciesSection
+                                taskId={task.id}
+                                allTasks={allTasks}
+                                dependenciesMap={dependenciesMap}
+                                viewMode={dependencyViewMode}
+                                onViewModeChange={setDependencyViewMode}
+                                isLoading={isLoadingDependencies}
+                                onDependencyUpdate={handleDependencyUpdate}
+                                onTaskClickInGraph={handleTaskClickInGraph}
+                                selectedTaskId={selectedTaskId}
+                            />
 
                             {/* Comments Section */}
                             {dependencyViewMode !== 'graph' && (
@@ -615,51 +476,12 @@ export default function TaskDetailsModal({ task, isOpen, onClose, onUpdate, onDe
 
                             {/* AI Plan Section */}
                             {dependencyViewMode !== 'graph' && (
-                                <div className="p-5 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-transparent border border-purple-500/20 rounded-xl">
-                                    <div className="flex flex-col gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-1.5 bg-purple-500/20 rounded-lg">
-                                                <Sparkles size={16} className="text-purple-400" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-semibold text-white">AI Assistant</h4>
-                                                <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mt-0.5">Augment your workflow</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            <button
-                                                onClick={handleEnrich}
-                                                disabled={isEnriching || isDecomposing}
-                                                className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex flex-col gap-2 transition-all active:scale-[0.98] group"
-                                            >
-                                                <div className="flex items-center justify-between w-full">
-                                                    <Edit3 size={16} className="text-blue-400" />
-                                                    {isEnriching && <div className="w-3 h-3 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />}
-                                                </div>
-                                                <div className="text-left">
-                                                    <p className="text-xs font-bold text-white uppercase tracking-wider">Magic Plan</p>
-                                                    <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">Fills description & checklist items.</p>
-                                                </div>
-                                            </button>
-
-                                            <button
-                                                onClick={handleDecompose}
-                                                disabled={isEnriching || isDecomposing}
-                                                className="px-4 py-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl flex flex-col gap-2 transition-all active:scale-[0.98] group shadow-[0_10px_30px_rgba(168,85,247,0.1)]"
-                                            >
-                                                <div className="flex items-center justify-between w-full">
-                                                    <Network size={16} className="text-purple-400" />
-                                                    {isDecomposing && <div className="w-3 h-3 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />}
-                                                </div>
-                                                <div className="text-left">
-                                                    <p className="text-xs font-bold text-white uppercase tracking-wider">Magic Decompose</p>
-                                                    <p className="text-[10px] text-zinc-500 mt-1 leading-relaxed">Splits into separate project cards.</p>
-                                                </div>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <TaskAIAssistant
+                                    onEnrich={handleEnrich}
+                                    onDecompose={handleDecompose}
+                                    isEnriching={isEnriching}
+                                    isDecomposing={isDecomposing}
+                                />
                             )}
                         </div>
 
