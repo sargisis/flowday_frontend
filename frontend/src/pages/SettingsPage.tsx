@@ -40,9 +40,9 @@ export default function SettingsPage() {
     const [isSlackModalOpen, setIsSlackModalOpen] = useState(false);
     const [slackWebhookInput, setSlackWebhookInput] = useState<string>("");
     const [isTestingWebhook, setIsTestingWebhook] = useState(false);
-    
+
     // Slack OAuth state
-    const [slackChannels, setSlackChannels] = useState<Array<{id: string; name: string}>>([]);
+    const [slackChannels, setSlackChannels] = useState<Array<{ id: string; name: string }>>([]);
     const [isLoadingChannels, setIsLoadingChannels] = useState(false);
     const [isConnectingSlack, setIsConnectingSlack] = useState(false);
 
@@ -56,14 +56,14 @@ export default function SettingsPage() {
             // Load notification settings from user data
             setEmailNotifications(user.email_notifications ?? false);
             setSlackWebhookURL(user.slack_webhook_url || "");
-            
+
             // Load Slack channels if OAuth is connected
             if (user.slack_connected) {
                 loadSlackChannels();
             }
         }
     }, [user]);
-    
+
     const loadSlackChannels = async () => {
         if (!user?.slack_connected) return;
         setIsLoadingChannels(true);
@@ -76,7 +76,7 @@ export default function SettingsPage() {
             setIsLoadingChannels(false);
         }
     };
-    
+
     const handleConnectSlack = async () => {
         setIsConnectingSlack(true);
         try {
@@ -88,7 +88,7 @@ export default function SettingsPage() {
             setIsConnectingSlack(false);
         }
     };
-    
+
     const handleDisconnectSlack = async () => {
         setIsSavingNotifications(true);
         try {
@@ -102,7 +102,7 @@ export default function SettingsPage() {
             setIsSavingNotifications(false);
         }
     };
-    
+
     // Check for OAuth callback success
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -241,8 +241,8 @@ export default function SettingsPage() {
                             onClick={() => setActiveTab(tab.id)}
                             className={`
                                 relative px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2
-                                ${isActive 
-                                    ? 'text-white bg-blue-600 shadow-md shadow-blue-500/20' 
+                                ${isActive
+                                    ? 'text-white bg-blue-600 shadow-md shadow-blue-500/20'
                                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-300 hover:bg-zinc-200/50 dark:hover:bg-zinc-700/50'
                                 }
                             `}
@@ -338,7 +338,7 @@ export default function SettingsPage() {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                            <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">Workspace Name</label>
+                                        <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">Workspace Name</label>
                                         <input
                                             value={workspaceName}
                                             onChange={(e) => setWorkspaceName(e.target.value)}
@@ -454,9 +454,9 @@ export default function SettingsPage() {
                                             </div>
                                         </div>
                                         <div className="relative">
-                                            <input 
-                                                type="checkbox" 
-                                                className="sr-only peer" 
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
                                                 checked={emailNotifications}
                                                 disabled={isSavingNotifications}
                                                 onChange={async (e) => {
@@ -476,9 +476,8 @@ export default function SettingsPage() {
                                                     }
                                                 }}
                                             />
-                                            <div className={`w-10 h-5 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${
-                                                emailNotifications ? "bg-blue-600" : "bg-zinc-300 dark:bg-zinc-700"
-                                            } ${isSavingNotifications ? "opacity-50" : ""}`}></div>
+                                            <div className={`w-10 h-5 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${emailNotifications ? "bg-blue-600" : "bg-zinc-300 dark:bg-zinc-700"
+                                                } ${isSavingNotifications ? "opacity-50" : ""}`}></div>
                                         </div>
                                     </label>
                                 </div>
@@ -496,7 +495,7 @@ export default function SettingsPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     {user?.slack_connected ? (
                                         <div className="mt-3 space-y-3">
                                             <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
@@ -531,7 +530,7 @@ export default function SettingsPage() {
                                                     </button>
                                                 </div>
                                             </div>
-                                            
+
                                             {/* Channel Selection */}
                                             {slackChannels.length > 0 && (
                                                 <div className="space-y-2">
@@ -567,7 +566,7 @@ export default function SettingsPage() {
                                                     </select>
                                                 </div>
                                             )}
-                                            
+
                                             <button
                                                 onClick={async () => {
                                                     setIsTestingWebhook(true);
@@ -664,17 +663,16 @@ export default function SettingsPage() {
                                         </div>
                                     </div>
                                     <div className="relative">
-                                        <input 
-                                            type="checkbox" 
-                                            className="sr-only peer" 
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
                                             checked={compactView}
                                             onChange={(e) => setCompactView(e.target.checked)}
                                         />
-                                        <div className={`w-10 h-5 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${
-                                            compactView 
-                                                ? "bg-blue-600" 
-                                                : "bg-zinc-300 dark:bg-zinc-700"
-                                        }`}></div>
+                                        <div className={`w-10 h-5 rounded-full peer-focus:outline-none peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${compactView
+                                            ? "bg-blue-600"
+                                            : "bg-zinc-300 dark:bg-zinc-700"
+                                            }`}></div>
                                     </div>
                                 </label>
                             </div>
@@ -741,20 +739,20 @@ export default function SettingsPage() {
                                                     if (isCapturing) {
                                                         e.preventDefault();
                                                         e.stopPropagation();
-                                                        
+
                                                         // Don't capture Escape
                                                         if (e.key === 'Escape') {
                                                             setCapturingKey(null);
                                                             return;
                                                         }
-                                                        
+
                                                         const newShortcut: Partial<CustomShortcut> = {
                                                             key: e.key,
                                                             ctrl: e.ctrlKey || e.metaKey,
                                                             shift: e.shiftKey,
                                                             alt: e.altKey,
                                                         };
-                                                        
+
                                                         updateShortcut(shortcut.action, newShortcut);
                                                         setCapturingKey(null);
                                                         toast.success('Shortcut updated');
@@ -765,11 +763,10 @@ export default function SettingsPage() {
                                                         setCapturingKey(null);
                                                     }
                                                 }}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                                    isCapturing
-                                                        ? 'bg-indigo-500 text-white animate-pulse'
-                                                        : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
-                                                }`}
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${isCapturing
+                                                    ? 'bg-indigo-500 text-white animate-pulse'
+                                                    : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600'
+                                                    }`}
                                             >
                                                 {isCapturing ? (
                                                     'Press key...'
@@ -802,14 +799,26 @@ export default function SettingsPage() {
                 {activeTab === 'billing' && (
                     <div className="space-y-6">
                         <section className="p-6 rounded-xl border border-zinc-300/30 dark:border-zinc-700/50 bg-zinc-100/50 dark:bg-zinc-800/40 backdrop-blur-sm">
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                    <CreditCard size={20} />
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                        <CreditCard size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">Subscription & Billing</h3>
+                                        <p className="text-zinc-600 dark:text-zinc-400 text-xs">Manage your billing and subscription</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">Subscription & Billing</h3>
-                                    <p className="text-zinc-600 dark:text-zinc-400 text-xs">Choose your Flowday Pro plan</p>
-                                </div>
+                                {user?.plan === 'pro' && (
+                                    <a
+                                        href="https://buymeacoffee.com/flowday"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-white text-sm font-semibold transition-all flex items-center gap-2"
+                                    >
+                                        Manage Subscription
+                                    </a>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -878,12 +887,20 @@ export default function SettingsPage() {
                                             </ul>
                                         </div>
 
-                                        <button 
-                                            disabled
-                                            className="w-full py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-semibold rounded-lg opacity-50 cursor-not-allowed"
-                                        >
-                                            Join
-                                        </button>
+                                        {user?.plan === 'pro' ? (
+                                            <div className="w-full py-2 bg-zinc-800 text-zinc-400 text-xs font-semibold rounded-lg text-center border border-zinc-700">
+                                                Current Plan
+                                            </div>
+                                        ) : (
+                                            <a
+                                                href="https://buymeacoffee.com/flowday"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block w-full py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-semibold rounded-lg text-center hover:opacity-90 transition-opacity"
+                                            >
+                                                Upgrade Now
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
 
@@ -952,12 +969,20 @@ export default function SettingsPage() {
                                             </ul>
                                         </div>
 
-                                        <button 
-                                            disabled
-                                            className="w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs font-semibold rounded-lg opacity-50 cursor-not-allowed"
-                                        >
-                                            Join
-                                        </button>
+                                        {user?.plan === 'pro' ? (
+                                            <div className="w-full py-2 bg-zinc-800 text-zinc-400 text-xs font-semibold rounded-lg text-center border border-zinc-700">
+                                                Current Plan
+                                            </div>
+                                        ) : (
+                                            <a
+                                                href="https://buymeacoffee.com/flowday"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs font-semibold rounded-lg text-center hover:opacity-90 transition-opacity"
+                                            >
+                                                Upgrade Now
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
 
@@ -1022,16 +1047,24 @@ export default function SettingsPage() {
                                             </ul>
                                         </div>
 
-                                        <button 
-                                            disabled
-                                            className="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-semibold rounded-lg opacity-50 cursor-not-allowed"
-                                        >
-                                            Join
-                                        </button>
+                                        {user?.plan === 'pro' ? (
+                                            <div className="w-full py-2 bg-zinc-800 text-zinc-400 text-xs font-semibold rounded-lg text-center border border-zinc-700">
+                                                Current Plan
+                                            </div>
+                                        ) : (
+                                            <a
+                                                href="https://buymeacoffee.com/flowday"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-semibold rounded-lg text-center hover:opacity-90 transition-opacity"
+                                            >
+                                                Upgrade Now
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Comparison Note */}
                             <div className="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
                                 <p className="text-xs text-blue-300/80 text-center">
@@ -1060,7 +1093,13 @@ export default function SettingsPage() {
                                     <h3 className="text-xl font-bold text-zinc-900 dark:text-white">{user?.name || 'User Account'}</h3>
                                     <p className="text-zinc-600 dark:text-zinc-400 text-sm">{user?.email || 'user@example.com'}</p>
                                     <div className="flex items-center gap-2 pt-1">
-                                        <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-wide">Flowday Member</span>
+                                        {user?.plan === 'pro' ? (
+                                            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-wide flex items-center gap-1">
+                                                <Zap size={10} fill="currentColor" /> Pro Member
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-wide">Flowday Member</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>

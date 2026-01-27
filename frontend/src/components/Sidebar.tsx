@@ -1,6 +1,6 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { createProject } from "../api/projects";
+import { createProject, updateProject, deleteProject } from "../api/projects";
 import { useProject } from "../context/ProjectContext";
 import { toast } from "sonner";
 import {
@@ -16,7 +16,11 @@ import {
     MessageSquare,
     BarChart3,
     Menu,
-    X
+    X,
+    MoreVertical,
+    Pencil,
+    Trash2,
+    Check
 } from "lucide-react";
 
 // Prefetch routes on hover for faster navigation
@@ -34,19 +38,35 @@ function Sidebar() {
     const [permissionGranted, setPermissionGranted] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+    // Renaming state
+    const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+    const [editName, setEditName] = useState("");
+
+    // Context menu state (simple version: show options on hover/click)
+    const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setMenuOpenId(null);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     useEffect(() => {
         // Request permission on load
         import("../utils/notificationManager").then(({ notificationManager }) => {
             if (!notificationManager.canNotify()) {
-                // Don't auto-spam, maybe show a toast or banner later
-                // For now, we'll try silently or check permission
                 setPermissionGranted(false);
             } else {
                 setPermissionGranted(true);
             }
         });
 
-        // Background poller for due tasks
+        // Background poller for due tasks (kept as is)
         const checkDueTasks = async () => {
             const { notificationManager } = await import("../utils/notificationManager");
             const { getTasksByProject } = await import("../api/tasks");
@@ -64,9 +84,7 @@ function Sidebar() {
                     const diffMs = due.getTime() - now.getTime();
                     const diffMins = diffMs / (1000 * 60);
 
-                    // Notify if due in exactly ~1 hour (window of 5 mins)
                     if (diffMins > 55 && diffMins < 65) {
-                        // Check if already notified using localStorage to avoid spam
                         const key = `notified-due-${t.id}`;
                         if (!localStorage.getItem(key)) {
                             notificationManager.notifyTaskDue(t.title, "in 1 hour");
@@ -74,7 +92,6 @@ function Sidebar() {
                         }
                     }
 
-                    // Notify if overdue recently (window of 5 mins ago)
                     if (diffMins < 0 && diffMins > -5) {
                         const key = `notified-overdue-${t.id}`;
                         if (!localStorage.getItem(key)) {
@@ -88,9 +105,10 @@ function Sidebar() {
             }
         };
 
-        const interval = setInterval(checkDueTasks, 60000); // Check every minute
+        const interval = setInterval(checkDueTasks, 60000);
         return () => clearInterval(interval);
     }, [activeProjectId]);
+
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newProjectName.trim()) return;
@@ -102,6 +120,38 @@ function Sidebar() {
             toast.success("Project created successfully");
         } catch (error) {
             toast.error("Failed to create project");
+        }
+    };
+
+    const startEditing = (project: any, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingProjectId(project.id);
+        setEditName(project.name);
+        setMenuOpenId(null);
+    };
+
+    const saveRename = async (projectId: string) => {
+        if (!editName.trim()) return;
+        try {
+            await updateProject(projectId, editName);
+            await refreshProjects();
+            setEditingProjectId(null);
+            toast.success("Project renamed");
+        } catch (error) {
+            toast.error("Failed to rename project");
+        }
+    };
+
+    const handleDelete = async (projectId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm("Are you sure you want to delete this project? All tasks will be lost.")) return;
+        try {
+            await deleteProject(projectId);
+            await refreshProjects();
+            if (activeProjectId === projectId) setActiveProjectId(null);
+            toast.success("Project deleted");
+        } catch (error) {
+            toast.error("Failed to delete project");
         }
     };
 
@@ -187,13 +237,51 @@ function Sidebar() {
                     {projects.map((p) => (
                         <div
                             key={p.id}
-                            onClick={() => setActiveProjectId(p.id)}
-                            className={`project-item ${p.id === activeProjectId ? "active-project" : ""} `}
+                            onClick={() => !editingProjectId && setActiveProjectId(p.id)}
+                            className={`project-item group relative ${p.id === activeProjectId ? "active-project" : ""} `}
                         >
                             <div className="project-color-dot" />
-                            <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                {p.name}
-                            </span>
+
+                            {editingProjectId === p.id ? (
+                                <div className="flex items-center gap-1 flex-1 min-w-0">
+                                    <input
+                                        autoFocus
+                                        className="bg-transparent border-b border-blue-500 text-sm text-white w-full outline-none p-0"
+                                        value={editName}
+                                        onChange={(e) => setEditName(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') saveRename(p.id);
+                                            if (e.key === 'Escape') setEditingProjectId(null);
+                                        }}
+                                        onBlur={() => setEditingProjectId(null)}
+                                    />
+                                </div>
+                            ) : (
+                                <>
+                                    <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        {p.name}
+                                    </span>
+
+                                    {/* Action Buttons */}
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-900/80 p-0.5 rounded-md">
+                                        <button
+                                            onClick={(e) => startEditing(p, e)}
+                                            className="p-1 text-zinc-400 hover:text-white hover:bg-zinc-700/50 rounded"
+                                            title="Rename"
+                                        >
+                                            <Pencil size={12} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleDelete(p.id, e)}
+                                            className="p-1 text-zinc-400 hover:text-red-400 hover:bg-zinc-700/50 rounded"
+                                            title="Delete"
+                                        >
+                                            <Trash2 size={12} />
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     ))}
 
