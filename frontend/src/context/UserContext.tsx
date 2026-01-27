@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getMe } from "../api/auth";
 import { useNavigate } from "react-router-dom";
+import { useWebSocketContext } from "./WebSocketContext";
 
 // User Interface Definition
 export interface User {
@@ -73,6 +74,27 @@ export function UserProvider({ children }: { children: ReactNode }) {
         window.addEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout);
         return () => window.removeEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout);
     }, [navigate]);
+
+    // Listen for real-time user updates
+    const { subscribe } = useWebSocketContext();
+
+    useEffect(() => {
+        const unsubscribe = subscribe('user_update', (message) => {
+            console.log('User update received:', message);
+            // Optionally merge optimistic updates here, but reloading is safer
+            reloadUser();
+
+            // Show toast if plan updated
+            if (message.payload?.plan === 'pro') {
+                // We can import toast from sonner if we want to notify
+                // toast.success("You are now a PRO member! 🎉");
+            }
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [subscribe]);
 
     useEffect(() => {
         reloadUser();

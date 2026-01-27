@@ -41,8 +41,8 @@ const PageLoader = () => (
 );
 
 export const router = createBrowserRouter([
-    { 
-        path: "/", 
+    {
+        path: "/",
         element: (
             <Suspense fallback={<PageLoader />}>
                 <LandingPage />
@@ -50,32 +50,32 @@ export const router = createBrowserRouter([
         )
     },
     { path: "/app/v1", element: <Navigate to="/app/v1/dashboard" replace /> },
-    { 
-        path: "/app/v1/login", 
+    {
+        path: "/app/v1/login",
         element: (
             <Suspense fallback={<PageLoader />}>
                 <Login />
             </Suspense>
         )
     },
-    { 
-        path: "/app/v1/register", 
+    {
+        path: "/app/v1/register",
         element: (
             <Suspense fallback={<PageLoader />}>
                 <Register />
             </Suspense>
         )
     },
-    { 
-        path: "/app/v1/forgot-password", 
+    {
+        path: "/app/v1/forgot-password",
         element: (
             <Suspense fallback={<PageLoader />}>
                 <ForgotPassword />
             </Suspense>
         )
     },
-    { 
-        path: "/app/v1/reset-password", 
+    {
+        path: "/app/v1/reset-password",
         element: (
             <Suspense fallback={<PageLoader />}>
                 <ResetPassword />
@@ -86,8 +86,8 @@ export const router = createBrowserRouter([
         path: "/app/v1",
         element: (
             <ProtectedRoute>
-                <UserProvider>
-                    <WebSocketProvider>
+                <WebSocketProvider>
+                    <UserProvider>
                         <ProjectProvider>
                             <FocusProvider>
                                 <TaskProvider>
@@ -95,14 +95,14 @@ export const router = createBrowserRouter([
                                 </TaskProvider>
                             </FocusProvider>
                         </ProjectProvider>
-                    </WebSocketProvider>
-                </UserProvider>
+                    </UserProvider>
+                </WebSocketProvider>
             </ProtectedRoute>
         ),
         children: [
             { index: true, element: <Navigate to="/app/v1/dashboard" replace /> },
-            { 
-                path: "dashboard", 
+            {
+                path: "dashboard",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<DashboardSkeleton />}>
@@ -111,8 +111,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "calendar", 
+            {
+                path: "calendar",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -121,8 +121,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "tasks", 
+            {
+                path: "tasks",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -131,8 +131,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "tasks/new", 
+            {
+                path: "tasks/new",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -141,8 +141,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "team", 
+            {
+                path: "team",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -151,8 +151,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "messages", 
+            {
+                path: "messages",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -161,8 +161,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "messages/:chatId", 
+            {
+                path: "messages/:chatId",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -171,8 +171,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "invitations", 
+            {
+                path: "invitations",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -181,8 +181,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "notifications", 
+            {
+                path: "notifications",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -191,8 +191,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "settings", 
+            {
+                path: "settings",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -201,8 +201,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "focus/history", 
+            {
+                path: "focus/history",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -211,8 +211,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "achievements", 
+            {
+                path: "achievements",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -221,8 +221,8 @@ export const router = createBrowserRouter([
                     </ErrorBoundary>
                 )
             },
-            { 
-                path: "analytics", 
+            {
+                path: "analytics",
                 element: (
                     <ErrorBoundary>
                         <Suspense fallback={<PageLoader />}>
@@ -238,8 +238,8 @@ export const router = createBrowserRouter([
         path: "/app/v1/focus",
         element: (
             <ProtectedRoute>
-                <UserProvider>
-                    <WebSocketProvider>
+                <WebSocketProvider>
+                    <UserProvider>
                         <ProjectProvider>
                             <FocusProvider>
                                 <TaskProvider>
@@ -251,8 +251,8 @@ export const router = createBrowserRouter([
                                 </TaskProvider>
                             </FocusProvider>
                         </ProjectProvider>
-                    </WebSocketProvider>
-                </UserProvider>
+                    </UserProvider>
+                </WebSocketProvider>
             </ProtectedRoute>
         )
     },
@@ -260,8 +260,8 @@ export const router = createBrowserRouter([
         path: "/app/v1/focus/:taskId",
         element: (
             <ProtectedRoute>
-                <UserProvider>
-                    <WebSocketProvider>
+                <WebSocketProvider>
+                    <UserProvider>
                         <ProjectProvider>
                             <FocusProvider>
                                 <TaskProvider>
@@ -273,8 +273,8 @@ export const router = createBrowserRouter([
                                 </TaskProvider>
                             </FocusProvider>
                         </ProjectProvider>
-                    </WebSocketProvider>
-                </UserProvider>
+                    </UserProvider>
+                </WebSocketProvider>
             </ProtectedRoute>
         )
     },
