@@ -9,6 +9,7 @@
 
 ## 🧠 Core Philosophy: The Flow State
 
+
 Most tools distract you with notifications and clutter. Flowday is designed to **disappear**, allowing you to enter a state of deep focus.
 
 ### 🌟 Key Experience Features
