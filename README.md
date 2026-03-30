@@ -17,6 +17,7 @@ Most tools distract you with notifications and clutter. Flowday is designed to *
 
 
 
+
 #### 🧘 Daily Ritual
 - **Intention Setting:** Start your day with a guided morning ritual.
 - **Commitment:** Select 1-3 critical tasks to conquer. "Inbox Zero" for your mind before you start.
